@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking System UI</title>
+    <!--<link rel="stylesheet" href="styles.css">-->
+    <link rel="stylesheet" href="CSS/base.css">
+    <link rel="stylesheet" href="CSS/index.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- LEFT NAVIGATION -->
+        <nav class="sidebar">
+            <h2 class="logo">CUA Bookings</h2>
+
+            <ul class="nav-links">
+                <li class="active">Bookings</li>
+                <li onclick="window.location='courses.html'">Courses</li>
+                <li>Mentors</li>
+                <li>Account</li>
+            </ul>
+
+            <div class="logout">
+                <span>Logout</span>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="content">
+
+            <!-- TOP OPTIONS -->
+            <div class="top-menu">
+                <span class="top-option active">Create</span>
+                <span class="top-option" onclick="window.location='view.html'">View</span>
+                <span class="top-option">Query</span>
+            </div>
+
+            <!-- FORM SECTION -->
+            <div class="form-container">
+                <h2>New Booking</h2>
+
+                <form>
+                    <label>Class</label>
+                    <input type="text">
+
+                    <label>Mentor</label>
+                    <input type="text">
+
+                    <label>Date</label>
+                    <input type="date">
+
+                    <label>Email</label>
+                    <input type="email">
+
+                    <label>Student</label>
+                    <input type="text">
+
+                    <label>Phone Number</label>
+                    <input type="text">
+
+                    <label>Topics to Discuss</label>
+                    <textarea rows="3"></textarea>
+
+                    <label>Professor</label>
+                    <input type="text">
+
+                    <label>Person Who Made the Citation</label>
+                    <input type="text">
+
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+                <!-- FOOTER -->
+            <footer class="footer">
+                CUA Booking Prototype
+                Antes de llegar a el form tendrias que seleccionar la materia y el mentor el cual
+                dara la tutoria. Otra opcion es tener el form programado para que el tutor y su
+                dispinibilidad determine las horas de cita disponibles. Date tendra un modal donde
+                se escoge la fecha de la cita similar a el sistema actual.
+                Opciones como: tutor y curso serian drop-box.
+                Cierta informacion haria "autofil" si es un estudiante que ya tomo tutorias anteriormente.
+            </footer>
+        </main>
+
+    </div>
+</body>
+</html>
