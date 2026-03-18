@@ -38,89 +38,161 @@
             <span class="top-option" style="background-color: red; color:white;">Delete</span>
         </div>
 
-        <div class="booking-header">
-            <h2>Math Courses</h2>
+    <div class="booking-header">
+        <div class="left-group">
+            <h2>Available Courses</h2>
+            <button class="top-option" style="background-color: green; color:white;">Add</button>
+        </div>
+
+        <div class="right-group">
             <button>Filter</button>
             <input type="text" class="booking-search" placeholder="Search courses...">
         </div>
-
-    <div class="booking-grid">
-
-        <div class="booking-card"
-             data-name="Course: GEMA 1200 Algebra Fundamentals"
-             data-service="Type: Math"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Linear equations, two variable inequality, functions"
-             data-notes="">
-            <p><strong>Course:</strong> GEMA 1200 Algebra Fundamentals</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: GEMA 1000 Cuantitative Reasoning"
-             data-service="Type: Math"
-             data-date="Profesors: lorem ipsum"
-             data-time="topics: Number sistems, Introduction to algebra, Percentages"
-             data-notes="">
-            <p><strong>Course:</strong> GEMA 100 Cuantitative Reasoning</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jessica, Brigg</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: MATH 1500 Pre-Calculus"
-             data-service="Type: Math"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Linear equations, vectors, matrices"
-             data-notes="">
-            <p><strong>Course:</strong> GEMA 1500 Algebra Fundamentals</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
-        </div>
-
     </div>
 
-    <div class="booking-header">
-        <h2>English Courses</h2>
+<section id="courses">
+
+    <!-- MATH -->
+    <div class="course-section">
+        <h2><i class="fa-solid fa-square-root-variable"></i> Math Courses</h2>
+        <table class="course-table">
+            <thead>
+                <tr>
+                    <th>Course ID</th>
+                    <th>Course Name</th>
+                    <th>Professors</th>
+                    <th>Mentors</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>MATH 101</td>
+                    <td>College Algebra</td>
+                    <td>Dr. Rivera</td>
+                    <td>Maria Lopez</td>
+                </tr>
+                <tr>
+                    <td>MATH 205</td>
+                    <td>Calculus I</td>
+                    <td>Dr. Santiago</td>
+                    <td>John Perez</td>
+                </tr>
+                <tr>
+                    <td>MATH 310</td>
+                    <td>Statistics</td>
+                    <td>Dr. Morales</td>
+                    <td>Ana Torres</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <div class="booking-grid">
-
-        <div class="booking-card"
-             data-name="Course: GEEN 1101 English as a second language |"
-             data-service="Type: English"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Sentence comprehension, Paragraps"
-             data-notes="">
-            <p><strong>Course:</strong> GEEN 1101 English as a second language |</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: GEEN 1102 English as a second language ||"
-             data-service="Type: English"
-             data-date="Profesors: lorem ipsum"
-             data-time="Topics: Sentence comprehension, Paragraps"
-             data-notes="">
-            <p><strong>Course:</strong> GEEN 1102 English as a second language ||</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jessica, Brigg</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: GEEN 1201 English Communication |"
-             data-service="Type: English"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Hiperbole, Verbs"
-             data-notes="">
-            <p><strong>Course:</strong> GEEN 1201 English Communication</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
-        </div>
-
+    <!-- COMPUTERS -->
+    <div class="course-section">
+        <h2><i class="fa-solid fa-computer"></i> Computer Science Courses</h2>
+        <table class="course-table">
+            <thead>
+                <tr>
+                    <th>Course ID</th>
+                    <th>Course Name</th>
+                    <th>Professors</th>
+                    <th>Mentors</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>COMP 101</td>
+                    <td>Introduction to Programming</td>
+                    <td>Prof. Martinez</td>
+                    <td>Carlos Vega</td>
+                </tr>
+                <tr>
+                    <td>COMP 220</td>
+                    <td>Web Development</td>
+                    <td>Prof. Hernandez</td>
+                    <td>Laura Ortiz</td>
+                </tr>
+                <tr>
+                    <td>COMP 330</td>
+                    <td>Database Systems</td>
+                    <td>Prof. Delgado</td>
+                    <td>Samuel Cruz</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+
+    <!-- BIOLOGY -->
+    <div class="course-section">
+        <h2><i class="fa-solid fa-dna"></i> Biology Courses</h2>
+        <table class="course-table">
+            <thead>
+                <tr>
+                    <th>Course ID</th>
+                    <th>Course Name</th>
+                    <th>Professors</th>
+                    <th>Mentors</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>BIO 110</td>
+                    <td>General Biology</td>
+                    <td>Dr. Ramos</td>
+                    <td>Emily Santos</td>
+                </tr>
+                <tr>
+                    <td>BIO 215</td>
+                    <td>Human Anatomy</td>
+                    <td>Dr. Figueroa</td>
+                    <td>Daniel Ruiz</td>
+                </tr>
+                <tr>
+                    <td>BIO 320</td>
+                    <td>Microbiology</td>
+                    <td>Dr. Navarro</td>
+                    <td>Isabella Flores</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- BUSINESS -->
+    <div class="course-section">
+        <h2><i class="fa-solid fa-briefcase"></i> Business Courses</h2>
+        <table class="course-table">
+            <thead>
+                <tr>
+                    <th>Course ID</th>
+                    <th>Course Name</th>
+                    <th>Professors</th>
+                    <th>Mentors</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>BUS 101</td>
+                    <td>Introduction to Business</td>
+                    <td>Prof. Alvarez</td>
+                    <td>Jessica Ramos</td>
+                </tr>
+                <tr>
+                    <td>BUS 210</td>
+                    <td>Marketing Principles</td>
+                    <td>Prof. Torres</td>
+                    <td>Kevin Diaz</td>
+                </tr>
+                <tr>
+                    <td>BUS 330</td>
+                    <td>Business Finance</td>
+                    <td>Prof. Castillo</td>
+                    <td>Andrea Rivera</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
 
                     <!-- FOOTER -->
         <footer class="footer">
@@ -129,7 +201,7 @@
             Cada clase puede tener su propia imagen, se deberian de implementar indicadores
             para poder separar mas facil la informacion tal vez el nombre del curson de pone de otro color.
             Cada curso tendria una lista de los temas discutidos en ellos.
-            A los estudiantes se le puede hacer disponible una version de esta pagina la cual 
+            A los estudiantes se le puede hacer disponible una version de esta pagina la cual
             incluye los horarios de todos los mentores para asi determinar a que hora puede sacar cita
             antes de llamar.
             Otra manera de mostrar los cursos es teniendo una carta por categoria de clase
@@ -144,33 +216,3 @@
 
 </body>
 </html>
-
-<script>
-    const modal = document.getElementById("booking-modal");
-    const closeBtn = document.querySelector(".modal-close");
-
-    // When a card is clicked
-    document.querySelectorAll(".booking-card").forEach(card => {
-        card.addEventListener("click", () => {
-            document.getElementById("modal-name").textContent = card.dataset.name;
-            document.getElementById("modal-service").textContent = card.dataset.service;
-            document.getElementById("modal-date").textContent = card.dataset.date;
-            document.getElementById("modal-time").textContent = card.dataset.time;
-            document.getElementById("modal-notes").textContent = card.dataset.notes;
-
-            modal.style.display = "flex";
-        });
-    });
-
-    // Close modal
-    closeBtn.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    // Close when clicking outside the modal box
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-</script>
