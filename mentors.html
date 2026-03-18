@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUA Bookings</title>
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+     <link rel="stylesheet" href="CSS/base.css">
+     <link rel="stylesheet" href="CSS/courses.css">
+</head>
+<body>
+
+<div class="container">
+
+        <!-- LEFT NAVIGATION -->
+        <nav class="sidebar">
+            <h2 class="logo">CUA Bookings</h2>
+
+            <ul class="nav-links">
+                <li onclick="window.location='index.html'">Bookings</li>
+                <li class="active">Courses</li>
+                <li>Mentors</li>
+                <li>Account</li>
+            </ul>
+
+            <div class="logout">
+                <span>Logout</span>
+            </div>
+        </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+        <!-- TOP OPTIONS -->
+        <div class="top-menu">
+            <span class="top-option active">View</span>
+            <span class="top-option" style="background-color: green; color:white;">Add</span>
+            <span class="top-option" style="background-color: red; color:white;">Delete</span>
+        </div>
+
+        <div class="booking-header">
+            <h2>Math Mentors</h2>
+            <button>Filter</button>
+            <input type="text" class="booking-search" placeholder="Search courses...">
+        </div>
+
+    <div class="booking-grid">
+
+        <div class="booking-card"
+             data-name="Course: GEMA 1200 Algebra Fundamentals"
+             data-service="Type: Math"
+             data-date="Professors: lorem ipsum"
+             data-time="Topics: Linear equations, two variable inequality, functions"
+             data-notes="">
+            <p><strong>Name:</strong> Edgardo Pérez</p>
+            <p><strong>Courses:</strong> GEMA 1200, MATH 1500</p>
+        </div>
+
+        <div class="booking-card"
+             data-name="Course: GEMA 1000 Cuantitative Reasoning"
+             data-service="Type: Math"
+             data-date="Profesors: lorem ipsum"
+             data-time="topics: Number sistems, Introduction to algebra, Percentages"
+             data-notes="">
+            <p><strong>Course:</strong> GEMA 100 Cuantitative Reasoning</p>
+            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
+            <p><strong>Tutors:</strong> Jessica, Brigg</p>
+        </div>
+
+        <div class="booking-card"
+             data-name="Course: MATH 1500 Pre-Calculus"
+             data-service="Type: Math"
+             data-date="Professors: lorem ipsum"
+             data-time="Topics: Linear equations, vectors, matrices"
+             data-notes="">
+            <p><strong>Course:</strong> GEMA 1500 Algebra Fundamentals</p>
+            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
+            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
+        </div>
+
+    </div>
+
+    <div class="booking-header">
+        <h2>English Mentors</h2>
+    </div>
+
+    <div class="booking-grid">
+
+        <div class="booking-card"
+             data-name="Course: GEEN 1101 English as a second language |"
+             data-service="Type: English"
+             data-date="Professors: lorem ipsum"
+             data-time="Topics: Sentence comprehension, Paragraps"
+             data-notes="">
+            <p><strong>Course:</strong> GEEN 1101 English as a second language |</p>
+            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
+            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
+        </div>
+
+        <div class="booking-card"
+             data-name="Course: GEEN 1102 English as a second language ||"
+             data-service="Type: English"
+             data-date="Profesors: lorem ipsum"
+             data-time="Topics: Sentence comprehension, Paragraps"
+             data-notes="">
+            <p><strong>Course:</strong> GEEN 1102 English as a second language ||</p>
+            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
+            <p><strong>Tutors:</strong> Jessica, Brigg</p>
+        </div>
+
+        <div class="booking-card"
+             data-name="Course: GEEN 1201 English Communication |"
+             data-service="Type: English"
+             data-date="Professors: lorem ipsum"
+             data-time="Topics: Hiperbole, Verbs"
+             data-notes="">
+            <p><strong>Course:</strong> GEEN 1201 English Communication</p>
+            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
+            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
+        </div>
+
+    </div>
+
+                    <!-- FOOTER -->
+        <footer class="footer">
+            CUA Booking Prototype
+            Se pueden mostrar los cursos como cartas o se pueden mostrar estilo lista.
+            Cada clase puede tener su propia imagen, se deberian de implementar indicadores
+            para poder separar mas facil la informacion tal vez el nombre del curson de pone de otro color.
+            Cada curso tendria una lista de los temas discutidos en ellos.
+            A los estudiantes se le puede hacer disponible una version de esta pagina la cual 
+            incluye los horarios de todos los mentores para asi determinar a que hora puede sacar cita
+            antes de llamar.
+            Otra manera de mostrar los cursos es teniendo una carta por categoria de clase
+            de esta manera si el curso es de matematica se expanderian las opciones de la
+            carta de Math y se buscan asi.
+            Otra manera es el boton de filter para mostrar solamente los cursos de una materia.
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>
+
+<script>
+    const modal = document.getElementById("booking-modal");
+    const closeBtn = document.querySelector(".modal-close");
+
+    // When a card is clicked
+    document.querySelectorAll(".booking-card").forEach(card => {
+        card.addEventListener("click", () => {
+            document.getElementById("modal-name").textContent = card.dataset.name;
+            document.getElementById("modal-service").textContent = card.dataset.service;
+            document.getElementById("modal-date").textContent = card.dataset.date;
+            document.getElementById("modal-time").textContent = card.dataset.time;
+            document.getElementById("modal-notes").textContent = card.dataset.notes;
+
+            modal.style.display = "flex";
+        });
+    });
+
+    // Close modal
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    // Close when clicking outside the modal box
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+</script>
