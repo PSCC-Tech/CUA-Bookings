@@ -56,22 +56,22 @@
 }
 
 
-/* ====== Courses Section Layout ====== */
+/* ====== Mentor Section Layout ====== */
 
-#courses {
+#mentors {
     max-width: 1100px;
     margin: 40px auto;
     padding: 0 20px;
     font-family: Arial, sans-serif;
 }
 
-.course-section {
+.mentor-section {
     margin-bottom: 50px;
 }
 
 /* ====== Section Titles with Icons ====== */
 
-.course-section h2 {
+.mentor-section h2 {
     font-size: 28px;
     color: #2a4d69;
     display: flex;
@@ -80,14 +80,14 @@
     margin-bottom: 15px;
 }
 
-.course-section h2 i {
+.mentor-section h2 i {
     color: #2a4d69;
     font-size: 30px;
 }
 
 /* ====== Table Styling ====== */
 
-.course-table {
+.mentor-table {
     width: 100%;
     border-collapse: collapse;
     background: #ffffff;
@@ -97,31 +97,31 @@
 }
 
 /* Header */
-.course-table thead {
+.mentor-table thead {
     background: #2a4d69;
     color: white;
 }
 
-.course-table th {
+.mentor-table th {
     padding: 14px;
     text-align: left;
     font-size: 15px;
 }
 
 /* Body */
-.course-table td {
+.mentor-table td {
     padding: 14px;
     border-bottom: 1px solid #e0e0e0;
     font-size: 15px;
 }
 
 /* Zebra striping */
-.course-table tbody tr:nth-child(even) {
+.mentor-table tbody tr:nth-child(even) {
     background: #f8f8f8;
 }
 
 /* Hover highlight */
-.course-table tbody tr:hover {
+.mentor-table tbody tr:hover {
     background: #e6f0ff;
     cursor: pointer;
     transition: background 0.2s ease-in-out;
