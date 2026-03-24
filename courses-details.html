@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUA Bookings</title>
+    <!--<link rel="stylesheet" href="styles.css">-->
+    <link rel="stylesheet" href="CSS/base.css">
+    <link rel="stylesheet" href="CSS/courses-details.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- LEFT NAVIGATION -->
+        <nav class="sidebar">
+            <h2 class="logo">CUA Bookings</h2>
+
+            <ul class="nav-links">
+                <li>Bookings</li>
+                <li onclick="window.location='courses.html'" class="active">Courses</li>
+                <li onclick="window.location='mentors.html'">Mentors</li>
+                <li>Account</li>
+            </ul>
+
+            <div class="logout">
+                <span>Logout</span>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="content">
+
+        <div class="back-container">
+            <button class="back-btn" onclick="window.location='courses.html'">
+            ← Back to Courses
+            </button>
+        </div>
+    
+        <div class="course-layout">
+
+    <!-- LEFT COLUMN: COURSE INFO -->
+    <section id="course-info">
+
+        <h2>Course Information</h2>
+        <ul class="info-list">
+            <li><strong>Code:</strong> </li>
+            <li><strong>Name:</strong> </li>
+            <li><strong>Professors:</strong> </li>
+        </ul>
+
+        <h2>Topics Covered</h2>
+        <ul class="topics-list">
+            <li>Topic 1</li>
+            <li>Topic 2</li>
+            <li>Topic 3</li>
+        </ul>
+
+        <h2>Description</h2>
+        <p id="course-description">
+            This course covers...
+        </p>
+
+    </section>
+
+    <!-- RIGHT COLUMN: MENTOR SCHEDULE -->
+    <section id="mentor-schedule" class="collapsible">
+
+        <button class="collapsible-header">
+            Tutor Schedule ▼
+        </button>
+
+        <div class="collapsible-content">
+
+            <div class="mentor-tabs">
+                <button class="mentor-tab active" data-mentor="1">Mentor 1</button>
+                <button class="mentor-tab" data-mentor="2">Mentor 2</button>
+                <button class="mentor-tab" data-mentor="3">Mentor 3</button>
+            </div>
+
+            <div class="mentor-layout">
+
+                <div class="calendar-container">
+                    <h3 id="mentor-name">Mentor Name</h3>
+                    <div id="calendar"></div>
+                </div>
+
+                <div class="schedule-container">
+                    <h3>Schedule for Selected Day</h3>
+                    <ul id="schedule-list"></ul>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+                <!-- FOOTER -->
+            <footer class="footer">
+                CUA Booking Prototype
+                Antes de llegar a el form tendrias que seleccionar la materia y el mentor el cual
+                dara la tutoria. Otra opcion es tener el form programado para que el tutor y su
+                dispinibilidad determine las horas de cita disponibles. Date tendra un modal donde
+                se escoge la fecha de la cita similar a el sistema actual.
+                Opciones como: tutor y curso serian drop-box.
+                Cierta informacion haria "autofil" si es un estudiante que ya tomo tutorias anteriormente.
+            </footer>
+        </main>
+
+    </div>
+
+    <script>
+
+document.addEventListener("DOMContentLoaded", () => {
+    const header = document.querySelector(".collapsible-header");
+    const collapsible = document.querySelector(".collapsible");
+
+    header.addEventListener("click", () => {
+        collapsible.classList.toggle("open");
+
+        // Update arrow
+        header.textContent = collapsible.classList.contains("open")
+            ? "Tutor Schedule ▲"
+            : "Tutor Schedule ▼";
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    generateCalendar();
+});
+
+function generateCalendar() {
+    const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Fill empty cells before the 1st
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.classList.add("calendar-day", "inactive");
+        calendar.appendChild(empty);
+    }
+
+    // Fill actual days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.classList.add("calendar-day");
+        dayDiv.textContent = day;
+
+        dayDiv.addEventListener("click", () => {
+            selectDay(dayDiv, day);
+        });
+
+        calendar.appendChild(dayDiv);
+    }
+}
+
+function selectDay(element, day) {
+    // Remove previous selection
+    document.querySelectorAll(".calendar-day").forEach(d => {
+        d.classList.remove("selected");
+    });
+
+    // Highlight selected day
+    element.classList.add("selected");
+
+    // Load schedule for that day
+    loadSchedule(day);
+}
+
+function loadSchedule(day) {
+    const scheduleList = document.getElementById("schedule-list");
+
+    // Placeholder example — later you will load real mentor availability
+    scheduleList.innerHTML = `
+        <li>Selected day: ${day}</li>
+        <li>9:00 AM – 10:00 AM</li>
+        <li>1:00 PM – 3:00 PM</li>
+    `;
+}
+</script>
+
+</body>
+</html>
