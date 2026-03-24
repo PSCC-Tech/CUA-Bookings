@@ -1,0 +1,128 @@
+/* HEADER ABOVE GRID */
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 5px;
+    padding: 20px;
+}
+
+/* HEADER LAYOUT */
+.booking-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+/* Push title left, controls right */
+.booking-header h2 {
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* SEARCH BAR */
+.booking-search {
+    padding: 10px 14px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    width: 220px;
+    font-size: 14px;
+}
+
+/* FILTER BUTTON */
+.booking-header button {
+    padding: 10px 16px;
+    background: #2a4d69;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+/* Hover effect */
+.booking-header button:hover {
+    background: #1f3a50;
+}
+/* Group items horizontally */
+.left-group,
+.right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+/* ====== Courses Section Layout ====== */
+
+#courses {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: Arial, sans-serif;
+}
+
+.course-section {
+    margin-bottom: 50px;
+}
+
+/* ====== Section Titles with Icons ====== */
+
+.course-section h2 {
+    font-size: 28px;
+    color: #2a4d69;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.course-section h2 i {
+    color: #2a4d69;
+    font-size: 30px;
+}
+
+/* ====== Table Styling ====== */
+
+.course-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Header */
+.course-table thead {
+    background: #2a4d69;
+    color: white;
+}
+
+.course-table th {
+    padding: 14px;
+    text-align: left;
+    font-size: 15px;
+}
+
+/* Body */
+.course-table td {
+    padding: 14px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 15px;
+}
+
+/* Zebra striping */
+.course-table tbody tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+/* Hover highlight */
+.course-table tbody tr:hover {
+    background: #e6f0ff;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}

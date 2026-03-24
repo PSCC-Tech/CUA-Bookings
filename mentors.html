@@ -6,7 +6,7 @@
     <title>CUA Bookings</title>
     <!-- <link rel="stylesheet" href="styles.css"> -->
      <link rel="stylesheet" href="CSS/base.css">
-     <link rel="stylesheet" href="CSS/courses.css">
+     <link rel="stylesheet" href="CSS/mentors.css">
 </head>
 <body>
 
@@ -38,88 +38,57 @@
             <span class="top-option" style="background-color: red; color:white;">Delete</span>
         </div>
 
-        <div class="booking-header">
-            <h2>Math Mentors</h2>
-            <button>Filter</button>
-            <input type="text" class="booking-search" placeholder="Search courses...">
-        </div>
-
-    <div class="booking-grid">
-
-        <div class="booking-card"
-             data-name="Course: GEMA 1200 Algebra Fundamentals"
-             data-service="Type: Math"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Linear equations, two variable inequality, functions"
-             data-notes="">
-            <p><strong>Name:</strong> Edgardo Pérez</p>
-            <p><strong>Courses:</strong> GEMA 1200, MATH 1500</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: GEMA 1000 Cuantitative Reasoning"
-             data-service="Type: Math"
-             data-date="Profesors: lorem ipsum"
-             data-time="topics: Number sistems, Introduction to algebra, Percentages"
-             data-notes="">
-            <p><strong>Course:</strong> GEMA 100 Cuantitative Reasoning</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jessica, Brigg</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: MATH 1500 Pre-Calculus"
-             data-service="Type: Math"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Linear equations, vectors, matrices"
-             data-notes="">
-            <p><strong>Course:</strong> GEMA 1500 Algebra Fundamentals</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
-        </div>
-
-    </div>
-
     <div class="booking-header">
-        <h2>English Mentors</h2>
+        <div class="left-group">
+            <h2>Mentors</h2>
+            <button class="top-option" style="background-color: green; color:white;">Add</button>
+        </div>
+
+        <div class="right-group">
+            <button>Filter</button>
+            <input type="text" class="booking-search" placeholder="Search mentors...">
+        </div>
     </div>
 
-    <div class="booking-grid">
+<section id="courses">
 
-        <div class="booking-card"
-             data-name="Course: GEEN 1101 English as a second language |"
-             data-service="Type: English"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Sentence comprehension, Paragraps"
-             data-notes="">
-            <p><strong>Course:</strong> GEEN 1101 English as a second language |</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: GEEN 1102 English as a second language ||"
-             data-service="Type: English"
-             data-date="Profesors: lorem ipsum"
-             data-time="Topics: Sentence comprehension, Paragraps"
-             data-notes="">
-            <p><strong>Course:</strong> GEEN 1102 English as a second language ||</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jessica, Brigg</p>
-        </div>
-
-        <div class="booking-card"
-             data-name="Course: GEEN 1201 English Communication |"
-             data-service="Type: English"
-             data-date="Professors: lorem ipsum"
-             data-time="Topics: Hiperbole, Verbs"
-             data-notes="">
-            <p><strong>Course:</strong> GEEN 1201 English Communication</p>
-            <p><strong>Profesors:</strong> Sarah Smith, Jayne</p>
-            <p><strong>Tutors:</strong> Jimmy, Brigg</p>
-        </div>
-
+    <!-- COMPUTERS -->
+    <div class="course-section">
+        <h2><i class="fa-solid fa-computer"></i>Mentors</h2>
+        <table class="course-table">
+            <thead>
+                <tr>
+                    <th>Mentor ID</th>
+                    <th>Mentor Name</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>A00000001</td>
+                    <td>John Smith</td>
+                    <td>josm0001@agu.inter.edu</td>
+                </tr>
+                <tr>
+                    <td>A00000002</td>
+                    <td>John Doe</td>
+                    <td>jodo0002@agu.inter.edu</td>
+                </tr>
+                <tr>
+                    <td>A00000003</td>
+                    <td>Jane Smith</td>
+                    <td>jasm0003@agu.inter.edu</td>
+                </tr>
+                <tr>
+                    <td>A00000004</td>
+                    <td>Jane Doe</td>
+                    <td>jado0004@agu.inter.edu</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+
+</section>
 
                     <!-- FOOTER -->
         <footer class="footer">
