@@ -31,12 +31,13 @@
     <!-- MAIN CONTENT -->
     <main class="content">
 
-        <!-- TOP OPTIONS -->
+        <!-- TOP OPTIONS
         <div class="top-menu">
             <span class="top-option active">View</span>
             <span class="top-option" style="background-color: green; color:white;">Add</span>
             <span class="top-option" style="background-color: red; color:white;">Delete</span>
         </div>
+        -->
 
     <div class="booking-header">
         <div class="left-group">
@@ -45,10 +46,13 @@
         </div>
 
         <div class="right-group">
-            <button>Filter</button>
+            <button>Mentor</button>
+            <button>Categorie</button>
             <input type="text" class="booking-search" placeholder="Search courses...">
         </div>
     </div>
+
+    <button id="delete-selected" class="delete-btn">Delete Selected</button>
 
 <section id="courses">
 
@@ -58,6 +62,7 @@
         <table class="course-table">
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th>Course ID</th>
                     <th>Course Name</th>
                     <th>Professors</th>
@@ -65,19 +70,22 @@
                 </tr>
             </thead>
             <tbody>
-                <tr onclick="window.location='courses-details.html'">
+                <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>MATH 101</td>
-                    <td>College Algebra</td>
+                    <td onclick="window.location='courses-details.html'">College Algebra</td>
                     <td>Dr. Rivera</td>
                     <td>Maria Lopez</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>MATH 205</td>
                     <td>Calculus I</td>
                     <td>Dr. Santiago</td>
                     <td>John Perez</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>MATH 310</td>
                     <td>Statistics</td>
                     <td>Dr. Morales</td>
@@ -93,6 +101,7 @@
         <table class="course-table">
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th>Course ID</th>
                     <th>Course Name</th>
                     <th>Professors</th>
@@ -101,18 +110,21 @@
             </thead>
             <tbody>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>COMP 101</td>
                     <td>Introduction to Programming</td>
                     <td>Prof. Martinez</td>
                     <td>Carlos Vega</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>COMP 220</td>
                     <td>Web Development</td>
                     <td>Prof. Hernandez</td>
                     <td>Laura Ortiz</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>COMP 330</td>
                     <td>Database Systems</td>
                     <td>Prof. Delgado</td>
@@ -128,6 +140,7 @@
         <table class="course-table">
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th>Course ID</th>
                     <th>Course Name</th>
                     <th>Professors</th>
@@ -136,18 +149,21 @@
             </thead>
             <tbody>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>BIO 110</td>
                     <td>General Biology</td>
                     <td>Dr. Ramos</td>
                     <td>Emily Santos</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>BIO 215</td>
                     <td>Human Anatomy</td>
                     <td>Dr. Figueroa</td>
                     <td>Daniel Ruiz</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>BIO 320</td>
                     <td>Microbiology</td>
                     <td>Dr. Navarro</td>
@@ -163,6 +179,7 @@
         <table class="course-table">
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th>Course ID</th>
                     <th>Course Name</th>
                     <th>Professors</th>
@@ -171,18 +188,21 @@
             </thead>
             <tbody>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>BUS 101</td>
                     <td>Introduction to Business</td>
                     <td>Prof. Alvarez</td>
                     <td>Jessica Ramos</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>BUS 210</td>
                     <td>Marketing Principles</td>
                     <td>Prof. Torres</td>
                     <td>Kevin Diaz</td>
                 </tr>
                 <tr>
+                    <td><input type="checkbox" class="course-select"></td>
                     <td>BUS 330</td>
                     <td>Business Finance</td>
                     <td>Prof. Castillo</td>
@@ -213,6 +233,27 @@
     </main>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const checkboxes = document.querySelectorAll(".course-select");
+    const deleteBtn = document.getElementById("delete-selected");
+
+    function updateDeleteButton() {
+        const anyChecked = [...checkboxes].some(cb => cb.checked);
+        deleteBtn.style.display = anyChecked ? "inline-block" : "none";
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener("change", updateDeleteButton);
+    });
+
+    deleteBtn.addEventListener("click", () => {
+        alert("Delete action triggered for selected courses.");
+        // Later: remove rows or send to backend
+    });
+});
+</script>
 
 </body>
 </html>
