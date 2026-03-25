@@ -44,22 +44,37 @@
 
         <h2>Course Information</h2>
         <ul class="info-list">
-            <li><strong>Code:</strong> </li>
-            <li><strong>Name:</strong> </li>
-            <li><strong>Professors:</strong> </li>
+            <li><strong>Code: MATH 101</strong> </li>
+            <li><strong>Name: College Algebra</strong> </li>
+            <li><strong>Professors: Israel, James</strong> </li>
         </ul>
 
         <h2>Topics Covered</h2>
         <ul class="topics-list">
-            <li>Topic 1</li>
-            <li>Topic 2</li>
-            <li>Topic 3</li>
+            <li>Algebraic Operations</li>
+            <li>Number System</li>
+            <li>Logarithmit Functions</li>
         </ul>
 
         <h2>Description</h2>
         <p id="course-description">
-            This course covers...
+        College Algebra is
+        a foundational mathematics course focusing on advanced algebraic techniques, 
+        functional analysis, and modeling real-world problems. Key topics include linear, 
+        quadratic, polynomial, rational, exponential, and logarithmic functions, along with
+        systems of equations, inequalities, matrices, and sometimes conic sections or complex numbers, 
+        bridging high school algebra and pre-calculus
         </p>
+
+                <!-- Edit controls -->
+        <div class="edit-controls">
+            <button class="edit-btn">✏️ Edit</button>
+
+            <div class="edit-actions">
+                <button class="confirm-btn">Confirm</button>
+                <button class="cancel-btn">Cancel</button>
+            </div>
+        </div>
 
     </section>
 
@@ -75,12 +90,16 @@
             <div class="mentor-layout">
 
                 <div class="calendar-container">
-                    <h3 id="mentor-name">Mentor Name</h3>
+                    <h3 id="mentor-name">May</h3>
                     <div id="calendar"></div>
                 </div>
 
                 <div class="schedule-container">
-                    <h3>Schedule for Selected Day</h3>
+                    <div class="schedule-header">
+                        <h3>Schedule for Selected Day</h3>
+                        <button class="book-btn">Book</button>
+                    </div>
+
                     <ul id="schedule-list"></ul>
                 </div>
 
@@ -165,6 +184,28 @@ function loadSchedule(day) {
         <li>1:00 PM – 3:00 PM</li>
     `;
 }
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const editBtn = document.querySelector(".edit-btn");
+    const editActions = document.querySelector(".edit-actions");
+
+    editBtn.addEventListener("click", () => {
+        editBtn.style.display = "none";
+        editActions.style.display = "flex";
+    });
+
+    document.querySelector(".confirm-btn").addEventListener("click", () => {
+        editActions.style.display = "none";
+        editBtn.style.display = "inline-block";
+    });
+
+    document.querySelector(".cancel-btn").addEventListener("click", () => {
+        editActions.style.display = "none";
+        editBtn.style.display = "inline-block";
+    });
+});
 </script>
 
 </body>

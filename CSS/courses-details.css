@@ -57,6 +57,65 @@
     font-size: 16px;
 }
 
+/* Edit controls container */
+.edit-controls {
+    position: relative;
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Edit button (default state) */
+.edit-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.edit-btn:hover {
+    background: #0069d9;
+}
+
+/* Confirm + Cancel buttons (hidden by default) */
+.edit-actions {
+    display: none;
+    gap: 10px;
+}
+
+.confirm-btn,
+.cancel-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Confirm button */
+.confirm-btn {
+    background: #28a745;
+    color: white;
+}
+
+.confirm-btn:hover {
+    background: #218838;
+}
+
+/* Cancel button */
+.cancel-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #c82333;
+}
+
 /* ================================
    TABS
 ================================ */
@@ -226,4 +285,26 @@
 
 .schedule-container li {
     margin-bottom: 8px;
+}
+
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.book-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.book-btn:hover {
+    background: #0069d9;
 }
