@@ -99,7 +99,6 @@
     display: grid;
     grid-template-columns: repeat(7, .5fr);
     gap: 4px;
-    height: 100%;
     margin-top: 15px;
 }
 
@@ -204,7 +203,7 @@
 /* Calendar container */
 .calendar-container {
     overflow-y: auto;
-    flex: 3;
+    flex: 4;
     background: white;
     padding: 15px;
     border-radius: 10px;
@@ -213,7 +212,7 @@
 
 /* Schedule container */
 .schedule-container {
-    flex: 1;
+    flex: 2;
     background: white;
     padding: 15px;
     border-radius: 10px;
