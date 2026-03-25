@@ -17,7 +17,7 @@
             <h2 class="logo">CUA Bookings</h2>
 
             <ul class="nav-links">
-                <li>Bookings</li>
+                <li onclick="window.location='index.html'">Bookings</li>
                 <li onclick="window.location='courses.html'" class="active">Courses</li>
                 <li onclick="window.location='mentors.html'">Mentors</li>
                 <li>Account</li>
@@ -64,13 +64,7 @@
     </section>
 
     <!-- RIGHT COLUMN: MENTOR SCHEDULE -->
-    <section id="mentor-schedule" class="collapsible">
-
-        <button class="collapsible-header">
-            Mentor Schedule ▼
-        </button>
-
-        <div class="collapsible-content">
+    <section id="mentor-schedule">
 
             <div class="mentor-tabs">
                 <button class="mentor-tab active" data-mentor="1">Mentor 1</button>
@@ -92,8 +86,6 @@
 
             </div>
 
-        </div>
-
     </section>
 
 </div>
@@ -113,20 +105,6 @@
     </div>
 
     <script>
-
-document.addEventListener("DOMContentLoaded", () => {
-    const header = document.querySelector(".collapsible-header");
-    const collapsible = document.querySelector(".collapsible");
-
-    header.addEventListener("click", () => {
-        collapsible.classList.toggle("open");
-
-        // Update arrow
-        header.textContent = collapsible.classList.contains("open")
-            ? "Mentor Schedule ▲"
-            : "Mentor Schedule ▼";
-    });
-});
 
 document.addEventListener("DOMContentLoaded", () => {
     generateCalendar();
