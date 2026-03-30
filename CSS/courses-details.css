@@ -206,18 +206,68 @@
    COURSE INFO SECTION
 ================================ */
 
-#tab-info h2 {
-    margin-top: 25px;
-    font-size: 22px;
+#course-info {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 25px 20px;
+    line-height: 1.6;
+    font-family: "Inter", sans-serif;
 }
 
-#topics-list {
+/* Section titles */
+#course-info h2 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 24px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* Info list (Code, Name, Professors) */
+#course-info .info-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 20px;
+}
+
+#course-info .info-list li {
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+/* Topics list */
+#course-info .topics-list {
     padding-left: 20px;
-    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
-#topics-list li {
+#course-info .topics-list li {
     margin-bottom: 6px;
+    font-size: 17px;
+}
+
+/* Description paragraph */
+#course-info #course-description {
+    font-size: 17px;
+    margin-top: 10px;
+    color: #333;
+    text-align: justify;
+}
+
+/* Edit controls */
+#course-info .edit-controls {
+    margin-top: 25px;
+    display: flex;
+    gap: 10px;
+}
+
+#course-info .edit-btn,
+#course-info .confirm-btn,
+#course-info .cancel-btn {
+    padding: 8px 14px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
 /* ================================
