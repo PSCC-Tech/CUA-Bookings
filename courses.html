@@ -39,11 +39,26 @@
                 Add</button>
         </div>
 
-        <div class="right-group">
-            <button>Mentor</button>
-            <button>Categorie</button>
-            <input type="text" class="booking-search" placeholder="Search courses...">
-        </div>
+            <div class="right-group">
+
+                <div class="dropdown-wrapper">
+                    <button id="mentor-btn">Mentor</button>
+                    <div id="mentor-dropdown" class="dropdown hidden"></div>
+                </div>
+
+                <div class="dropdown-wrapper">
+                    <button id="category-btn">Category</button>
+                    <div id="category-dropdown" class="dropdown hidden">
+                        <div data-category="Math">Math</div>
+                        <div data-category="Computer Science">Computer Science</div>
+                        <div data-category="Biology">Biology</div>
+                        <div data-category="Business">Business</div>
+                        <div data-category="all">Show All</div>
+                    </div>
+                </div>
+
+                <input type="text" id="course-search" class="booking-search" placeholder="Search courses...">
+            </div>
     </div>
 
     <button id="delete-selected" class="delete-btn">Delete Selected</button>
@@ -52,158 +67,178 @@
 
     <!-- MATH -->
     <div class="course-section">
-        <h2><i class="fa-solid fa-square-root-variable"></i> Math Courses</h2>
-        <table class="course-table">
-            <thead>
-                <tr>
-                    <th>Select</th>
-                    <th>Course ID</th>
-                    <th>Course Name</th>
-                    <th>Professors</th>
-                    <th>Mentors</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>MATH 101</td>
-                    <td onclick="window.location='courses-details.html'">College Algebra</td>
-                    <td>Dr. Rivera</td>
-                    <td>Maria Lopez</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>MATH 205</td>
-                    <td>Calculus I</td>
-                    <td>Dr. Santiago</td>
-                    <td>John Perez</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>MATH 310</td>
-                    <td>Statistics</td>
-                    <td>Dr. Morales</td>
-                    <td>Ana Torres</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="no-results hidden">No matching courses found.</div>
+        <div class="course-inner">
+            <h2><i class="fa-solid fa-square-root-variable"></i>
+                <span class="title-text">Math Courses</span>
+            </h2>
+            <table class="course-table">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Professors</th>
+                        <th>Mentors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 101</td>
+                        <td onclick="window.location='courses-details.html'"> College Algebra</td>
+                        <td>Dr. Rivera</td>
+                        <td>Maria Lopez</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 205</td>
+                        <td>Calculus I</td>
+                        <td>Dr. Santiago</td>
+                        <td>John Perez</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- COMPUTERS -->
     <div class="course-section">
-        <h2><i class="fa-solid fa-computer"></i> Computer Science Courses</h2>
-        <table class="course-table">
-            <thead>
-                <tr>
-                    <th>Select</th>
-                    <th>Course ID</th>
-                    <th>Course Name</th>
-                    <th>Professors</th>
-                    <th>Mentors</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>COMP 101</td>
-                    <td>Introduction to Programming</td>
-                    <td>Prof. Martinez</td>
-                    <td>Carlos Vega</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>COMP 220</td>
-                    <td>Web Development</td>
-                    <td>Prof. Hernandez</td>
-                    <td>Laura Ortiz</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>COMP 330</td>
-                    <td>Database Systems</td>
-                    <td>Prof. Delgado</td>
-                    <td>Samuel Cruz</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="no-results hidden">No matching courses found.</div>
+        <div class="course-inner">
+            <h2><i class="fa-solid fa-computer"></i>
+                <span class="title-text">Computer Science Courses</span>
+            </h2>
+            <table class="course-table">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Professors</th>
+                        <th>Mentors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>COMP 101</td>
+                        <td>Introduction to Programming</td>
+                        <td>Prof. Martinez</td>
+                        <td>Carlos Vega</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>COMP 220</td>
+                        <td>Web Development</td>
+                        <td>Prof. Hernandez</td>
+                        <td>Laura Ortiz</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>COMP 330</td>
+                        <td>Database Systems</td>
+                        <td>Prof. Delgado</td>
+                        <td>Samuel Cruz</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- BIOLOGY -->
     <div class="course-section">
-        <h2><i class="fa-solid fa-dna"></i> Biology Courses</h2>
-        <table class="course-table">
-            <thead>
-                <tr>
-                    <th>Select</th>
-                    <th>Course ID</th>
-                    <th>Course Name</th>
-                    <th>Professors</th>
-                    <th>Mentors</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>BIO 110</td>
-                    <td>General Biology</td>
-                    <td>Dr. Ramos</td>
-                    <td>Emily Santos</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>BIO 215</td>
-                    <td>Human Anatomy</td>
-                    <td>Dr. Figueroa</td>
-                    <td>Daniel Ruiz</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>BIO 320</td>
-                    <td>Microbiology</td>
-                    <td>Dr. Navarro</td>
-                    <td>Isabella Flores</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="no-results hidden">No matching courses found.</div>
+        <div class="course-inner">
+            <h2><i class="fa-solid fa-dna"></i>
+                <span class="title-text">Biology Courses</span>
+            </h2>
+            <table class="course-table">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Professors</th>
+                        <th>Mentors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>BIO 110</td>
+                        <td>General Biology</td>
+                        <td>Dr. Ramos</td>
+                        <td>Emily Santos</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>BIO 215</td>
+                        <td>Human Anatomy</td>
+                        <td>Dr. Figueroa</td>
+                        <td>Daniel Ruiz</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>BIO 320</td>
+                        <td>Microbiology</td>
+                        <td>Dr. Navarro</td>
+                        <td>Isabella Flores</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- BUSINESS -->
     <div class="course-section">
-        <h2><i class="fa-solid fa-briefcase"></i> Business Courses</h2>
-        <table class="course-table">
-            <thead>
-                <tr>
-                    <th>Select</th>
-                    <th>Course ID</th>
-                    <th>Course Name</th>
-                    <th>Professors</th>
-                    <th>Mentors</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>BUS 101</td>
-                    <td>Introduction to Business</td>
-                    <td>Prof. Alvarez</td>
-                    <td>Jessica Ramos</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>BUS 210</td>
-                    <td>Marketing Principles</td>
-                    <td>Prof. Torres</td>
-                    <td>Kevin Diaz</td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-select"></td>
-                    <td>BUS 330</td>
-                    <td>Business Finance</td>
-                    <td>Prof. Castillo</td>
-                    <td>Andrea Rivera</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="no-results hidden">No matching courses found.</div>
+        <div class="course-inner">
+            <h2><i class="fa-solid fa-briefcase"></i>
+                <span class="title-text">Business Courses</span>
+            </h2>
+            <table class="course-table">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Professors</th>
+                        <th>Mentors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>BUS 101</td>
+                        <td>Introduction to Business</td>
+                        <td>Prof. Alvarez</td>
+                        <td>Jessica Ramos</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>BUS 210</td> <!--Course Code-->
+                        <td>Marketing Principles</td> <!--Course Name-->
+                        <td>Prof. Torres</td> <!--Profesors-->
+                        <td>Maria Lopez</td> <!--Mentors-->
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>BUS 330</td>
+                        <td>Business Finance</td>
+                        <td>Prof. Castillo</td>
+                        <td>Andrea Rivera</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </section>
@@ -228,7 +263,168 @@
 
 </div>
 
+
 <script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // -----------------------------
+    // ELEMENTS
+    // -----------------------------
+    const categoryBtn = document.getElementById("category-btn");
+    const mentorBtn = document.getElementById("mentor-btn");
+    const categoryDropdown = document.getElementById("category-dropdown");
+    const mentorDropdown = document.getElementById("mentor-dropdown");
+    const courseSections = document.querySelectorAll(".course-section");
+    const searchInput = document.getElementById("course-search");
+
+// -----------------------------
+// SEARCH FILTER
+// -----------------------------
+function highlightMatch(text, query) {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.replace(regex, `<mark>$1</mark>`);
+}
+
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase().trim();
+
+    courseSections.forEach(section => {
+        const rows = section.querySelectorAll("tbody tr");
+        const titleEl = section.querySelector("h2 .title-text");
+        const originalTitle = titleEl.dataset.original || titleEl.innerText;
+        titleEl.dataset.original = originalTitle;
+
+        const titleText = originalTitle.toLowerCase();
+        const titleMatch = titleText.includes(query);
+
+        let anyVisible = false;
+
+        // DO NOT highlight the title — just restore original
+        titleEl.innerHTML = originalTitle;
+
+        rows.forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            const match = rowText.includes(query) || titleMatch;
+
+            if (match) {
+                row.style.display = "";
+                anyVisible = true;
+
+                // Highlight each cell
+            row.querySelectorAll("td").forEach(td => {
+                // Skip cells that contain inputs (checkboxes)
+                if (td.querySelector("input")) return;
+
+                const original = td.dataset.original || td.innerText;
+                td.dataset.original = original;
+                td.innerHTML = highlightMatch(original, query);
+            });
+
+            } else {
+                row.style.display = "none";
+            }
+        });
+
+        // Section visibility
+        section.style.display = (anyVisible || titleMatch) ? "block" : "none";
+
+        // No results message
+        const noResults = section.querySelector(".no-results");
+        if (!anyVisible && !titleMatch) {
+            noResults.classList.remove("hidden");
+        } else {
+            noResults.classList.add("hidden");
+        }
+    });
+});
+
+    // -----------------------------
+    // MENTOR DROPDOWN BUILD
+    // -----------------------------
+    const mentorCells = document.querySelectorAll("tbody tr td:nth-child(5)");
+    const mentors = [...new Set([...mentorCells].map(td => td.textContent.trim()))];
+
+    mentorDropdown.innerHTML = mentors
+        .map(m => `<div data-mentor="${m}">${m}</div>`)
+        .join("") + `<div data-mentor="all">Show All</div>`;
+
+    // -----------------------------
+    // DROPDOWN TOGGLES
+    // -----------------------------
+    categoryBtn.addEventListener("click", () => {
+        categoryDropdown.classList.toggle("hidden");
+        mentorDropdown.classList.add("hidden");
+    });
+
+    mentorBtn.addEventListener("click", () => {
+        mentorDropdown.classList.toggle("hidden");
+        categoryDropdown.classList.add("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".right-group")) {
+            categoryDropdown.classList.add("hidden");
+            mentorDropdown.classList.add("hidden");
+        }
+    });
+
+    // -----------------------------
+    // CATEGORY FILTER
+    // -----------------------------
+    categoryDropdown.addEventListener("click", (e) => {
+        if (!e.target.dataset.category) return;
+
+        const selected = e.target.dataset.category;
+
+        courseSections.forEach(section => {
+            const title = section.querySelector("h2").textContent;
+
+            if (selected === "all" || title.includes(selected)) {
+                section.style.display = "block";
+            } else {
+                section.style.display = "none";
+            }
+        });
+
+        categoryDropdown.classList.add("hidden");
+    });
+
+    // -----------------------------
+    // MENTOR FILTER
+    // -----------------------------
+    mentorDropdown.addEventListener("click", (e) => {
+        if (!e.target.dataset.mentor) return;
+
+        const selected = e.target.dataset.mentor;
+
+        courseSections.forEach(section => {
+            const rows = section.querySelectorAll("tbody tr");
+            let anyVisible = false;
+
+            rows.forEach(row => {
+                const mentor = row.children[4].textContent.trim();
+
+                if (selected === "all" || mentor === selected) {
+                    row.style.display = "";
+                    anyVisible = true;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            section.style.display = anyVisible ? "block" : "none";
+        });
+
+        mentorDropdown.classList.add("hidden");
+    });
+
+});
+
+    // -----------------------------
+    //  DELETE BUTTON
+    // -----------------------------
 document.addEventListener("DOMContentLoaded", () => {
     const checkboxes = document.querySelectorAll(".course-select");
     const deleteBtn = document.getElementById("delete-selected");
