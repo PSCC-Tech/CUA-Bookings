@@ -33,37 +33,32 @@
         <main class="content">
 
         <div class="back-container">
-            <button class="back-btn" onclick="window.location='courses.html'">
-            ← Back to Courses
+            <button class="back-btn" onclick="window.location='mentors.html'">
+            ← Back to Mentors
             </button>
         </div>
 
     <section class="add-course">
 
-        <h1 class="form-title">Add New Course</h1>
+        <h1 class="form-title">Add New Mentor</h1>
 
-        <form class="course-form">
+        <form id="mult-form" class="course-form">
 
-            <!-- Course Code -->
-            <div class="form-group">
-                <label for="course-code">Course Code</label>
-                <input type="text" id="course-code" placeholder="e.g., MATH 101">
-            </div>
+        <div class="form-group tab">
+        
+            <!-- Mentor ID -->
+                <label for="course-code">Mentor ID</label>
+                <input type="text" id="course-code" placeholder="e.g., A00123456" oninput="this.className = ''">
 
-            <!-- Course Name -->
-            <div class="form-group">
-                <label for="course-name">Course Name</label>
-                <input type="text" id="course-name" placeholder="e.g., College Algebra">
-            </div>
+            <!-- Mentor Name -->
+                <label for="course-name">Mentor Name</label>
+                <input type="text" id="course-name" placeholder="e.g., John Doe" oninput="this.className = ''">
 
-            <!-- Professors -->
-            <div class="form-group">
-                <label for="course-professors">Professor(s)</label>
-                <input type="text" id="course-professors" placeholder="e.g., Israel, James">
-                <small class="hint">Separate multiple professors with commas.</small>
-            </div>
+            <!-- Contact -->
+                <label for="course-professors">Contact</label>
+                <input type="text" id="course-professors" placeholder="e.g., jodo3456@agu.inter.edu" oninput="this.className = ''">
 
-            <!-- Mentor Selection (Checkbox List) -->
+            <!-- Mentor Selection (Checkbox List) 
             <div class="form-group">
                 <label>Select Mentors</label>
 
@@ -75,33 +70,30 @@
 
                 <small class="hint">Select all mentors who teach this course.</small>
             </div>
+            -->
 
-            <!-- Topics Covered (Dynamic List) -->
-            <div class="form-group">
-                <label>Topics Covered</label>
+            <!-- Schedule (Dynamic List) -->
+                <label>Schedule</label>
 
                 <ul class="topics-list">
-                    <li><input type="text" placeholder="Topic 1"></li>
-                    <li><input type="text" placeholder="Topic 2"></li>
-                    <li><input type="text" placeholder="Topic 3"></li>
-                    <li><input type="text" placeholder="Topic 4"></li>
-                    <li><input type="text" placeholder="Topic 5"></li>
+                    <li><input type="text" placeholder="Topic 1" oninput="this.className = ''"></li>
+                    <li><input type="text" placeholder="Topic 2" oninput="this.className = ''"></li>
+                    <li><input type="text" placeholder="Topic 3" oninput="this.className = ''"></li>
+                    <li><input type="text" placeholder="Topic 4" oninput="this.className = ''"></li>
+                    <li><input type="text" placeholder="Topic 5" oninput="this.className = ''"></li>
                 </ul>
 
-                <button type="button" class="add-topic-btn">+ Add Topic</button>
-            </div>
-
-            <!-- Course Description -->
-            <div class="form-group">
-                <label for="course-description">Course Description</label>
-                <textarea id="course-description" rows="5" placeholder="What is the course about?"></textarea>
-            </div>
+                <button type="button" class="add-topic-btn">+ Add Shift</button>
+        </div>
 
             <!-- Submit -->
-            <button class="submit-btn">Add Course</button>
-
+            <div style="overflow:auto;">
+                <div style="float:right;">
+                    <button type="button" id="prevBtn" onclick="nextPrev(-1)">Previous</button>
+                    <button type="button" id="nextBtn" onclick="nextPrev(1)">Next</button>
+                </div>
+            </div>
         </form>
-
     </section>
 
                 <!-- FOOTER -->
@@ -117,5 +109,66 @@
         </main>
 
     </div>
+
+<script>
+var currentTab = 0; // Current tab is set to be the first tab (0)
+showTab(currentTab); // Display the current tab
+
+function showTab(n) {
+  // This function will display the specified tab of the form...
+  var x = document.getElementsByClassName("tab");
+  x[n].style.display = "block";
+  //... and fix the Previous/Next buttons:
+  if (n == 0) {
+    document.getElementById("prevBtn").style.display = "none";
+  } else {
+    document.getElementById("prevBtn").style.display = "inline";
+  }
+  if (n == (x.length - 1)) {
+    document.getElementById("nextBtn").innerHTML = "Submit";
+  } else {
+    document.getElementById("nextBtn").innerHTML = "Next";
+  }
+  //... and run a function that will display the correct step indicator:
+  fixStepIndicator(n)
+}
+
+function nextPrev(n) {
+  // This function will figure out which tab to display
+  var x = document.getElementsByClassName("tab");
+  // Exit the function if any field in the current tab is invalid:
+  if (n == 1 && !validateForm()) return false;
+  // Hide the current tab:
+  x[currentTab].style.display = "none";
+  // Increase or decrease the current tab by 1:
+  currentTab = currentTab + n;
+  // if you have reached the end of the form...
+  if (currentTab >= x.length) {
+    // ... the form gets submitted:
+    document.getElementById("mult-form").submit();
+    return false;
+  }
+  // Otherwise, display the correct tab:
+  showTab(currentTab);
+}
+
+function validateForm() {
+  // This function deals with validation of the form fields
+  var x, y, i, valid = true;
+  x = document.getElementsByClassName("tab");
+  y = x[currentTab].getElementsByTagName("input");
+  // A loop that checks every input field in the current tab:
+  for (i = 0; i < y.length; i++) {
+    // If a field is empty...
+    if (y[i].value == "") {
+      // add an "invalid" class to the field:
+      y[i].className += " invalid";
+      // and set the current valid status to false
+      valid = false;
+    }
+  }
+}
+</script>
+    
 </body>
 </html>
