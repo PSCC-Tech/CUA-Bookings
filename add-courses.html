@@ -6,6 +6,7 @@
     <title>CUA Bookings</title>
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css">
+    <link rel="stylesheet" href="CSS/courses.css">
     <link rel="stylesheet" href="CSS/courses-details.css">
     <link rel="stylesheet" href="CSS/add-courses.css">
 </head>
@@ -64,28 +65,60 @@
             </div>
 
             <!-- Mentor Selection (Checkbox List) -->
-            <div class="form-group">
-                <label>Select Mentors</label>
+<!-- Mentor Selection (Checkbox List) -->
+<div class="form-group">
+    <label>Select Mentors</label>
 
-                <div class="mentor-checkboxes">
-                    <label><input type="checkbox" value="Mentor 1"> Mentor 1</label>
-                    <label><input type="checkbox" value="Mentor 2"> Mentor 2</label>
-                    <label><input type="checkbox" value="Mentor 3"> Mentor 3</label>
+    <div class="mentor-controls">
+        <!-- Select All -->
+        <label class="select-all">
+            <input type="checkbox" id="select-all-mentors">
+            Select All
+        </label>
+
+        <!-- Category Dropdown -->
+            <div class="dropdown-wrapper">
+                <button type="button" id="category-btn">Show All</button>
+                <div id="category-dropdown" class="dropdown hidden">
+                    <div data-category="Math">Math</div>
+                    <div data-category="Computer Science">Computer Science</div>
+                    <div data-category="Biology">Biology</div>
+                    <div data-category="Business">Business</div>
+                    <div data-category="all">Show All</div>
                 </div>
-
-                <small class="hint">Select all mentors who teach this course.</small>
             </div>
+        </div>
+
+        <div class="mentor-checkboxes">
+            <!-- Mentors added by script -->
+        </div>
+
+        <small class="hint">Select all mentors who teach this course.</small>
+    </div>
 
             <!-- Topics Covered (Dynamic List) -->
             <div class="form-group">
                 <label>Topics Covered</label>
 
                 <ul class="topics-list">
-                    <li><input type="text" placeholder="Topic 1"></li>
-                    <li><input type="text" placeholder="Topic 2"></li>
-                    <li><input type="text" placeholder="Topic 3"></li>
-                    <li><input type="text" placeholder="Topic 4"></li>
-                    <li><input type="text" placeholder="Topic 5"></li>
+                    <li>
+                        <input type="text" placeholder="Topic 1">
+                        <button type="button" class="remove-topic">×</button>
+                    </li>
+                    
+                    <li>
+                        <input type="text" placeholder="Topic 2">
+                        <button type="button" class="remove-topic">×</button>
+                    </li>
+                    <li>
+                        <input type="text" placeholder="Topic 3">
+                        <button type="button" class="remove-topic">×</button>
+                    </li>
+                    <li>
+                        <input type="text" placeholder="Topic 4">
+                        <button type="button" class="remove-topic">×</button>
+                    </li>
+
                 </ul>
 
                 <button type="button" class="add-topic-btn">+ Add Topic</button>
@@ -117,5 +150,142 @@
         </main>
 
     </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    /* ============================
+       MENTOR CHECKBOX COLUMNS
+    ============================ */
+    const mentorContainer = document.querySelector(".mentor-checkboxes");
+
+    const mentors = [
+        "Mentor 1",
+        "Mentor 2",
+        "Mentor 3",
+        "Mentor 4",
+        "Mentor 5",
+        "Mentor 6",
+        "Mentor 7",
+        "Mentor 8",
+        "Mentor 9",
+        "Mentor 10",
+        "Mentor 11",
+        "Mentor 12",
+        "Mentor 13",
+        "Mentor 14",
+        "Mentor 15",
+        "Mentor 16"
+    ];
+
+    for (let i = 0; i < mentors.length; i += 6) {
+        const column = document.createElement("div");
+        column.classList.add("mentor-column");
+
+        mentors.slice(i, i + 6).forEach(name => {
+            const label = document.createElement("label");
+            label.innerHTML = `<input type="checkbox" value="${name}"> ${name}`;
+            column.appendChild(label);
+        });
+
+        mentorContainer.appendChild(column);
+    }
+
+
+    /* ============================
+       ADD / REMOVE TOPICS
+    ============================ */
+    const topicsList = document.querySelector(".topics-list");
+    const addTopicBtn = document.querySelector(".add-topic-btn");
+
+    function renumberTopics() {
+        [...topicsList.children].forEach((li, index) => {
+            const input = li.querySelector("input");
+            input.placeholder = `Topic ${index + 1}`;
+        });
+    }
+
+    function createTopicItem(number) {
+        const li = document.createElement("li");
+        li.classList.add("topic-item");
+
+        li.innerHTML = `
+            <input type="text" placeholder="Topic ${number}">
+            <button type="button" class="remove-topic">×</button>
+        `;
+
+        li.querySelector(".remove-topic").addEventListener("click", () => {
+            li.remove();
+            renumberTopics();
+        });
+
+        return li;
+    }
+
+    // Convert existing topics
+    [...topicsList.children].forEach((li, index) => {
+        const input = li.querySelector("input");
+        const newLi = createTopicItem(index + 1);
+        newLi.querySelector("input").value = input.value;
+        li.replaceWith(newLi);
+    });
+
+    // Add new topic
+    addTopicBtn.addEventListener("click", () => {
+        const count = topicsList.children.length + 1;
+        const newLi = createTopicItem(count);
+        topicsList.appendChild(newLi);
+    });
+
+});
+
+/* ============================
+   SELECT ALL MENTORS
+============================ */
+const selectAllCheckbox = document.getElementById("select-all-mentors");
+
+selectAllCheckbox.addEventListener("change", () => {
+    const mentorCheckboxes = document.querySelectorAll(".mentor-checkboxes input[type='checkbox']");
+    mentorCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+});
+
+// Keep Select All in sync
+document.addEventListener("change", (e) => {
+    if (e.target.matches(".mentor-checkboxes input[type='checkbox']")) {
+        const mentorCheckboxes = document.querySelectorAll(".mentor-checkboxes input[type='checkbox']");
+        const allChecked = [...mentorCheckboxes].every(cb => cb.checked);
+        selectAllCheckbox.checked = allChecked;
+    }
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const categoryBtn = document.getElementById("category-btn");
+    const categoryDropdown = document.getElementById("category-dropdown");
+
+    // Toggle dropdown visibility
+    categoryBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // prevent outside-click from immediately closing it
+        categoryDropdown.classList.toggle("hidden");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", () => {
+        categoryDropdown.classList.add("hidden");
+    });
+
+    // Close dropdown when selecting an option
+    categoryDropdown.querySelectorAll("div").forEach(option => {
+        option.addEventListener("click", () => {
+            categoryBtn.textContent = option.textContent; // update button label
+            categoryDropdown.classList.add("hidden");     // close dropdown
+        });
+    });
+
+});
+</script>
+
 </body>
 </html>
