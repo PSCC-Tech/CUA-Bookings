@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUA Bookings</title>
+    <!--<link rel="stylesheet" href="styles.css">-->
+    <link rel="stylesheet" href="CSS/base.css">
+    <link rel="stylesheet" href="CSS/courses-details.css">
+    <link rel="stylesheet" href="CSS/add-courses.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- LEFT NAVIGATION -->
+        <nav class="sidebar">
+            <h2 class="logo">CUA Bookings</h2>
+
+            <ul class="nav-links">
+                <li onclick="window.location='index.html'">Bookings</li>
+                <li class="active" onclick="window.location='courses.html'">Courses</li>
+                <li onclick="window.location='mentors.html'">Mentors</li>
+                <li>Account</li>
+            </ul>
+
+            <div class="logout">
+                <span>Logout</span>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="content">
+
+        <div class="back-container">
+            <button class="back-btn" onclick="window.location='courses.html'">
+            ← Back to Courses
+            </button>
+        </div>
+
+    <section class="add-course">
+
+        <h1 class="form-title">Add New Course</h1>
+
+        <form class="course-form">
+
+            <!-- Course Code -->
+            <div class="form-group">
+                <label for="course-code">Course Code</label>
+                <input type="text" id="course-code" placeholder="e.g., MATH 101">
+            </div>
+
+            <!-- Course Name -->
+            <div class="form-group">
+                <label for="course-name">Course Name</label>
+                <input type="text" id="course-name" placeholder="e.g., College Algebra">
+            </div>
+
+            <!-- Professors -->
+            <div class="form-group">
+                <label for="course-professors">Professor(s)</label>
+                <input type="text" id="course-professors" placeholder="e.g., Israel, James">
+                <small class="hint">Separate multiple professors with commas.</small>
+            </div>
+
+            <!-- Mentor Selection (Checkbox List) -->
+            <div class="form-group">
+                <label>Select Mentors</label>
+
+                <div class="mentor-checkboxes">
+                    <label><input type="checkbox" value="Mentor 1"> Mentor 1</label>
+                    <label><input type="checkbox" value="Mentor 2"> Mentor 2</label>
+                    <label><input type="checkbox" value="Mentor 3"> Mentor 3</label>
+                </div>
+
+                <small class="hint">Select all mentors who teach this course.</small>
+            </div>
+
+            <!-- Topics Covered (Dynamic List) -->
+            <div class="form-group">
+                <label>Topics Covered</label>
+
+                <ul class="topics-list">
+                    <li><input type="text" placeholder="Topic 1"></li>
+                    <li><input type="text" placeholder="Topic 2"></li>
+                    <li><input type="text" placeholder="Topic 3"></li>
+                    <li><input type="text" placeholder="Topic 4"></li>
+                    <li><input type="text" placeholder="Topic 5"></li>
+                </ul>
+
+                <button type="button" class="add-topic-btn">+ Add Topic</button>
+            </div>
+
+            <!-- Course Description -->
+            <div class="form-group">
+                <label for="course-description">Course Description</label>
+                <textarea id="course-description" rows="5" placeholder="What is the course about?"></textarea>
+            </div>
+
+            <!-- Submit -->
+            <button class="submit-btn">Add Course</button>
+
+        </form>
+
+    </section>
+
+                <!-- FOOTER -->
+            <footer class="footer">
+                CUA Booking Prototype
+                Antes de llegar a el form tendrias que seleccionar la materia y el mentor el cual
+                dara la tutoria. Otra opcion es tener el form programado para que el tutor y su
+                dispinibilidad determine las horas de cita disponibles. Date tendra un modal donde
+                se escoge la fecha de la cita similar a el sistema actual.
+                Opciones como: tutor y curso serian drop-box.
+                Cierta informacion haria "autofil" si es un estudiante que ya tomo tutorias anteriormente.
+            </footer>
+        </main>
+
+    </div>
+</body>
+</html>
