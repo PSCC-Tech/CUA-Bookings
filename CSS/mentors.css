@@ -55,6 +55,37 @@
     gap: 12px;
 }
 
+.dropdown-wrapper {
+    position: relative; /* anchor point */
+    display: inline-block;
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;      /* directly under the button */
+    left: 0;        /* align left edges */
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 4px;
+    padding: 8px 0;
+    width: 180px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 20;
+}
+
+.dropdown div {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.dropdown div:hover {
+    background-color: #f0f0f0;
+}
+
+.hidden {
+    display: none;
+}
 
 /* ====== Mentor Section Layout ====== */
 
@@ -85,15 +116,29 @@
     font-size: 30px;
 }
 
+.mentor-inner {
+    width: 70%;        /* match your table width */
+    max-width: 900px;  /* match your table max-width */
+    margin: 0 auto;    /* center it */
+}
+
 /* ====== Table Styling ====== */
 
 .mentor-table {
+    table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
     background: #ffffff;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 600px) {
+    .mentor-table {
+        width: 100%;
+        max-width: none;
+    }
 }
 
 /* Header */
@@ -125,4 +170,23 @@
     background: #e6f0ff;
     cursor: pointer;
     transition: background 0.2s ease-in-out;
+}
+
+.delete-btn {
+    display: none; /* stays hidden until needed */
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    margin: 0 auto 15px auto; /* centers the button */
+    width: 160px;             /* fixed width */
+    text-align: center;
+    white-space: nowrap;
+}
+
+.delete-btn:hover {
+    background: #c82333;
 }
