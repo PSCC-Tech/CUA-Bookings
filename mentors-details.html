@@ -7,6 +7,8 @@
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css">
     <link rel="stylesheet" href="CSS/mentors-details.css">
+    <link rel="stylesheet" href="CSS/calendar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -17,7 +19,7 @@
             <h2 class="logo">CUA Bookings</h2>
 
             <ul class="nav-links">
-                <li>Bookings</li>
+                <li onclick="window.location='index.html'">Bookings</li>
                 <li onclick="window.location='courses.html'">Courses</li>
                 <li onclick="window.location='mentors.html'" class="active">Mentors</li>
                 <li>Account</li>
@@ -44,28 +46,31 @@
 
         <h2>Mentor Information</h2>
         <ul class="info-list">
-            <li><strong>ID:</strong> </li>
-            <li><strong>Name:</strong> </li>
-            <li><strong>Contact:</strong> </li>
+            <li><strong>ID: </strong>A00123456</li>
+            <li><strong>Name: </strong>John Doe</li>
+            <li><strong>Contact: </strong>jodo3456@agu.inter.edu</li>
         </ul>
 
         <h2>Courses</h2>
         <ul class="topics-list">
-            <li>Course 1</li>
-            <li>Course 2</li>
-            <li>Course 3</li>
+            <li>MATH 1500</li>
+            <li>GEMA 1200</li>
+            <li>GEMA 1000</li>
         </ul>
+
+        <div class="edit-controls">
+            <button class="edit-btn">✏️ Edit</button>
+
+            <div class="edit-actions">
+                <button class="confirm-btn">Confirm</button>
+                <button class="cancel-btn">Cancel</button>
+            </div>
+        </div>
 
     </section>
 
     <!-- RIGHT COLUMN: MENTOR SCHEDULE -->
-    <section id="mentor-schedule" class="collapsible">
-
-        <button class="collapsible-header">
-            Mentor Schedule ▶
-        </button>
-
-        <div class="collapsible-content">
+    <section id="mentor-schedule">
 
             <div class="mentor-tabs">
                 <button class="mentor-tab active" data-mentor="1">Mentor 1</button>
@@ -75,19 +80,50 @@
 
             <div class="mentor-layout">
 
-                <div class="calendar-container">
-                    <h3 id="mentor-name">Mentor Name</h3>
-                    <div id="calendar"></div>
+            <!-- RIGHT COLUMN: CALENDAR -->
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="nav-buttons">
+                    <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                    <button class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="month-year" id="month-year">September 2025</div>
+                </div>
+                
+                <div class="weekdays">
+                    <div class="weekday">Sun</div>
+                    <div class="weekday">Mon</div>
+                    <div class="weekday">Tue</div>
+                    <div class="weekday">Wed</div>
+                    <div class="weekday">Thu</div>
+                    <div class="weekday">Fri</div>
+                    <div class="weekday">Sat</div>
                 </div>
 
-                <div class="schedule-container">
-                    <h3>Schedule for Selected Day</h3>
-                    <ul id="schedule-list"></ul>
+                <div class="days" id="days"></div>
+                
+                <div class="calendar-footer">
+                    <button class="today-btn" id="today-btn"><i class="fas fa-calendar-day"></i> Today</button>
+                    <div class="event-indicator">
+                    <i class="fas fa-circle" style="color: var(--accent); font-size: 0.6rem;"></i>
+                    <span>Has events</span>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Event Panel -->
+                <div class="event-panel" id="event-panel">
+                    <div class="event-header">
+                        <div class="event-date" id="event-date">Select a date</div>
+                        <i class="fas fa-calendar-alt event-icon"></i>
+                    </div>
+                    <div class="event-list" id="event-list">
+                        <div class="no-events">Select a date with events to view them here</div>
+                    </div>
                 </div>
 
             </div>
-
-        </div>
+    
 
     </section>
 
@@ -107,81 +143,28 @@
 
     </div>
 
-    <script>
+<script src="Scripts/Calendar.js"></script>
 
+<script>
 document.addEventListener("DOMContentLoaded", () => {
-    const header = document.querySelector(".collapsible-header");
-    const collapsible = document.querySelector(".collapsible");
+    const editBtn = document.querySelector(".edit-btn");
+    const editActions = document.querySelector(".edit-actions");
 
-    header.addEventListener("click", () => {
-        collapsible.classList.toggle("open");
-
-        // Update arrow
-        header.textContent = collapsible.classList.contains("open")
-            ? "Mentor Schedule ▲"
-            : "Mentor Schedule ▼";
-    });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    generateCalendar();
-});
-
-function generateCalendar() {
-    const calendar = document.getElementById("calendar");
-    calendar.innerHTML = "";
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    // Fill empty cells before the 1st
-    for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement("div");
-        empty.classList.add("calendar-day", "inactive");
-        calendar.appendChild(empty);
-    }
-
-    // Fill actual days
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        dayDiv.textContent = day;
-
-        dayDiv.addEventListener("click", () => {
-            selectDay(dayDiv, day);
-        });
-
-        calendar.appendChild(dayDiv);
-    }
-}
-
-function selectDay(element, day) {
-    // Remove previous selection
-    document.querySelectorAll(".calendar-day").forEach(d => {
-        d.classList.remove("selected");
+    editBtn.addEventListener("click", () => {
+        editBtn.style.display = "none";
+        editActions.style.display = "flex";
     });
 
-    // Highlight selected day
-    element.classList.add("selected");
+    document.querySelector(".confirm-btn").addEventListener("click", () => {
+        editActions.style.display = "none";
+        editBtn.style.display = "inline-block";
+    });
 
-    // Load schedule for that day
-    loadSchedule(day);
-}
-
-function loadSchedule(day) {
-    const scheduleList = document.getElementById("schedule-list");
-
-    // Placeholder example — later you will load real mentor availability
-    scheduleList.innerHTML = `
-        <li>Selected day: ${day}</li>
-        <li>9:00 AM – 10:00 AM</li>
-        <li>1:00 PM – 3:00 PM</li>
-    `;
-}
+    document.querySelector(".cancel-btn").addEventListener("click", () => {
+        editActions.style.display = "none";
+        editBtn.style.display = "inline-block";
+    });
+});
 </script>
 
 </body>
