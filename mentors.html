@@ -81,25 +81,25 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
+                <tr data-name="John Smith" data-categories="Math,Computer Science">
                     <td><input type="checkbox" class="mentor-select"></td>
                     <td>A00000001</td>
                     <td onclick="window.location='mentors-details.html'">John Smith</td>
                     <td>josm0001@agu.inter.edu</td>
                 </tr>
-                <tr>
+                <tr data-name="John Doe" data-categories="Business,Biology">
                     <td><input type="checkbox" class="mentor-select"></td>
                     <td>A00123456</td>
                     <td onclick="window.location='mentors-details.html'">John Doe</td>
                     <td>jodo3456@agu.inter.edu</td>
                 </tr>
-                <tr>
+                <tr data-name="Jane Smith" data-categories="Math,Biology">
                     <td><input type="checkbox" class="mentor-select"></td>
                     <td>A00000003</td>
                     <td onclick="window.location='mentors-details.html'">Jane Smith</td>
                     <td>jasm0003@agu.inter.edu</td>
                 </tr>
-                <tr>
+                <tr data-name="Jane Doe" data-categories="Biology,Math">
                     <td><input type="checkbox" class="mentor-select"></td>
                     <td>A00000004</td>
                     <td onclick="window.location='mentors-details.html'">Jane Doe</td>
@@ -131,184 +131,19 @@
 
 </div>
 
+<script src="Scripts/TableManager.js"></script>
+<script src="Scripts/MentorsUI.js"></script>
+
 <script>
+MentorsUI.init();
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    // -----------------------------
-    // ELEMENTS
-    // -----------------------------
-    const categoryBtn = document.getElementById("category-btn");
-    const mentorBtn = document.getElementById("mentor-btn");
-    const categoryDropdown = document.getElementById("category-dropdown");
-    const mentorDropdown = document.getElementById("mentor-dropdown");
-    const courseSections = document.querySelectorAll(".mentor-section");
-    const searchInput = document.getElementById("mentor-search");
-
-// -----------------------------
-// SEARCH FILTER
-// -----------------------------
-function highlightMatch(text, query) {
-    if (!query) return text;
-    const regex = new RegExp(`(${query})`, "gi");
-    return text.replace(regex, `<mark>$1</mark>`);
-}
-
-searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase().trim();
-
-    courseSections.forEach(section => {
-        const rows = section.querySelectorAll("tbody tr");
-        const titleEl = section.querySelector("h2 .title-text");
-        const originalTitle = titleEl.dataset.original || titleEl.innerText;
-        titleEl.dataset.original = originalTitle;
-
-        const titleText = originalTitle.toLowerCase();
-        const titleMatch = titleText.includes(query);
-
-        let anyVisible = false;
-
-        // DO NOT highlight the title — just restore original
-        titleEl.innerHTML = originalTitle;
-
-        rows.forEach(row => {
-            const rowText = row.innerText.toLowerCase();
-            const match = rowText.includes(query) || titleMatch;
-
-            if (match) {
-                row.style.display = "";
-                anyVisible = true;
-
-                // Highlight each cell
-            row.querySelectorAll("td").forEach(td => {
-                // Skip cells that contain inputs (checkboxes)
-                if (td.querySelector("input")) return;
-
-                const original = td.dataset.original || td.innerText;
-                td.dataset.original = original;
-                td.innerHTML = highlightMatch(original, query);
-            });
-
-            } else {
-                row.style.display = "none";
-            }
-        });
-
-        // Section visibility
-        section.style.display = (anyVisible || titleMatch) ? "block" : "none";
-
-        // No results message
-        const noResults = section.querySelector(".no-results");
-        if (!anyVisible && !titleMatch) {
-            noResults.classList.remove("hidden");
-        } else {
-            noResults.classList.add("hidden");
-        }
-    });
-});
-
-    // -----------------------------
-    // MENTOR DROPDOWN BUILD
-    // -----------------------------
-    const mentorCells = document.querySelectorAll("tbody tr td:nth-child(5)");
-    const mentors = [...new Set([...mentorCells].map(td => td.textContent.trim()))];
-
-    mentorDropdown.innerHTML = mentors
-        .map(m => `<div data-mentor="${m}">${m}</div>`)
-        .join("") + `<div data-mentor="all">Show All</div>`;
-
-    // -----------------------------
-    // DROPDOWN TOGGLES
-    // -----------------------------
-    categoryBtn.addEventListener("click", () => {
-        categoryDropdown.classList.toggle("hidden");
-        mentorDropdown.classList.add("hidden");
-    });
-
-    mentorBtn.addEventListener("click", () => {
-        mentorDropdown.classList.toggle("hidden");
-        categoryDropdown.classList.add("hidden");
-    });
-
-    document.addEventListener("click", (e) => {
-        if (!e.target.closest(".right-group")) {
-            categoryDropdown.classList.add("hidden");
-            mentorDropdown.classList.add("hidden");
-        }
-    });
-
-    // -----------------------------
-    // CATEGORY FILTER
-    // -----------------------------
-    categoryDropdown.addEventListener("click", (e) => {
-        if (!e.target.dataset.category) return;
-
-        const selected = e.target.dataset.category;
-
-        courseSections.forEach(section => {
-            const title = section.querySelector("h2").textContent;
-
-            if (selected === "all" || title.includes(selected)) {
-                section.style.display = "block";
-            } else {
-                section.style.display = "none";
-            }
-        });
-
-        categoryDropdown.classList.add("hidden");
-    });
-
-    // -----------------------------
-    // MENTOR FILTER
-    // -----------------------------
-    mentorDropdown.addEventListener("click", (e) => {
-        if (!e.target.dataset.mentor) return;
-
-        const selected = e.target.dataset.mentor;
-
-        courseSections.forEach(section => {
-            const rows = section.querySelectorAll("tbody tr");
-            let anyVisible = false;
-
-            rows.forEach(row => {
-                const mentor = row.children[4].textContent.trim();
-
-                if (selected === "all" || mentor === selected) {
-                    row.style.display = "";
-                    anyVisible = true;
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            section.style.display = anyVisible ? "block" : "none";
-        });
-
-        mentorDropdown.classList.add("hidden");
-    });
-
-});
-
-    // -----------------------------
-    //  DELETE BUTTON
-    // -----------------------------
-document.addEventListener("DOMContentLoaded", () => {
-    const checkboxes = document.querySelectorAll(".mentor-select");
-    const deleteBtn = document.getElementById("delete-selected");
-
-    function updateDeleteButton() {
-        const anyChecked = [...checkboxes].some(cb => cb.checked);
-        deleteBtn.style.display = anyChecked ? "inline-block" : "none";
-    }
-
-    checkboxes.forEach(cb => {
-        cb.addEventListener("change", updateDeleteButton);
-    });
-
-    deleteBtn.addEventListener("click", () => {
-        alert("Delete action triggered for selected mentors.");
-        // Later: remove rows or send to backend
-    });
+TableManager.init({
+    itemSelector: ".mentor-table tbody tr",
+    categoryDropdown: document.getElementById("category-dropdown"),
+    mentorDropdown: null,
+    searchInput: document.getElementById("mentor-search"),
+    selectAllCheckbox: document.getElementById("select-all-mentors"),
+    deleteButton: document.getElementById("delete-mentors-btn"),
 });
 </script>
 

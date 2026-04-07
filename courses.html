@@ -83,21 +83,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr data-name="College Algebra" data-category="Math" data-mentor="Maria Lopez">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>MATH 101</td>
                         <td onclick="window.location='courses-details.html'"> College Algebra</td>
                         <td>Dr. Rivera</td>
                         <td>Maria Lopez</td>
                     </tr>
-                    <tr>
+                    <tr data-name="Calculus I" data-category="Math" data-mentor="John Perez">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>MATH 205</td>
                         <td>Calculus I</td>
                         <td>Dr. Santiago</td>
                         <td>John Perez</td>
                     </tr>
-                    <tr>
+                    <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>MATH 310</td>
                         <td>Statistics</td>
@@ -127,21 +127,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr data-name="Introduction to Programming" data-category="Computer Science" data-mentor="Carlos Vega">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>COMP 101</td>
                         <td>Introduction to Programming</td>
                         <td>Prof. Martinez</td>
                         <td>Carlos Vega</td>
                     </tr>
-                    <tr>
+                    <tr data-name="Web Development" data-category="Computer Science" data-mentor="Laura Ortiz">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>COMP 220</td>
                         <td>Web Development</td>
                         <td>Prof. Hernandez</td>
                         <td>Laura Ortiz</td>
                     </tr>
-                    <tr>
+                    <tr data-name="Database Systems" data-category="Computer Science" data-mentor="Samuel Cruz">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>COMP 330</td>
                         <td>Database Systems</td>
@@ -171,21 +171,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr data-name="General Biology" data-category="Biology" data-mentor="Emily Santos">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>BIO 110</td>
                         <td>General Biology</td>
                         <td>Dr. Ramos</td>
                         <td>Emily Santos</td>
                     </tr>
-                    <tr>
+                    <tr data-name="Human Anatomy" data-category="Biology" data-mentor="Daniel Ruiz">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>BIO 215</td>
                         <td>Human Anatomy</td>
                         <td>Dr. Figueroa</td>
                         <td>Daniel Ruiz</td>
                     </tr>
-                    <tr>
+                    <tr data-name="Microbiology" data-category="Biology" data-mentor="Isabella Flores">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>BIO 320</td>
                         <td>Microbiology</td>
@@ -215,21 +215,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr data-name="Introduction to Business" data-category="Business" data-mentor="Jessica Ramos">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>BUS 101</td>
                         <td>Introduction to Business</td>
                         <td>Prof. Alvarez</td>
                         <td>Jessica Ramos</td>
                     </tr>
-                    <tr>
+                    <tr data-name="Marketing Principles" data-category="Business" data-mentor="Maria Lopez">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>BUS 210</td> <!--Course Code-->
                         <td>Marketing Principles</td> <!--Course Name-->
                         <td>Prof. Torres</td> <!--Profesors-->
                         <td>Maria Lopez</td> <!--Mentors-->
                     </tr>
-                    <tr>
+                    <tr data-name="Business Finance" data-category="Business" data-mentor="Andrea Rivera">
                         <td><input type="checkbox" class="course-select"></td>
                         <td>BUS 330</td>
                         <td>Business Finance</td>
@@ -264,184 +264,19 @@
 </div>
 
 
+<script src="Scripts/TableManager.js"></script>
+<script src="Scripts/CoursesUI.js"></script>
+
 <script>
+CoursesUI.init();
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    // -----------------------------
-    // ELEMENTS
-    // -----------------------------
-    const categoryBtn = document.getElementById("category-btn");
-    const mentorBtn = document.getElementById("mentor-btn");
-    const categoryDropdown = document.getElementById("category-dropdown");
-    const mentorDropdown = document.getElementById("mentor-dropdown");
-    const courseSections = document.querySelectorAll(".course-section");
-    const searchInput = document.getElementById("course-search");
-
-// -----------------------------
-// SEARCH FILTER
-// -----------------------------
-function highlightMatch(text, query) {
-    if (!query) return text;
-    const regex = new RegExp(`(${query})`, "gi");
-    return text.replace(regex, `<mark>$1</mark>`);
-}
-
-searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase().trim();
-
-    courseSections.forEach(section => {
-        const rows = section.querySelectorAll("tbody tr");
-        const titleEl = section.querySelector("h2 .title-text");
-        const originalTitle = titleEl.dataset.original || titleEl.innerText;
-        titleEl.dataset.original = originalTitle;
-
-        const titleText = originalTitle.toLowerCase();
-        const titleMatch = titleText.includes(query);
-
-        let anyVisible = false;
-
-        // DO NOT highlight the title — just restore original
-        titleEl.innerHTML = originalTitle;
-
-        rows.forEach(row => {
-            const rowText = row.innerText.toLowerCase();
-            const match = rowText.includes(query) || titleMatch;
-
-            if (match) {
-                row.style.display = "";
-                anyVisible = true;
-
-                // Highlight each cell
-            row.querySelectorAll("td").forEach(td => {
-                // Skip cells that contain inputs (checkboxes)
-                if (td.querySelector("input")) return;
-
-                const original = td.dataset.original || td.innerText;
-                td.dataset.original = original;
-                td.innerHTML = highlightMatch(original, query);
-            });
-
-            } else {
-                row.style.display = "none";
-            }
-        });
-
-        // Section visibility
-        section.style.display = (anyVisible || titleMatch) ? "block" : "none";
-
-        // No results message
-        const noResults = section.querySelector(".no-results");
-        if (!anyVisible && !titleMatch) {
-            noResults.classList.remove("hidden");
-        } else {
-            noResults.classList.add("hidden");
-        }
-    });
-});
-
-    // -----------------------------
-    // MENTOR DROPDOWN BUILD
-    // -----------------------------
-    const mentorCells = document.querySelectorAll("tbody tr td:nth-child(5)");
-    const mentors = [...new Set([...mentorCells].map(td => td.textContent.trim()))];
-
-    mentorDropdown.innerHTML = mentors
-        .map(m => `<div data-mentor="${m}">${m}</div>`)
-        .join("") + `<div data-mentor="all">Show All</div>`;
-
-    // -----------------------------
-    // DROPDOWN TOGGLES
-    // -----------------------------
-    categoryBtn.addEventListener("click", () => {
-        categoryDropdown.classList.toggle("hidden");
-        mentorDropdown.classList.add("hidden");
-    });
-
-    mentorBtn.addEventListener("click", () => {
-        mentorDropdown.classList.toggle("hidden");
-        categoryDropdown.classList.add("hidden");
-    });
-
-    document.addEventListener("click", (e) => {
-        if (!e.target.closest(".right-group")) {
-            categoryDropdown.classList.add("hidden");
-            mentorDropdown.classList.add("hidden");
-        }
-    });
-
-    // -----------------------------
-    // CATEGORY FILTER
-    // -----------------------------
-    categoryDropdown.addEventListener("click", (e) => {
-        if (!e.target.dataset.category) return;
-
-        const selected = e.target.dataset.category;
-
-        courseSections.forEach(section => {
-            const title = section.querySelector("h2").textContent;
-
-            if (selected === "all" || title.includes(selected)) {
-                section.style.display = "block";
-            } else {
-                section.style.display = "none";
-            }
-        });
-
-        categoryDropdown.classList.add("hidden");
-    });
-
-    // -----------------------------
-    // MENTOR FILTER
-    // -----------------------------
-    mentorDropdown.addEventListener("click", (e) => {
-        if (!e.target.dataset.mentor) return;
-
-        const selected = e.target.dataset.mentor;
-
-        courseSections.forEach(section => {
-            const rows = section.querySelectorAll("tbody tr");
-            let anyVisible = false;
-
-            rows.forEach(row => {
-                const mentor = row.children[4].textContent.trim();
-
-                if (selected === "all" || mentor === selected) {
-                    row.style.display = "";
-                    anyVisible = true;
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            section.style.display = anyVisible ? "block" : "none";
-        });
-
-        mentorDropdown.classList.add("hidden");
-    });
-
-});
-
-    // -----------------------------
-    //  DELETE BUTTON
-    // -----------------------------
-document.addEventListener("DOMContentLoaded", () => {
-    const checkboxes = document.querySelectorAll(".course-select");
-    const deleteBtn = document.getElementById("delete-selected");
-
-    function updateDeleteButton() {
-        const anyChecked = [...checkboxes].some(cb => cb.checked);
-        deleteBtn.style.display = anyChecked ? "inline-block" : "none";
-    }
-
-    checkboxes.forEach(cb => {
-        cb.addEventListener("change", updateDeleteButton);
-    });
-
-    deleteBtn.addEventListener("click", () => {
-        alert("Delete action triggered for selected courses.");
-        // Later: remove rows or send to backend
-    });
+TableManager.init({
+    itemSelector: ".course-table tbody tr",
+    categoryDropdown: document.getElementById("category-dropdown"),
+    mentorDropdown: document.getElementById("mentor-dropdown"),
+    searchInput: document.getElementById("course-search"),
+    selectAllCheckbox: document.getElementById("select-all-courses"),
+    deleteButton: document.getElementById("delete-courses-btn"),
 });
 </script>
 
