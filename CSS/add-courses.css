@@ -95,6 +95,10 @@
     cursor: pointer;
 }
 
+.mentor-checkboxes label.hidden {
+    display: none;
+}
+
 .mentor-checkboxes input[type="checkbox"] {
     width: 18px;
     height: 18px;
