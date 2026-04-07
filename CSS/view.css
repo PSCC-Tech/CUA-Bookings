@@ -94,3 +94,50 @@
 .modal-details p {
     margin: 10px 0;
 }
+
+/* START SESSION BUTTON */
+.start-session-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.stop-session-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.start-session-btn:hover {
+    background-color: #218838;
+}
+
+.start-session-btn:active {
+    background-color: #1e7e34;
+}
+
+.stop-session-btn {
+    background-color: #dc3545;
+}
+
+.stop-session-btn:hover {
+    background-color: #c82333;
+}
+
+.stop-session-btn:active {
+    background-color: #bd2130;
+}

@@ -33,48 +33,32 @@
 
             <!-- TOP OPTIONS -->
             <div class="top-menu">
-                <span class="top-option active">Create</span>
-                <span class="top-option" onclick="window.location='absence.html'">Absence</span>
+                <span class="top-option" onclick="window.location='index.html'">Create</span>
+                <span class="top-option active">Absence</span>
                 <span class="top-option" onclick="window.location='view.html'">View</span>
                 <span class="top-option">Data</span>
             </div>
 
             <!-- FORM SECTION -->
             <div class="form-container">
-                <h2>New Booking</h2>
+                <h2>Mentor Absence</h2>
 
                 <form>
-                    <label>Course</label>
-                    <input type="text">
-
                     <label>Mentor</label>
-                    <input type="text">
+                    <select>
+                        <option value="">Select a Mentor</option>
+                        <option value="mentor1">Jessica</option>
+                        <option value="mentor2">Matthew</option>
+                        <option value="mentor2">Daniel</option>
+                    </select>
 
                     <label>Date</label>
                     <input type="date">
 
-                    <label>Student</label>
-                    <input type="text">
-
-                    <label>Email</label>
-                    <input type="email">
-
-                    <label>Phone Number</label>
-                    <input type="text">
-
-                    <label>Location</label>
-                    <input type="text">
-
-                    <label>Single or Group</label>
-                    <input type="text">
-
-                    <label>Topics to Discuss</label>
+                    <label>Reason for Absence</label>
                     <textarea rows="3"></textarea>
 
-                    <label>Professor</label>
-                    <input type="text">
-
-                    <label>Person Who Made the Citation</label>
+                    <label>Person Who Made the Absence</label>
                     <input type="text">
 
                     <button type="submit">Submit</button>

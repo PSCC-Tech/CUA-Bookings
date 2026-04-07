@@ -34,8 +34,9 @@
         <!-- TOP OPTIONS -->
         <div class="top-menu">
             <span class="top-option" onclick="window.location='index.html'">Create</span>
-            <span class="top-option active">View</span>                
-            <span class="top-option">Query</span>
+            <span class="top-option" onclick="window.location='absence.html'">Absence</span>
+            <span class="top-option active">View</span>
+            <span class="top-option">Data</span>
         </div>
 
         <!-- Booking Header -->
@@ -50,11 +51,13 @@
                  data-service="Math Tutoring"
                  data-date="March 7, 2026"
                  data-time="10:00 AM"
-                 data-notes="Student needs help with algebra.">
+                 data-location="CUA"
+                 data-topics="Polynoms and factoring.">
                 <h3>10:00 AM</h3>
-                <p><strong>Tutor</strong> Sarah Smith</p>
+                <p><strong>Mentor</strong> Sarah Smith</p>
                 <p><strong>Student</strong> Sarah Smith</p>
-                <p><strong>Service:</strong> Math Tutoring</p>
+                <p><strong>Service:</strong> Math Mentoring</p>
+                <p><strong>Location:</strong> CUA</p>
             </div>
 
             <div class="booking-card"
@@ -62,11 +65,13 @@
                  data-service="Math Tutoring"
                  data-date="March 7, 2026"
                  data-time="10:00 AM"
-                 data-notes="Student needs help with algebra.">
+                 data-location="CUA"
+                 data-topics="Polynoms and factoring.">
                 <h3>11:00 AM</h3>
-                <p><strong>Tutor</strong> Sarah Smith</p>
+                <p><strong>Mentor</strong> Sarah Smith</p>
                 <p><strong>Student</strong> Sarah Smith</p>
-                <p><strong>Service:</strong> Physics Tutoring</p>
+                <p><strong>Service:</strong> Physics Mentoring</p>
+                <p><strong>Location:</strong> CUA</p>
             </div>
 
             <div class="booking-card"
@@ -74,11 +79,13 @@
                  data-service="Math Tutoring"
                  data-date="March 7, 2026"
                  data-time="10:00 AM"
-                 data-notes="Student needs help with algebra.">
+                 data-location="Microsoft Teams"
+                 data-topics="Student needs help with algebra.">
                 <h3>12:00 PM</h3>
-                <p><strong>Tutor</strong> Sarah Smith</p>
+                <p><strong>Mentor</strong> Sarah Smith</p>
                 <p><strong>Student</strong> Sarah Smith</p>
-                <p><strong>Service:</strong> Chemistry Tutoring</p>
+                <p><strong>Service:</strong> Chemistry Mentoring</p>
+                <p><strong>Location:</strong> Microsoft Teams</p>
             </div>
 
             <div class="booking-card"
@@ -86,11 +93,13 @@
                  data-service="Math Tutoring"
                  data-date="March 7, 2026"
                  data-time="10:00 AM"
-                 data-notes="Student needs help with algebra.">
+                 data-location="Microsoft Teams"
+                 data-topics="Student needs help with algebra.">
                 <h3>1:00 PM</h3>
-                <p><strong>Tutor</strong> Sarah Smith</p>
+                <p><strong>Mentor</strong> Sarah Smith</p>
                 <p><strong>Student</strong> Sarah Smith</p>
-                <p><strong>Service:</strong> English Tutoring</p>
+                <p><strong>Service:</strong> English Mentoring</p>
+                <p><strong>Location:</strong> Microsoft Teams</p>
             </div>
 
             <div class="booking-card"
@@ -98,11 +107,13 @@
                  data-service="Math Tutoring"
                  data-date="March 7, 2026"
                  data-time="10:00 AM"
-                 data-notes="Student needs help with algebra.">
+                 data-location="Microsoft Teams"
+                 data-topics="Student needs help with algebra.">
                 <h3>2:00 PM</h3>
-                <p><strong>Tutor</strong> Sarah Smith</p>
+                <p><strong>Mentor</strong> Sarah Smith</p>
                 <p><strong>Student</strong> Sarah Smith</p>
-                <p><strong>Service:</strong> Programming Tutoring</p>
+                <p><strong>Service:</strong> Computer Mentoring</p>
+                <p><strong>Location:</strong> Microsoft Teams</p>
             </div>
 
         </div>
@@ -134,8 +145,10 @@
                 <p><strong>Service:</strong> <span id="modal-service"></span></p>
                 <p><strong>Date:</strong> <span id="modal-date"></span></p>
                 <p><strong>Time:</strong> <span id="modal-time"></span></p>
-                <p><strong>Notes:</strong></p>
-                <p id="modal-notes"></p>
+                <p><strong>Location:</strong> <span id="modal-location"></span></p>
+                <p><strong>Topics:</strong></p>
+                <p id="modal-topics"></p>
+                <button id="start-session-btn" class="start-session-btn">Start Session</button>
             </div>
         </div>
     </div>
@@ -149,6 +162,8 @@
     const modal = document.getElementById("booking-modal");
     const closeBtn = document.querySelector(".modal-close");
 
+    const startBtn = document.getElementById("start-session-btn");
+
     // When a card is clicked
     document.querySelectorAll(".booking-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -156,10 +171,39 @@
             document.getElementById("modal-service").textContent = card.dataset.service;
             document.getElementById("modal-date").textContent = card.dataset.date;
             document.getElementById("modal-time").textContent = card.dataset.time;
-            document.getElementById("modal-notes").textContent = card.dataset.notes;
+            document.getElementById("modal-location").textContent = card.dataset.location;
+            document.getElementById("modal-topics").textContent = card.dataset.topics;
+
+            // Reset button state each time the modal opens
+            startBtn.textContent = "Start Session";
+            startBtn.dataset.active = "false";
+            startBtn.classList.remove("stop-session-btn");
+            startBtn.classList.add("start-session-btn");
+            startBtn.dataset.cardData = JSON.stringify(card.dataset);
 
             modal.style.display = "flex";
         });
+    });
+
+    // Handle Start/Stop Session button click
+    startBtn.addEventListener("click", () => {
+        const isActive = startBtn.dataset.active === "true";
+
+        if (!isActive) {
+            startBtn.textContent = "Stop Session";
+            startBtn.dataset.active = "true";
+            startBtn.classList.remove("start-session-btn");
+            startBtn.classList.add("stop-session-btn");
+            alert("Session started!");
+            // Add your session start logic here
+        } else {
+            startBtn.textContent = "Start Session";
+            startBtn.dataset.active = "false";
+            startBtn.classList.remove("stop-session-btn");
+            startBtn.classList.add("start-session-btn");
+            alert("Session stopped!");
+            // Add your session stop logic here
+        }
     });
 
     // Close modal
