@@ -65,6 +65,22 @@
 
 <section id="courses">
 
+            <div class="delete-panel hidden" id="delete-panel">
+                <h3>Courses Selected for Deletion</h3>
+                <table id="delete-table">
+                    <tbody></tbody>
+                </table>
+                <div class="delete-actions">
+                    <button id="confirm-delete-btn">Delete Selected</button>
+                    <button id="cancel-delete-btn">Cancel</button>
+                </div>
+            </div>
+
+            <div id="global-no-results" class="hidden global-no-results">
+                <div class="no-results-icon">🔍</div>
+                <div class="no-results-text">No matching terms found.</div>
+            </div>
+
     <!-- MATH -->
     <div class="course-section">
         <div class="no-results hidden">No matching courses found.</div>
@@ -268,15 +284,19 @@
 <script src="Scripts/CoursesUI.js"></script>
 
 <script>
-CoursesUI.init();
+document.addEventListener("DOMContentLoaded", () => {
 
-TableManager.init({
-    itemSelector: ".course-table tbody tr",
-    categoryDropdown: document.getElementById("category-dropdown"),
-    mentorDropdown: document.getElementById("mentor-dropdown"),
-    searchInput: document.getElementById("course-search"),
-    selectAllCheckbox: document.getElementById("select-all-courses"),
-    deleteButton: document.getElementById("delete-courses-btn"),
+    CoursesUI.init();
+
+    TableManager.init({
+        itemSelector: ".course-table tbody tr",
+        categoryDropdown: document.getElementById("category-dropdown"),
+        mentorDropdown: document.getElementById("mentor-dropdown"),
+        searchInput: document.getElementById("course-search"),
+        selectAllCheckbox: document.getElementById("select-all-courses"),
+        deleteButton: null
+    });
+
 });
 </script>
 

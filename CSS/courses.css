@@ -100,6 +100,166 @@
     margin-bottom: 50px;
 }
 
+/* ================================
+   DELETE PANEL CONTAINER
+================================ */
+#delete-panel {
+    max-width: 600px;              /* keeps it compact */
+    margin: 0 auto 25px auto;      /* centers it */
+    background: #fff7f7;           /* softer red tint */
+    border: 1px solid #e8a5a5;     /* lighter border */
+    padding: 16px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(230, 57, 70, 0.12);
+    animation: fadeIn 0.25s ease-out;
+}
+
+#delete-panel.hidden {
+    display: none;
+}
+
+#delete-panel h3 {
+    margin-top: 0;
+    color: #c0392b;                /* softer red */
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+#delete-panel h3::before {
+    content: "⚠️";
+    margin-right: 6px;
+}
+
+/* ================================
+   DELETE TABLE
+================================ */
+#delete-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#delete-table td {
+    padding: 6px 8px;              /* more compact */
+    border-bottom: 1px solid #f2c7c7;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+#delete-table tr:last-child td {
+    border-bottom: none;
+}
+
+#delete-table tr {
+    background: #fff0f0;           /* softer row color */
+}
+
+#delete-table tr:hover {
+    background: #ffe3e3;
+}
+
+/* ================================
+   GLOBAL NO RESULTS MESSAGE
+================================ */
+.global-no-results {
+    text-align: center;
+    margin: 30px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 0.25s ease-out;
+}
+
+.global-no-results.hidden {
+    display: none;
+}
+
+.no-results-icon {
+    font-size: 3rem;
+    opacity: 0.7;
+}
+
+.no-results-text {
+    font-size: 1.2rem;
+    color: #555;
+}
+
+/* ================================
+   REMOVE BUTTON (X)
+================================ */
+.remove-delete-item {
+    background: #d9534f;           /* Bootstrap-like danger tone */
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s ease;
+}
+
+.remove-delete-item:hover {
+    background: #c9302c;
+}
+
+/* ================================
+   ACTION BUTTONS (DELETE + CANCEL)
+================================ */
+.delete-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+/* Confirm Delete */
+#confirm-delete-btn {
+    background: #d9534f;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+#confirm-delete-btn:hover {
+    background: #c9302c;
+}
+
+#confirm-delete-btn:active {
+    transform: scale(0.97);
+}
+
+/* Cancel Button */
+#cancel-delete-btn {
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+#cancel-delete-btn:hover {
+    background: #d5d5d5;
+}
+
+/* ================================
+   ANIMATIONS
+================================ */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* ====== Section Titles with Icons ====== */
 
 .course-section h2 {
@@ -117,9 +277,9 @@
 }
 
 .course-inner {
-    width: 70%;        /* match your table width */
-    max-width: 900px;  /* match your table max-width */
-    margin: 0 auto;    /* center it */
+    width: 70%;        
+    max-width: 900px;  
+    margin: 0 auto;    
 }
 
 /* ====== Table Styling ====== */

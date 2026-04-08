@@ -1,8 +1,13 @@
 const CoursesUI = {
+    selected: new Map(), // Stores selected courses for deletion
+
     init() {
+        document.querySelectorAll(".course-select").forEach(cb => cb.checked = false);
         this.cacheElements();
         this.setupDropdowns();
         this.buildMentorDropdown();
+        this.setupCheckboxListeners();
+        this.setupDeletePanelListeners();
         this.setupTableManagerCallbacks();
     },
 
@@ -16,7 +21,14 @@ const CoursesUI = {
         this.mentorDropdown = document.getElementById("mentor-dropdown");
         this.searchInput = document.getElementById("course-search");
         this.sections = document.querySelectorAll(".course-section");
-        this.deleteBtn = document.getElementById("delete-courses-btn");
+
+        // NEW: Delete panel elements
+        this.deletePanel = document.getElementById("delete-panel");
+        this.deleteTableBody = document.querySelector("#delete-table tbody");
+        this.confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+
+        // All course rows
+        this.courseRows = document.querySelectorAll(".course-table tbody tr");
     },
 
     /* -----------------------------------------
@@ -54,22 +66,112 @@ const CoursesUI = {
     },
 
     /* -----------------------------------------
+       CHECKBOX LISTENERS
+    ----------------------------------------- */
+    setupCheckboxListeners() {
+        this.courseRows.forEach(row => {
+            const checkbox = row.querySelector(".course-select");
+
+            checkbox.addEventListener("change", () => {
+                const courseId = row.children[1].innerText.trim();
+                const courseName = row.children[2].innerText.trim();
+                const professor = row.children[3].innerText.trim();
+                const mentor = row.children[4].innerText.trim();
+
+                if (checkbox.checked) {
+                    this.addToDeletePanel(courseId, courseName, professor, mentor, row);
+                } else {
+                    this.removeFromDeletePanel(courseId);
+                }
+            });
+        });
+    },
+
+    /* -----------------------------------------
+       ADD COURSE TO DELETE PANEL
+    ----------------------------------------- */
+    addToDeletePanel(id, name, professor, mentor, row) {
+        if (this.selected.has(id)) return;
+
+        this.selected.set(id, { id, name, professor, mentor, row });
+
+        const tr = document.createElement("tr");
+        tr.dataset.id = id;
+
+        tr.innerHTML = `
+            <td>${id}</td>
+            <td>${name}</td>
+            <td>${professor}</td>
+            <td>${mentor}</td>
+            <td><button class="remove-delete-item">×</button></td>
+        `;
+
+        this.deleteTableBody.appendChild(tr);
+        this.deletePanel.classList.remove("hidden");
+
+        tr.querySelector(".remove-delete-item").addEventListener("click", () => {
+            row.querySelector(".course-select").checked = false;
+            this.removeFromDeletePanel(id);
+        });
+    },
+
+    /* -----------------------------------------
+       REMOVE COURSE FROM DELETE PANEL
+    ----------------------------------------- */
+    removeFromDeletePanel(id) {
+        this.selected.delete(id);
+
+        const row = this.deleteTableBody.querySelector(`tr[data-id="${id}"]`);
+        if (row) row.remove();
+
+        if (this.selected.size === 0) {
+            this.deletePanel.classList.add("hidden");
+        }
+    },
+
+    /* -----------------------------------------
+       DELETE PANEL BUTTON 
+    ----------------------------------------- */
+    setupDeletePanelListeners() {
+        this.confirmDeleteBtn.addEventListener("click", () => {
+            alert("Delete action triggered for selected courses.");
+            // Later: send delete request to backend
+        });
+
+        document.getElementById("cancel-delete-btn").addEventListener("click", () => {
+            // Uncheck all selected rows
+            this.selected.forEach(item => {
+                item.row.querySelector(".course-select").checked = false;
+            });
+
+            // Clear the panel
+            this.selected.clear();
+            this.deleteTableBody.innerHTML = "";
+            this.deletePanel.classList.add("hidden");
+        });
+    },
+
+    /* -----------------------------------------
        TABLEMANAGER CALLBACKS
     ----------------------------------------- */
     setupTableManagerCallbacks() {
-        TableManager.callbacks.onSelectionChange = (count) => {
-            this.deleteBtn.style.display = count > 0 ? "inline-block" : "none";
-        };
+        // Keep delete panel visible during filtering
+        TableManager.callbacks.onFilterComplete = () => {
+            this.updateSectionVisibility();
 
-        TableManager.callbacks.onFilterComplete = (items) => {
-            this.updateSectionVisibility(items);
+            // Keep delete panel visible if needed
+            if (this.selected.size > 0) {
+                this.deletePanel.classList.remove("hidden");
+            }
         };
     },
 
     /* -----------------------------------------
        SECTION-BASED VISIBILITY LOGIC
     ----------------------------------------- */
-    updateSectionVisibility(items) {
+    updateSectionVisibility() {
+        let anyVisible = false;
+
         this.sections.forEach(section => {
             const rows = [...section.querySelectorAll("tbody tr")];
             const visibleRows = rows.filter(r => !r.classList.contains("hidden"));
@@ -78,10 +180,20 @@ const CoursesUI = {
             if (visibleRows.length > 0) {
                 section.style.display = "block";
                 noResults.classList.add("hidden");
+                anyVisible = true;
             } else {
                 section.style.display = "none";
-                noResults.classList.remove("hidden");
+                noResults.classList.add("hidden"); // hide section-level message
             }
         });
+
+        // GLOBAL no-results message
+        const globalMsg = document.getElementById("global-no-results");
+
+        if (!anyVisible) {
+            globalMsg.classList.remove("hidden");
+        } else {
+            globalMsg.classList.add("hidden");
+        }
     }
 };

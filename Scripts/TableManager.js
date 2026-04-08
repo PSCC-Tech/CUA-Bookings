@@ -114,8 +114,8 @@ const TableManager = {
 
             // SEARCH FILTER
             if (visible && search) {
-                const name = item.dataset.name?.toLowerCase() || "";
-                visible = name.includes(search);
+            const rowText = item.innerText.toLowerCase();
+            visible = rowText.includes(search);
             }
 
             item.classList.toggle("hidden", !visible);
