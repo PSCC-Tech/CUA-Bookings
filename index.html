@@ -7,6 +7,8 @@
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css">
     <link rel="stylesheet" href="CSS/index.css">
+    <link rel="stylesheet" href="CSS/calendar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -50,8 +52,13 @@
                     <label>Mentor</label>
                     <input type="text">
 
-                    <label>Date</label>
-                    <input type="date">
+                    <label>Date & Time</label>
+                    <button type="button" id="open-calendar-btn" class="date-btn">
+                        Select Date & Time
+                    </button>
+
+                    <!-- Hidden input to store the actual value -->
+                    <input type="hidden" id="selected-datetime" name="selected-datetime">
 
                     <label>Student</label>
                     <input type="text">
@@ -93,5 +100,89 @@
         </main>
 
     </div>
+
+<div id="calendar-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-calendar">&times;</span>
+
+            
+<div id="calendar-ui-container" class="modal-calendar">
+    <div class="mentor-tabs">
+                <button class="mentor-tab active" data-mentor="1">Mentor 1</button>
+                <button class="mentor-tab" data-mentor="2">Mentor 2</button>
+                <button class="mentor-tab" data-mentor="3">Mentor 3</button>
+            </div>
+
+            <div class="mentor-layout">
+
+            <!-- RIGHT COLUMN: CALENDAR -->
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="nav-buttons">
+                    <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                    <button class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="month-year" id="month-year">September 2025</div>
+                </div>
+                
+                <div class="weekdays">
+                    <div class="weekday">Sun</div>
+                    <div class="weekday">Mon</div>
+                    <div class="weekday">Tue</div>
+                    <div class="weekday">Wed</div>
+                    <div class="weekday">Thu</div>
+                    <div class="weekday">Fri</div>
+                    <div class="weekday">Sat</div>
+                </div>
+
+                <div class="days" id="days"></div>
+                
+                <div class="calendar-footer">
+                    <button class="today-btn" id="today-btn"><i class="fas fa-calendar-day"></i> Today</button>
+                    <div class="event-indicator">
+                    <i class="fas fa-circle" style="color: var(--accent); font-size: 0.6rem;"></i>
+                    <span>Has events</span>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Event Panel -->
+                <div class="event-panel" id="event-panel">
+                    <div class="event-header">
+                        <div class="event-date" id="event-date">Select a date</div>
+                        <i class="fas fa-calendar-alt event-icon"></i>
+                    </div>
+                    <div class="event-list" id="event-list">
+                        <div class="no-events">Select a date with events to view them here</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+    <script src="Scripts/Calendar.js"></script>
+
+<script>
+    document.getElementById("open-calendar-btn").addEventListener("click", () => {
+        document.getElementById("calendar-modal").style.display = "flex";
+    });
+
+    document.getElementById("close-calendar").addEventListener("click", () => {
+        document.getElementById("calendar-modal").style.display = "none";
+    });
+
+    function setSelectedDateTime(dateString, timeString) {
+        const btn = document.getElementById("open-calendar-btn");
+        const hidden = document.getElementById("selected-datetime");
+
+        btn.textContent = `${dateString} — ${timeString}`;
+        hidden.value = `${dateString} ${timeString}`;
+
+        document.getElementById("calendar-modal").style.display = "none";
+    }
+</script>
 </body>
 </html>
