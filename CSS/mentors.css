@@ -117,8 +117,8 @@
 }
 
 .mentor-inner {
-    width: 70%;        /* match your table width */
-    max-width: 900px;  /* match your table max-width */
+    width: 85%;        /* match your table width */
+    max-width: 950px;  /* match your table max-width */
     margin: 0 auto;    /* center it */
 }
 
@@ -170,23 +170,4 @@
     background: #e6f0ff;
     cursor: pointer;
     transition: background 0.2s ease-in-out;
-}
-
-.delete-btn {
-    display: none; /* stays hidden until needed */
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-    margin: 0 auto 15px auto; /* centers the button */
-    width: 160px;             /* fixed width */
-    text-align: center;
-    white-space: nowrap;
-}
-
-.delete-btn:hover {
-    background: #c82333;
 }

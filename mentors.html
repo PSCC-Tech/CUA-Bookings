@@ -7,6 +7,7 @@
     <!-- <link rel="stylesheet" href="styles.css"> -->
      <link rel="stylesheet" href="CSS/base.css">
      <link rel="stylesheet" href="CSS/mentors.css">
+     <link rel="stylesheet" href="CSS/delete-table.css">
 </head>
 <body>
 
@@ -41,11 +42,6 @@
 
         <div class="right-group">
             <div class="dropdown-wrapper">
-                <button id="mentor-btn">Mentor</button>
-                <div id="mentor-dropdown" class="dropdown hidden"></div>
-            </div>
-        
-            <div class="dropdown-wrapper">
                 <button id="category-btn">Category</button>
                 <div id="category-dropdown" class="dropdown hidden">
                     <div data-category="Math">Math</div>
@@ -60,14 +56,28 @@
         </div>
     </div>
 
-    <button id="delete-selected" class="delete-btn">Delete Selected</button>
-
 <section id="mentors">
+
+    <div class="delete-panel hidden" id="delete-panel">
+                <h3>Courses Selected for Deletion</h3>
+                <table id="delete-table">
+                    <tbody></tbody>
+                </table>
+                <div class="delete-actions">
+                    <button id="confirm-delete-btn">Delete Selected</button>
+                    <button id="cancel-delete-btn">Cancel</button>
+                </div>
+            </div>
+
+            <div id="global-no-results" class="hidden global-no-results">
+                <div class="no-results-icon">🔍</div>
+                <div class="no-results-text">No matching terms found.</div>
+            </div>
 
     <!-- Mentors -->
     <div class="mentor-section">
         <div class="no-results hidden">No matching mentors found.</div>
-        <div class="mentor-inner"></div>
+        <div class="mentor-inner">
         <h2><i class="fa-solid fa-mentors"></i>
             <span class="title-text">Mentors</span>
         </h2>
@@ -108,23 +118,13 @@
             </tbody>
         </table>
     </div>
+</div>
 
 </section>
 
                     <!-- FOOTER -->
         <footer class="footer">
-            CUA Booking Prototype
-            Se pueden mostrar los mentores como cartas o se pueden mostrar estilo lista.
-            Cada clase puede tener su propia imagen, se deberian de implementar indicadores
-            para poder separar mas facil la informacion tal vez el nombre del curson de pone de otro color.
-            Cada curso tendria una lista de los temas discutidos en ellos.
-            A los estudiantes se le puede hacer disponible una version de esta pagina la cual 
-            incluye los horarios de todos los mentores para asi determinar a que hora puede sacar cita
-            antes de llamar.
-            Otra manera de mostrar los cursos es teniendo una carta por categoria de clase
-            de esta manera si el curso es de matematica se expanderian las opciones de la
-            carta de Math y se buscan asi.
-            Otra manera es el boton de filter para mostrar solamente los cursos de una materia.
+            
         </footer>
 
     </main>
@@ -135,15 +135,18 @@
 <script src="Scripts/MentorsUI.js"></script>
 
 <script>
-MentorsUI.init();
+document.addEventListener("DOMContentLoaded", () => {
+    
+    MentorsUI.init();
 
-TableManager.init({
-    itemSelector: ".mentor-table tbody tr",
-    categoryDropdown: document.getElementById("category-dropdown"),
-    mentorDropdown: null,
-    searchInput: document.getElementById("mentor-search"),
-    selectAllCheckbox: document.getElementById("select-all-mentors"),
-    deleteButton: document.getElementById("delete-mentors-btn"),
+    TableManager.init({
+        itemSelector: ".mentor-table tbody tr",
+        categoryDropdown: null, // Handled by MentorsUI
+        mentorDropdown: null,
+        searchInput: null, // Handled by MentorsUI
+        selectAllCheckbox: document.getElementById("select-all-mentors"),
+        deleteButton: null
+    });
 });
 </script>
 
