@@ -2,7 +2,7 @@
    ADD COURSE PAGE WRAPPER
 ================================ */
 
-.add-course {
+.add-mentor {
     background: white;
     padding: 30px 35px;
     border-radius: 12px;
@@ -16,7 +16,7 @@
 }
 
 /* Title */
-.add-course .form-title {
+.add-mentor .form-title {
     font-size: 28px;
     font-weight: 600;
     margin-bottom: 25px;
@@ -27,7 +27,7 @@
    FORM STRUCTURE
 ================================ */
 
-.course-form {
+.mentor-form {
     display: flex;
     flex-direction: column;
     gap: 25px;
@@ -77,26 +77,22 @@ input.invalid {
   background-color: #ffdddd;
 }
 
-/* Hide all steps by default: */
-.form-step {
-  display: none;
-}
-
 /* ================================
-   MENTOR CHECKBOX LIST
+   COURSE CHECKBOX LIST
 ================================ */
 
-.mentor-checkboxes {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.courses-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px 20px;
+    width: 100%;
     padding: 10px 12px;
     background: #f7f7f7;
     border-radius: 8px;
     border: 1px solid #ddd;
 }
 
-.mentor-checkboxes label {
+.courses-checkboxes label {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -104,17 +100,35 @@ input.invalid {
     cursor: pointer;
 }
 
-.mentor-checkboxes input[type="checkbox"] {
+.courses-checkboxes label.hidden {
+    display: none;
+}
+
+.courses-checkboxes input[type="checkbox"] {
     width: 18px;
     height: 18px;
     cursor: pointer;
+}
+.courses-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.select-all {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 15px;
 }
 
 /* ================================
    TOPICS LIST (Dynamic)
 ================================ */
 
-.topics-list {
+.schedule {
     list-style: none;
     padding-left: 0;
     display: flex;
@@ -122,14 +136,14 @@ input.invalid {
     gap: 10px;
 }
 
-.topics-list li {
+.schedule li {
     display: flex;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
 }
 
-.topics-list li label {
+.schedule li label {
     min-width: 90px;
 }
 
@@ -139,8 +153,8 @@ input.invalid {
     gap: 8px;
 }
 
-.topics-list li input {
-    width: 100px;
+.schedule li input {
+    width: 66px;
     padding: 10px 12px;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -149,17 +163,28 @@ input.invalid {
     transition: border 0.2s, background 0.2s;
 }
 
-.topics-list li input:focus {
+.schedule li select {
+    width: 60px;
+    padding: 10px 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 15px;
+    transition: border 0.2s, background 0.2s;
+}
+
+.schedule li input:focus, .schedule li select:focus {
     outline: none;
     border-color: #007bff;
     background: white;
 }
 
-/* Add Topic Button */
-.add-topic-btn {
+/* Add Shift Button */
+.add-shift-btn {
     margin-top: 5px;
     padding: 8px 14px;
-    background: #e4e6eb;
+    background: #28a745;
+    color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -168,8 +193,17 @@ input.invalid {
     width: fit-content;
 }
 
-.add-topic-btn:hover {
-    background: #d6d8dc;
+.add-shift-btn:hover {
+    background: #218838;
+}
+
+/* Remove Shift Button */
+.remove-shift-btn {
+    background: #dc3545 !important;
+}
+
+.remove-shift-btn:hover {
+    background: #c82333 !important;
 }
 
 /* ================================
@@ -198,40 +232,15 @@ input.invalid {
 }
 
 /* ================================
-   PREVIOUS BUTTON
-================================ */
-
-.prev-btn {
-    margin-top: 10px;
-    padding: 12px 18px;
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s, transform 0.1s;
-}
-
-.prev-btn:hover {
-    background: #c82333;
-}
-
-.prev-btn:active {
-    transform: scale(0.98);
-}
-
-/* ================================
    RESPONSIVE DESIGN
 ================================ */
 
 @media (max-width: 700px) {
-    .add-course {
+    .add-mentor {
         padding: 20px;
     }
 
-    .add-course .form-title {
+    .add-mentor .form-title {
         font-size: 24px;
     }
 }
