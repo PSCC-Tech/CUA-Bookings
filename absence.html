@@ -53,7 +53,32 @@
                     </select>
 
                     <label>Date</label>
-                    <input type="date">
+                    <input type="date" id="absence-date">
+
+            <label>Unavailable For</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="unavailable-type" value="full-day" checked>
+                    Whole Day
+                </label>
+
+                <label>
+                    <input type="radio" name="unavailable-type" value="specific-time">
+                    Specific Time
+                </label>
+            </div>
+
+            <div id="time-selectors">
+                <label>From</label>
+                <select id="start-time">
+                    <option value="">Select a time</option>
+                </select>
+
+                <label>To</label>
+                <select id="end-time">
+                    <option value="">Select a time</option>
+                </select>
+            </div>
 
                     <label>Reason for Absence</label>
                     <textarea rows="3"></textarea>
@@ -77,5 +102,44 @@
         </main>
 
     </div>
+
+<script type="module">
+    import ScheduleGenerator from "/Scripts/ScheduleGenerator.js";
+
+    function populateTimeDropdowns(times) {
+        const startSelect = document.getElementById("start-time");
+        const endSelect = document.getElementById("end-time");
+
+        startSelect.innerHTML = `<option value="">Select a time</option>`;
+        endSelect.innerHTML = `<option value="">Select a time</option>`;
+
+        times.forEach(t => {
+            startSelect.innerHTML += `<option value="${t}">${t}</option>`;
+            endSelect.innerHTML += `<option value="${t}">${t}</option>`;
+        });
+    }
+
+    const times = ScheduleGenerator.generateTimeOptions("08:00", "16:00");
+    populateTimeDropdowns(times);
+</script>
+
+<script>
+        // Hide/show time selectors based on radio choice
+        const radios = document.querySelectorAll("input[name='unavailable-type']");
+        const timeSelectors = document.getElementById("time-selectors");
+
+        // Whole day is default → keep time selectors hidden
+        timeSelectors.style.display = "none";
+
+        radios.forEach(radio => {
+            radio.addEventListener("change", () => {
+                if (radio.value === "specific-time") {
+                    timeSelectors.style.display = "block";
+                } else {
+                    timeSelectors.style.display = "none";
+                }
+            });
+        });
+</script>
 </body>
 </html>
