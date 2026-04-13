@@ -58,7 +58,9 @@ const CoursesUI = {
     ----------------------------------------- */
     buildMentorDropdown() {
         const mentorCells = document.querySelectorAll("tbody tr td:nth-child(5)");
-        const mentors = [...new Set([...mentorCells].map(td => td.textContent.trim()))];
+        const mentors = [...new Set(
+            [...mentorCells].map(td => td.textContent.trim())
+        )].sort((a, b) => a.localeCompare(b));
 
         this.mentorDropdown.innerHTML =
             mentors.map(m => `<div data-mentor="${m}">${m}</div>`).join("") +

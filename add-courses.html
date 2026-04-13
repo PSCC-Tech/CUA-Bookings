@@ -172,6 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
         { name: "Jane Doe", categories: ["Biology", "Math"] }
     ];
 
+    mentors.sort((a, b) => a.name.localeCompare(b.name));
+
     for (let i = 0; i < mentors.length; i += 6) {
         const column = document.createElement("div");
         column.classList.add("mentor-column");

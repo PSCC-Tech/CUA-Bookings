@@ -7,6 +7,7 @@
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css">
     <link rel="stylesheet" href="CSS/index.css">
+    <link rel="stylesheet" href="CSS/courses.css"> <!-- For filter button -->
     <link rel="stylesheet" href="CSS/calendar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -43,11 +44,27 @@
 
             <!-- FORM SECTION -->
             <div class="form-container">
-                <h2>New Booking</h2>
 
-                <form>
-                    <label>Course</label>
-                    <input type="text">
+                    <h2>New Booking</h2>
+
+                    <form>
+                <div class="course-row">
+                        <label>Course</label>
+                    <!-- Category Dropdown -->
+                    <div class="dropdown-wrapper">
+                        <button type="button" class="filter-btn" id="category-btn">Show All</button>
+                        <div id="category-dropdown" class="dropdown hidden">
+                            <div data-category="Math">Math</div>
+                            <div data-category="Computer Science">Computer Science</div>
+                            <div data-category="Biology">Biology</div>
+                            <div data-category="Business">Business</div>
+                            <div data-category="all">Show All</div>
+                        </div>
+                    </div>
+                    <input type="text" class="course-code" placeholder="Course code">
+                </div>
+
+                <input type="text" placeholder="Course Name">
 
                     <label>Mentor</label>
                     <input type="text">
@@ -183,6 +200,17 @@
 
         document.getElementById("calendar-modal").style.display = "none";
     }
+</script>
+
+<script>
+    TableManager.init({
+        itemSelector: ".course-table tbody tr",
+        categoryDropdown: document.getElementById("category-dropdown"),
+        mentorDropdown: null,
+        searchInput: null,
+        selectAllCheckbox: document.getElementById("select-all-courses"),
+        deleteButton: null
+    });
 </script>
 </body>
 </html>

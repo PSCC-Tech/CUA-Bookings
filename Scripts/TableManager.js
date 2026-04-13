@@ -30,7 +30,21 @@ const TableManager = {
 
         /* CATEGORY FILTER */
         if (categoryDropdown) {
-            categoryDropdown.querySelectorAll("div").forEach(option => {
+
+            // 1. Get all category options (convert NodeList → Array)
+            const options = Array.from(categoryDropdown.querySelectorAll("div"));
+
+            // 2. Sort alphabetically by visible text
+            options.sort((a, b) => a.textContent.trim().localeCompare(b.textContent.trim()));
+
+            // 3. Clear dropdown
+            categoryDropdown.innerHTML = "";
+
+            // 4. Re‑append sorted options
+            options.forEach(option => categoryDropdown.appendChild(option));
+
+            // 5. Attach click listeners AFTER sorting
+            options.forEach(option => {
                 option.addEventListener("click", () => {
                     this.filters.category = option.dataset.category;
                     this.applyFilters(items);

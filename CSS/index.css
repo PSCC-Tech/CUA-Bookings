@@ -9,6 +9,36 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+.course-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.course-row .dropdown-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.course-row .filter-btn {
+    height: 34px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    margin-top: 0; /* important */
+}
+
+.course-row .course-code {
+    height: 34px;
+    width: 120px;
+    box-sizing: border-box;
+    margin-top: 0; /* important */
+}
+
 
 form {
     display: flex;
@@ -40,6 +70,10 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.date-btn {
+    background-color:cadetblue;
 }
 
 button:hover {
