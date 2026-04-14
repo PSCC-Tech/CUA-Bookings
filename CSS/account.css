@@ -39,35 +39,3 @@ button {
 button:hover {
     background: #3a3ad6;
 }
-
-/* RESPONSIVE BEHAVIOR */
-
-/* Medium screens */
-@media (max-width: 1100px) {
-    .modal-calendar .mentor-layout {
-        max-width: 95%;
-    }
-}
-
-/* Stack calendar + events vertically on smaller screens */
-@media (max-width: 900px) {
-    .modal-calendar .mentor-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .modal-calendar .event-panel {
-        margin-top: 20px;
-    }
-}
-
-/* Mobile adjustments */
-@media (max-width: 600px) {
-    .modal-content {
-        padding: 10px;
-    }
-
-    .modal-calendar .mentor-tabs {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-}

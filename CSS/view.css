@@ -8,22 +8,118 @@
     padding: 20px;
 }
 
+/* HEADER LAYOUT */
+.booking-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+/* Push title left, controls right */
+.booking-header h2 {
+    margin: 0;
+    flex-grow: 1;
+}
+
 /* SEARCH BAR */
 .booking-search {
-    padding: 8px 12px;
+    padding: 10px 14px;
     border: 1px solid #bbb;
     border-radius: 5px;
     width: 220px;
     font-size: 14px;
 }
 
+/* FILTER BUTTON */
+.booking-header button {
+    padding: 10px 16px;
+    background: #2a4d69;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+/* Hover effect */
+.booking-header button:hover {
+    background: #1f3a50;
+}
+/* Group items horizontally */
+.left-group,
+.right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dropdown-wrapper {
+    position: relative; /* anchor point */
+    display: inline-block;
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;      /* directly under the button */
+    left: 0;        /* align left edges */
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 4px;
+    padding: 8px 0;
+    width: 180px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 20;
+}
+
+.dropdown div {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.dropdown div:hover {
+    background-color: #f0f0f0;
+}
+
+.hidden {
+    display: none;
+}
+
 /* GRID LAYOUT FOR BOOKINGS */
 .booking-grid {
+    display: block;
+    margin-top: 10px;
+    padding: 20px;
+}
+
+.booking-date-group {
+    display: block;
+    margin-bottom: 30px;
+}
+
+.booking-date-label {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.booking-date-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
-    margin-top: 10px;
+}
+
+.no-bookings {
     padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    color: #555;
+    text-align: center;
 }
 
 /* INDIVIDUAL BOOKING CARD */

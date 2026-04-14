@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking System UI</title>
+    <title>CUA Bookings</title>
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css">
     <link rel="stylesheet" href="CSS/view.css">
@@ -41,15 +41,37 @@
 
         <!-- Booking Header -->
         <div class="booking-header">
-            <h2>Today's Bookings</h2>                
-            <input type="text" class="booking-search" placeholder="Search bookings...">
+            <h2>Upcoming Bookings</h2>
+               <div class="right-group">
+            <div class="dropdown-wrapper">
+                <button id="mentor-btn">Mentor</button>
+                <div id="mentor-dropdown" class="dropdown hidden"></div>
+            </div>
+
+            <div class="dropdown-wrapper">
+                <button id="student-btn">Student</button>
+                <div id="student-dropdown" class="dropdown hidden"></div>
+            </div>
+
+            <div class="dropdown-wrapper">
+                <button id="category-btn">Category</button>
+                <div id="category-dropdown" class="dropdown hidden"></div>
+            </div>
+            
+            <div class="dropdown-wrapper">
+                <button id="hour-btn">Hour</button>
+                <div id="hour-dropdown" class="dropdown hidden"></div>
+            </div>
+        
+            <input type="text" id="booking-search" class="booking-search" placeholder="Search bookings...">
+            </div>
         </div>
 
-        <div class="booking-grid">
+        <div class="booking-grid" data-last-available="June 7, 2026">
             <div class="booking-card"
                  data-name="John Doe"
                  data-service="Math Tutoring"
-                 data-date="March 7, 2026"
+                 data-date="April 17, 2026"
                  data-time="10:00 AM"
                  data-location="CUA"
                  data-topics="Polynoms and factoring.">
@@ -63,7 +85,7 @@
             <div class="booking-card"
                  data-name="John Doe"
                  data-service="Math Tutoring"
-                 data-date="March 7, 2026"
+                 data-date="April 14, 2026"
                  data-time="10:00 AM"
                  data-location="CUA"
                  data-topics="Polynoms and factoring.">
@@ -77,7 +99,7 @@
             <div class="booking-card"
                  data-name="John Doe"
                  data-service="Math Tutoring"
-                 data-date="March 7, 2026"
+                 data-date="April 27, 2026"
                  data-time="10:00 AM"
                  data-location="Microsoft Teams"
                  data-topics="Student needs help with algebra.">
@@ -91,7 +113,7 @@
             <div class="booking-card"
                  data-name="John Doe"
                  data-service="Math Tutoring"
-                 data-date="March 7, 2026"
+                 data-date="April 14, 2026"
                  data-time="10:00 AM"
                  data-location="Microsoft Teams"
                  data-topics="Student needs help with algebra.">
@@ -105,7 +127,7 @@
             <div class="booking-card"
                  data-name="John Doe"
                  data-service="Math Tutoring"
-                 data-date="March 7, 2026"
+                 data-date="April 17, 2026"
                  data-time="10:00 AM"
                  data-location="Microsoft Teams"
                  data-topics="Student needs help with algebra.">
@@ -155,14 +177,103 @@
 
 </div>
 
-</body>
-</html>
-
 <script>
     const modal = document.getElementById("booking-modal");
     const closeBtn = document.querySelector(".modal-close");
 
     const startBtn = document.getElementById("start-session-btn");
+
+    const bookingGrid = document.querySelector('.booking-grid');
+    const bookingCards = Array.from(bookingGrid.querySelectorAll('.booking-card'));
+
+    function parseCardDate(dateString) {
+        const parsed = new Date(dateString);
+        if (!isNaN(parsed)) {
+            return parsed;
+        }
+        const normalized = dateString.replace(/\s+/g, ' ').trim();
+        return new Date(normalized);
+    }
+
+    function parseCardTime(timeString) {
+        const parsed = new Date(`1970-01-01 ${timeString}`);
+        return isNaN(parsed) ? null : parsed;
+    }
+
+    function formatDateLabel(date) {
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    }
+
+    function buildDateGroups() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const grouped = new Map();
+
+        bookingCards.forEach(card => {
+            const cardDate = parseCardDate(card.dataset.date);
+            if (isNaN(cardDate)) {
+                card.style.display = 'none';
+                return;
+            }
+
+            cardDate.setHours(0, 0, 0, 0);
+            if (cardDate < today) {
+                card.style.display = 'none';
+                return;
+            }
+
+            const key = cardDate.toISOString().slice(0, 10);
+            if (!grouped.has(key)) {
+                grouped.set(key, []);
+            }
+            grouped.get(key).push(card);
+        });
+
+        if (!grouped.size) {
+            bookingGrid.innerHTML = '<div class="no-bookings">No upcoming bookings available.</div>';
+            return;
+        }
+
+        const sortedDates = Array.from(grouped.keys()).sort();
+        bookingGrid.innerHTML = '';
+
+        sortedDates.forEach(dateKey => {
+            const [year, month, day] = dateKey.split('-').map(Number);
+            const date = new Date(year, month - 1, day); // create local date to avoid UTC timezone shift
+            const group = document.createElement('div');
+            group.className = 'booking-date-group';
+
+            const label = document.createElement('div');
+            label.className = 'booking-date-label';
+            label.textContent = formatDateLabel(date);
+            group.appendChild(label);
+
+            const cardsRow = document.createElement('div');
+            cardsRow.className = 'booking-date-cards';
+
+            grouped.get(dateKey)
+                .sort((a, b) => {
+                    const aTime = parseCardTime(a.dataset.time);
+                    const bTime = parseCardTime(b.dataset.time);
+                    if (aTime && bTime) {
+                        return aTime - bTime;
+                    }
+                    return a.dataset.time.localeCompare(b.dataset.time, undefined, { numeric: true, sensitivity: 'base' });
+                })
+                .forEach(card => {
+                    card.style.display = '';
+                    cardsRow.appendChild(card);
+                });
+
+            group.appendChild(cardsRow);
+            bookingGrid.appendChild(group);
+        });
+    }
+
+    buildDateGroups();
 
     // When a card is clicked
     document.querySelectorAll(".booking-card").forEach(card => {
@@ -218,3 +329,5 @@
         }
     });
 </script>
+</body>
+</html>
