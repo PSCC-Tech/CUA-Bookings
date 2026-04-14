@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUA Bookings</title>
+    <!--<link rel="stylesheet" href="styles.css">-->
+    <link rel="stylesheet" href="CSS/base.css">
+    <link rel="stylesheet" href="CSS/account.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- LEFT NAVIGATION -->
+        <nav class="sidebar">
+            <h2 class="logo">CUA Bookings</h2>
+
+            <ul class="nav-links">
+                <li onclick="window.location='index.html'">Bookings</li>
+                <li onclick="window.location='courses.html'">Courses</li>
+                <li onclick="window.location='mentors.html'">Mentors</li>
+                <li class="active">Account</li>
+            </ul>
+
+            <div class="logout">
+                <span>Logout</span>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="content">
+
+            <!-- FORM SECTION -->
+            <div class="form-container">
+
+                <h2>Account</h2>
+
+                <form>
+                    <div class="course-row">
+                        <label>Email</label>
+                        <input type="email" placeholder="Email">
+
+                        <label>Password</label>
+                        <input type="password" placeholder="Password">
+                    </div>
+                        <button type="submit">Login</button>
+                </form>
+            </div>
+            <!-- FOOTER -->
+            <footer class="footer">
+
+            </footer>
+        </main>
+</body>
+
+</html>

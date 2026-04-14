@@ -1,0 +1,73 @@
+/* FORM */
+.form-container {
+    background: white;
+    padding: 25px;
+    width: 100%; 
+    max-width: 500px;
+    margin: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+input {
+    margin-top: 5px;
+    padding: 8px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+}
+
+button {
+    margin-top: 20px;
+    padding: 10px;
+    background: #4c4cff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #3a3ad6;
+}
+
+/* RESPONSIVE BEHAVIOR */
+
+/* Medium screens */
+@media (max-width: 1100px) {
+    .modal-calendar .mentor-layout {
+        max-width: 95%;
+    }
+}
+
+/* Stack calendar + events vertically on smaller screens */
+@media (max-width: 900px) {
+    .modal-calendar .mentor-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-calendar .event-panel {
+        margin-top: 20px;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 10px;
+    }
+
+    .modal-calendar .mentor-tabs {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
