@@ -13,24 +13,24 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Sample events data
   const events = {
-    '2025-9-15': [
+    '2026-4-15': [
       { time: '10:00 AM', text: 'Team meeting' },
       { time: '02:30 PM', text: 'Project review' }
     ],
-    '2025-9-20': [
+    '2026-4-16': [
       { time: '11:00 AM', text: 'Doctor appointment' }
     ],
-    '2025-9-25': [
+    '2026-4-17': [
       { time: '07:00 PM', text: 'Birthday party' },
       { time: '09:00 PM', text: 'Dinner with friends' }
     ],
-    '2025-10-2': [
+    '2026-4-18': [
       { time: '03:00 PM', text: 'Conference call' }
     ],
-    '2025-10-10': [
+    '2026-10-10': [
       { time: 'All day', text: 'Project deadline' }
     ],
-    '2025-10-18': [
+    '2026-10-18': [
       { time: '12:00 PM', text: 'Lunch with client' },
       { time: '04:00 PM', text: 'Product demo' }
     ]
@@ -164,6 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="event-text">${event.text}</div>
         `;
         eventListEl.appendChild(eventItem);
+
+        eventItem.addEventListener("click", () => {
+            openConfirmation(dateStr, event.time);
+        });
+        
       });
     } else {
       eventListEl.innerHTML = '<div class="no-events">No events scheduled for this day</div>';

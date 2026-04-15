@@ -358,3 +358,12 @@
 .book-btn:hover {
     background: #0069d9;
 }
+
+#edit-description {
+    width: 100%;
+    resize: none; /* optional: prevents manual dragging */
+    box-sizing: border-box;
+    line-height: 1.4;
+    font-family: inherit;
+    font-size: inherit;
+}

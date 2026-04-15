@@ -79,6 +79,21 @@
     cursor: pointer;
 }
 
+.dropdown div.selected {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 600;
+    position: relative;
+}
+
+.dropdown div.selected::after {
+    content: "✓";
+    position: absolute;
+    right: 10px;
+    font-size: 0.9rem;
+    color: var(--accent);
+}
+
 .dropdown div:hover {
     background-color: #f0f0f0;
 }

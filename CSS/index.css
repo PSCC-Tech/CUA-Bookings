@@ -141,6 +141,39 @@ button:hover {
     align-items: center;
 }
 
+/* Confirmation section */
+#confirm-selection {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+#confirm-selection.hidden {
+    display: none;
+}
+
+#confirm-selection .modal-content.small {
+    width: 300px;
+    padding: 20px;
+    border-radius: 10px;
+    background: white;
+    text-align: center;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.confirm-actions button {
+    padding: 8px 16px;
+}
+
 /* RESPONSIVE BEHAVIOR */
 
 /* Medium screens */

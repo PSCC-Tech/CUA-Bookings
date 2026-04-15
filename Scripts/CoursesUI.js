@@ -6,6 +6,7 @@ const CoursesUI = {
         this.cacheElements();
         this.setupDropdowns();
         this.buildMentorDropdown();
+        this.attachDropdownSelectionHandlers(); 
         this.setupCheckboxListeners();
         this.setupDeletePanelListeners();
         this.setupTableManagerCallbacks();
@@ -35,6 +36,7 @@ const CoursesUI = {
        DROPDOWN TOGGLES
     ----------------------------------------- */
     setupDropdowns() {
+        // Toggle dropdowns
         this.categoryBtn.addEventListener("click", () => {
             this.categoryDropdown.classList.toggle("hidden");
             this.mentorDropdown.classList.add("hidden");
@@ -45,12 +47,49 @@ const CoursesUI = {
             this.categoryDropdown.classList.add("hidden");
         });
 
+        // Close when clicking outside
         document.addEventListener("click", (e) => {
             if (!e.target.closest(".right-group")) {
                 this.categoryDropdown.classList.add("hidden");
                 this.mentorDropdown.classList.add("hidden");
             }
         });
+    },
+
+    attachDropdownSelectionHandlers() {
+        // CATEGORY
+        this.categoryDropdown.querySelectorAll("div").forEach(option => {
+            option.addEventListener("click", () => {
+                this.setSelectedOption(this.categoryDropdown, option);
+            });
+        });
+
+        // MENTOR
+        this.mentorDropdown.querySelectorAll("div").forEach(option => {
+            option.addEventListener("click", () => {
+                this.setSelectedOption(this.mentorDropdown, option);
+            });
+        });
+    },
+
+    setSelectedOption(dropdown, option) {
+        // Remove previous selection
+        dropdown.querySelectorAll("div").forEach(o => o.classList.remove("selected"));
+
+        // Mark new selection
+        option.classList.add("selected");
+
+        // Close dropdown
+        dropdown.classList.add("hidden");
+
+        // OPTIONAL: If using TableManager filtering
+        if (dropdown === this.categoryDropdown) {
+            TableManager.filterByCategory(option.dataset.category);
+        }
+
+        if (dropdown === this.mentorDropdown) {
+            TableManager.filterByMentor(option.dataset.mentor);
+        }
     },
 
     /* -----------------------------------------
@@ -63,8 +102,8 @@ const CoursesUI = {
         )].sort((a, b) => a.localeCompare(b));
 
         this.mentorDropdown.innerHTML =
-            mentors.map(m => `<div data-mentor="${m}">${m}</div>`).join("") +
-            `<div data-mentor="all">Show All</div>`;
+        mentors.map(m => `<div data-mentor="${m}">${m}</div>`).join("") +
+        `<div data-mentor="all" class="selected">Show All</div>`;
     },
 
     /* -----------------------------------------

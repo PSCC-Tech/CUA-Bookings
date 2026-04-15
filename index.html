@@ -122,6 +122,16 @@
         <div class="modal-content">
             <span class="close-modal" id="close-calendar">&times;</span>
 
+        <div id="confirm-selection" class="modal hidden">
+            <div class="modal-content small">
+                <p id="confirm-text"></p>
+                <div class="confirm-actions">
+                    <button id="confirm-yes">Confirm</button>
+                    <button id="confirm-no">Cancel</button>
+                </div>
+            </div>
+        </div>
+
             
 <div id="calendar-ui-container" class="modal-calendar">
     <div class="mentor-tabs">
@@ -183,6 +193,26 @@
     <script src="Scripts/Calendar.js"></script>
 
 <script>
+    // Confirmation Script
+function openConfirmation(dateStr, timeStr) {
+    const confirmModal = document.getElementById("confirm-selection");
+    const confirmText = document.getElementById("confirm-text");
+
+    confirmText.textContent = `Confirm booking on ${dateStr} at ${timeStr}?`;
+    confirmModal.classList.remove("hidden");
+
+    document.getElementById("confirm-yes").onclick = () => {
+        setSelectedDateTime(dateStr, timeStr);
+        confirmModal.classList.add("hidden");
+    };
+
+    document.getElementById("confirm-no").onclick = () => {
+        confirmModal.classList.add("hidden");
+    };
+}
+</script>
+
+<script>
     document.getElementById("open-calendar-btn").addEventListener("click", () => {
         document.getElementById("calendar-modal").style.display = "flex";
     });
@@ -203,14 +233,34 @@
 </script>
 
 <script>
-    TableManager.init({
-        itemSelector: ".course-table tbody tr",
-        categoryDropdown: document.getElementById("category-dropdown"),
-        mentorDropdown: null,
-        searchInput: null,
-        selectAllCheckbox: document.getElementById("select-all-courses"),
-        deleteButton: null
+document.addEventListener("DOMContentLoaded", () => {
+
+    const categoryBtn = document.getElementById("category-btn");
+    const categoryDropdown = document.getElementById("category-dropdown");
+
+    // Open/close dropdown
+    categoryBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        categoryDropdown.classList.toggle("hidden");
     });
+
+    // Close when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".dropdown-wrapper")) {
+            categoryDropdown.classList.add("hidden");
+        }
+    });
+
+    // When selecting a category
+    categoryDropdown.querySelectorAll("div").forEach(item => {
+        item.addEventListener("click", () => {
+            categoryBtn.textContent = item.textContent;
+            categoryDropdown.classList.add("hidden");
+        });
+    });
+
+});
 </script>
+
 </body>
 </html>

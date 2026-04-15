@@ -44,28 +44,35 @@
     <section id="course-info">
 
         <h2>Course Information</h2>
-        <ul class="info-list">
-            <li><strong>Code: MATH 101</strong> </li>
-            <li><strong>Name: College Algebra</strong> </li>
-            <li><strong>Professors: Israel, James</strong> </li>
+        <ul class="info-list" id="course-info-list">
+            <li><strong>Code:</strong> <span id="course-code">MATH 101</span> </li>
+            <li><strong>Name:</strong> <span id="course-name">College Algebra</span> </li>
+            <li><strong>Professors:</strong>
+                <ul id="professors-list">
+                    <li>Israel Acevedo</li>
+                    <li>James Lopez</li>
+                </ul>
+            </li>
         </ul>
 
         <h2>Topics Covered</h2>
-        <ul class="topics-list">
+        <ul class="topics-list" id="topics-list">
             <li>Algebraic Operations</li>
             <li>Number System</li>
             <li>Logarithmit Functions</li>
         </ul>
 
         <h2>Description</h2>
-        <p id="course-description">
-        College Algebra is
-        a foundational mathematics course focusing on advanced algebraic techniques, 
-        functional analysis, and modeling real-world problems. Key topics include linear, 
-        quadratic, polynomial, rational, exponential, and logarithmic functions, along with
-        systems of equations, inequalities, matrices, and sometimes conic sections or complex numbers, 
-        bridging high school algebra and pre-calculus
-        </p>
+        <div id="course-description-wrapper">
+            <p id="course-description">
+            College Algebra is
+            a foundational mathematics course focusing on advanced algebraic techniques, 
+            functional analysis, and modeling real-world problems. Key topics include linear, 
+            quadratic, polynomial, rational, exponential, and logarithmic functions, along with
+            systems of equations, inequalities, matrices, and sometimes conic sections or complex numbers, 
+            bridging high school algebra and pre-calculus
+            </p>
+        </div>
 
                 <!-- Edit controls -->
         <div class="edit-controls">
@@ -175,6 +182,175 @@ document.addEventListener("DOMContentLoaded", () => {
         editActions.style.display = "none";
         editBtn.style.display = "inline-block";
     });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const editBtn = document.querySelector(".edit-btn");
+    const editActions = document.querySelector(".edit-actions");
+
+    let originalData = {};
+
+    function enterEditMode() {
+        // Always re-query current elements (they get replaced)
+        const codeSpan = document.getElementById("course-code");
+        const nameSpan = document.getElementById("course-name");
+        const professorList = document.getElementById("professors-list");
+        const topicsList = document.getElementById("topics-list");
+        const descriptionWrapper = document.getElementById("course-description-wrapper");
+        const descriptionP = descriptionWrapper.querySelector("#course-description");
+
+        // Save original data
+        originalData = {
+            code: codeSpan.textContent,
+            name: nameSpan.textContent,
+            professors: [...professorList.querySelectorAll("li")].map(li => li.textContent),
+            topics: [...topicsList.querySelectorAll("li")].map(li => li.textContent),
+            description: descriptionP.textContent
+        };
+
+        // Replace code + name with inputs
+        codeSpan.outerHTML = `<input id="edit-code" value="${originalData.code}">`;
+        nameSpan.outerHTML = `<input id="edit-name" value="${originalData.name}">`;
+
+        // Replace professors with editable list
+        professorList.innerHTML = originalData.professors
+            .map(p => `<li><input value="${p}"><button class="remove-prof">✖</button></li>`)
+            .join("") +
+            `<button id="add-prof">+ Add Professor</button>`;
+
+        // Replace topics with editable list
+        topicsList.innerHTML = originalData.topics
+            .map(t => `<li><input value="${t}"><button class="remove-topic">✖</button></li>`)
+            .join("") +
+            `<button id="add-topic">+ Add Topic</button>`;
+
+        // Replace description with textarea (inside wrapper)
+        descriptionWrapper.innerHTML =
+            `<textarea id="edit-description">${originalData.description}</textarea>`;
+
+        const descTextarea = document.getElementById("edit-description");
+
+        // Apply width before measuring height
+        descTextarea.style.width = "100%";
+        descTextarea.style.overflowY = "hidden";
+        descTextarea.style.height = "auto";
+
+        // Auto-resize to fit content
+        descTextarea.style.height = descTextarea.scrollHeight + "px";
+
+        // Auto-resize while typing
+        descTextarea.addEventListener("input", () => {
+            descTextarea.style.height = "auto";
+            descTextarea.style.height = descTextarea.scrollHeight + "px";
+        });
+
+        editBtn.style.display = "none";
+        editActions.style.display = "flex";
+
+        attachDynamicButtons();
+    }
+
+    function exitEditMode(save) {
+        const infoList = document.getElementById("course-info-list");
+        const topicsList = document.getElementById("topics-list");
+        const descriptionWrapper = document.getElementById("course-description-wrapper");
+
+        if (save) {
+            const newCode = document.getElementById("edit-code").value;
+            const newName = document.getElementById("edit-name").value;
+            const newDesc = document.getElementById("edit-description").value;
+
+        const newProfessors = [...document.querySelectorAll("#professors-list input")]
+            .map(i => i.value.trim())
+            .filter(v => v.length > 0);
+
+        const newTopics = [...document.querySelectorAll("#topics-list input")]
+            .map(i => i.value.trim())
+            .filter(v => v.length > 0);
+            
+            infoList.innerHTML = `
+                <li><strong>Code:</strong> <span id="course-code">${newCode}</span></li>
+                <li><strong>Name:</strong> <span id="course-name">${newName}</span></li>
+                <li><strong>Professors:</strong>
+                    <ul id="professors-list">
+                        ${newProfessors.map(p => `<li>${p}</li>`).join("")}
+                    </ul>
+                </li>
+            `;
+
+            topicsList.innerHTML =
+                newTopics.map(t => `<li>${t}</li>`).join("");
+
+            descriptionWrapper.innerHTML =
+                `<p id="course-description">${newDesc}</p>`;
+
+        } else {
+            infoList.innerHTML = `
+                <li><strong>Code:</strong> <span id="course-code">${originalData.code}</span></li>
+                <li><strong>Name:</strong> <span id="course-name">${originalData.name}</span></li>
+                <li><strong>Professors:</strong>
+                    <ul id="professors-list">
+                        ${originalData.professors.map(p => `<li>${p}</li>`).join("")}
+                    </ul>
+                </li>
+            `;
+
+            topicsList.innerHTML =
+                originalData.topics.map(t => `<li>${t}</li>`).join("");
+
+            descriptionWrapper.innerHTML =
+                `<p id="course-description">${originalData.description}</p>`;
+        }
+
+        editActions.style.display = "none";
+        editBtn.style.display = "inline-block";
+    }
+
+    function attachDynamicButtons() {
+        const professorList = document.getElementById("professors-list");
+        const topicsList = document.getElementById("topics-list");
+
+        // Add professor
+        const addProfBtn = document.getElementById("add-prof");
+        if (addProfBtn) {
+            addProfBtn.onclick = () => {
+                professorList.insertAdjacentHTML(
+                    "beforeend",
+                    `<li><input value=""><button class="remove-prof">✖</button></li>`
+                );
+                attachDynamicButtons();
+            };
+        }
+
+        // Remove professor
+        document.querySelectorAll(".remove-prof").forEach(btn => {
+            btn.onclick = () => btn.parentElement.remove();
+        });
+
+        // Add topic
+        const addTopicBtn = document.getElementById("add-topic");
+        if (addTopicBtn) {
+            addTopicBtn.onclick = () => {
+                topicsList.insertAdjacentHTML(
+                    "beforeend",
+                    `<li><input value=""><button class="remove-topic">✖</button></li>`
+                );
+                attachDynamicButtons();
+            };
+        }
+
+        // Remove topic
+        document.querySelectorAll(".remove-topic").forEach(btn => {
+            btn.onclick = () => btn.parentElement.remove();
+        });
+    }
+
+    editBtn.addEventListener("click", enterEditMode);
+    document.querySelector(".confirm-btn").addEventListener("click", () => exitEditMode(true));
+    document.querySelector(".cancel-btn").addEventListener("click", () => exitEditMode(false));
 });
 </script>
 
