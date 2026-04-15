@@ -155,178 +155,73 @@
 
     </main>
 
-    <!-- MODAL OVERLAY -->
     <div id="booking-modal" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close">&times;</span>
 
-            <h2>Booking Details</h2>
+            <h2 class="modal-header">
+                Booking Details
+                <button id="edit-booking-btn" class="edit-booking-btn">✏️ Edit</button>
+            </h2>
 
             <div class="modal-details">
-                <p><strong>Name:</strong> <span id="modal-name"></span></p>
-                <p><strong>Service:</strong> <span id="modal-service"></span></p>
-                <p><strong>Date:</strong> <span id="modal-date"></span></p>
-                <p><strong>Time:</strong> <span id="modal-time"></span></p>
-                <p><strong>Location:</strong> <span id="modal-location"></span></p>
-                <p><strong>Topics:</strong></p>
-                <p id="modal-topics"></p>
+
+                <p class="editable-field" data-field="name">
+                    <strong>Name:</strong>
+                    <span id="modal-name" class="field-value"></span>
+                </p>
+
+                <p class="editable-field" data-field="service">
+                    <strong>Service:</strong>
+                    <span id="modal-service" class="field-value"></span>
+                </p>
+
+                <p class="editable-field" data-field="date">
+                    <strong>Date:</strong>
+                    <span id="modal-date" class="field-value"></span>
+                </p>
+
+                <p class="editable-field" data-field="time">
+                    <strong>Time:</strong>
+                    <span id="modal-time" class="field-value"></span>
+                </p>
+
+                <p class="editable-field" data-field="location">
+                    <strong>Location:</strong>
+                    <span id="modal-location" class="field-value"></span>
+                </p>
+
+                <p class="editable-field" data-field="topics">
+                    <strong>Topics:</strong>
+                    <span id="modal-topics" class="field-value"></span>
+                </p>
+
+            </div>
+
+            <!-- Inline edit buttons (hidden until Edit is clicked) -->
+            <div class="edit-actions-inline hidden">
+                <button id="save-inline-edit" class="save-btn">Save</button>
+                <button id="cancel-inline-edit" class="cancel-btn">Cancel</button>
+            </div>
+
+            <!-- Session buttons (hidden during edit mode) -->
+            <div class="modal-actions">
+                <button id="cancel-session-btn" class="cancel-session-btn">Cancel Session</button>
                 <button id="start-session-btn" class="start-session-btn">Start Session</button>
             </div>
+ 
         </div>
     </div>
 
 </div>
 
+<script src="Scripts/viewData.js"></script>
+<script src="Scripts/viewUI.js"></script>
+
 <script>
-    const modal = document.getElementById("booking-modal");
-    const closeBtn = document.querySelector(".modal-close");
-
-    const startBtn = document.getElementById("start-session-btn");
-
-    const bookingGrid = document.querySelector('.booking-grid');
-    const bookingCards = Array.from(bookingGrid.querySelectorAll('.booking-card'));
-
-    function parseCardDate(dateString) {
-        const parsed = new Date(dateString);
-        if (!isNaN(parsed)) {
-            return parsed;
-        }
-        const normalized = dateString.replace(/\s+/g, ' ').trim();
-        return new Date(normalized);
-    }
-
-    function parseCardTime(timeString) {
-        const parsed = new Date(`1970-01-01 ${timeString}`);
-        return isNaN(parsed) ? null : parsed;
-    }
-
-    function formatDateLabel(date) {
-        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-    }
-
-    function buildDateGroups() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const grouped = new Map();
-
-        bookingCards.forEach(card => {
-            const cardDate = parseCardDate(card.dataset.date);
-            if (isNaN(cardDate)) {
-                card.style.display = 'none';
-                return;
-            }
-
-            cardDate.setHours(0, 0, 0, 0);
-            if (cardDate < today) {
-                card.style.display = 'none';
-                return;
-            }
-
-            const key = cardDate.toISOString().slice(0, 10);
-            if (!grouped.has(key)) {
-                grouped.set(key, []);
-            }
-            grouped.get(key).push(card);
-        });
-
-        if (!grouped.size) {
-            bookingGrid.innerHTML = '<div class="no-bookings">No upcoming bookings available.</div>';
-            return;
-        }
-
-        const sortedDates = Array.from(grouped.keys()).sort();
-        bookingGrid.innerHTML = '';
-
-        sortedDates.forEach(dateKey => {
-            const [year, month, day] = dateKey.split('-').map(Number);
-            const date = new Date(year, month - 1, day); // create local date to avoid UTC timezone shift
-            const group = document.createElement('div');
-            group.className = 'booking-date-group';
-
-            const label = document.createElement('div');
-            label.className = 'booking-date-label';
-            label.textContent = formatDateLabel(date);
-            group.appendChild(label);
-
-            const cardsRow = document.createElement('div');
-            cardsRow.className = 'booking-date-cards';
-
-            grouped.get(dateKey)
-                .sort((a, b) => {
-                    const aTime = parseCardTime(a.dataset.time);
-                    const bTime = parseCardTime(b.dataset.time);
-                    if (aTime && bTime) {
-                        return aTime - bTime;
-                    }
-                    return a.dataset.time.localeCompare(b.dataset.time, undefined, { numeric: true, sensitivity: 'base' });
-                })
-                .forEach(card => {
-                    card.style.display = '';
-                    cardsRow.appendChild(card);
-                });
-
-            group.appendChild(cardsRow);
-            bookingGrid.appendChild(group);
-        });
-    }
-
-    buildDateGroups();
-
-    // When a card is clicked
-    document.querySelectorAll(".booking-card").forEach(card => {
-        card.addEventListener("click", () => {
-            document.getElementById("modal-name").textContent = card.dataset.name;
-            document.getElementById("modal-service").textContent = card.dataset.service;
-            document.getElementById("modal-date").textContent = card.dataset.date;
-            document.getElementById("modal-time").textContent = card.dataset.time;
-            document.getElementById("modal-location").textContent = card.dataset.location;
-            document.getElementById("modal-topics").textContent = card.dataset.topics;
-
-            // Reset button state each time the modal opens
-            startBtn.textContent = "Start Session";
-            startBtn.dataset.active = "false";
-            startBtn.classList.remove("stop-session-btn");
-            startBtn.classList.add("start-session-btn");
-            startBtn.dataset.cardData = JSON.stringify(card.dataset);
-
-            modal.style.display = "flex";
-        });
-    });
-
-    // Handle Start/Stop Session button click
-    startBtn.addEventListener("click", () => {
-        const isActive = startBtn.dataset.active === "true";
-
-        if (!isActive) {
-            startBtn.textContent = "Stop Session";
-            startBtn.dataset.active = "true";
-            startBtn.classList.remove("start-session-btn");
-            startBtn.classList.add("stop-session-btn");
-            alert("Session started!");
-            // Add your session start logic here
-        } else {
-            startBtn.textContent = "Start Session";
-            startBtn.dataset.active = "false";
-            startBtn.classList.remove("stop-session-btn");
-            startBtn.classList.add("start-session-btn");
-            alert("Session stopped!");
-            // Add your session stop logic here
-        }
-    });
-
-    // Close modal
-    closeBtn.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    // Close when clicking outside the modal box
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-        }
+    document.addEventListener("DOMContentLoaded", () => {
+        ViewData.init(); // contains logic to build the grouped card layout
+        ViewUI.init(); // contains all modal, edit, sessions, and calendar
     });
 </script>
 </body>

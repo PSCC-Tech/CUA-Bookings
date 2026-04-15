@@ -237,3 +237,70 @@
 .stop-session-btn:active {
     background-color: #bd2130;
 }
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.edit-booking-btn {
+    background: var(--accent-light);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    height: 44px;              /* consistent base height */
+    padding: 0 18px;           /* horizontal padding only */
+    font-size: 15px;
+    line-height: 1;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.cancel-session-btn {
+    background: #d9534f;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#edit-fields.hidden {
+    display: none;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.save-btn {
+    background: var(--accent);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+}
+
+.cancel-btn {
+    background: #aaa;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+}
