@@ -38,26 +38,8 @@
 }
 
 /* ================================
-   COURSE HEADER
+   EDIT CONTROLS CONTAINER
 ================================ */
-
-.course-header {
-    margin-bottom: 25px;
-}
-
-.course-header h1 {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 700;
-}
-
-.course-code {
-    margin-top: 5px;
-    color: #666;
-    font-size: 16px;
-}
-
-/* Edit controls container */
 .edit-controls {
     position: relative;
     margin-top: 20px;
@@ -85,6 +67,14 @@
 .edit-actions {
     display: none;
     gap: 10px;
+}
+
+.edit-controls.editing .edit-actions {
+    display: flex;
+}
+
+.edit-controls.editing .edit-btn {
+    display: none;
 }
 
 .confirm-btn,
@@ -120,33 +110,7 @@
    TABS
 ================================ */
 
-.tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.tab {
-    padding: 10px 20px;
-    background: #e4e6eb;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-    transition: background 0.2s;
-}
-
-.tab:hover {
-    background: #d6d8dc;
-}
-
-.tab.active {
-    background: #007bff;
-    color: white;
-}
-
-
-.course-layout {
+.mentor-layout {
     display: flex;
     gap: 30px;
     padding: 20px;
@@ -186,7 +150,7 @@
 }
 
 /* LEFT COLUMN */
-#course-info {
+#mentor-info {
     flex: 2;
     background: white;
     padding: 20px;
@@ -206,7 +170,7 @@
    COURSE INFO SECTION
 ================================ */
 
-#course-info {
+#mentor-info {
     max-width: 700px;
     margin: 0 auto;
     padding: 25px 20px;
@@ -215,7 +179,7 @@
 }
 
 /* Section titles */
-#course-info h2 {
+#mentor-info h2 {
     margin-top: 30px;
     margin-bottom: 10px;
     font-size: 24px;
@@ -223,38 +187,39 @@
     color: #222;
 }
 
-#course-info .info-list {
+#mentor-info .info-list {
     list-style: none;
     padding-left: 0;
     margin-bottom: 20px;
 }
 
-#course-info .info-list li {
+#mentor-info .info-list li {
     margin-bottom: 8px;
     font-size: 18px;
 }
 
-/* Topics list */
-#course-info .topics-list {
-    padding-left: 20px;
+/* Schedule list */
+#mentor-info .schedule-list {
+    list-style: none;
+    padding-left: 0;
     margin-bottom: 20px;
 }
 
-#course-info .topics-list li {
-    margin-bottom: 6px;
-    font-size: 17px;
+#mentor-info .schedule-list li {
+    margin-bottom: 8px;
+    font-size: 18px;
 }
 
 /* Edit controls */
-#course-info .edit-controls {
+#mentor-info .edit-controls {
     margin-top: 25px;
     display: flex;
     gap: 10px;
 }
 
-#course-info .edit-btn,
-#course-info .confirm-btn,
-#course-info .cancel-btn {
+#mentor-info .edit-btn,
+#mentor-info .confirm-btn,
+#mentor-info .cancel-btn {
     padding: 8px 14px;
     font-size: 15px;
     border-radius: 6px;
@@ -294,9 +259,7 @@
 ================================ */
 
 .mentor-layout {
-        display: flex;
-    flex-direction: column;
-    height: 100%;
+    /* keep the row layout from the earlier declaration */
     gap: 15px;
 }
 
