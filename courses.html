@@ -66,6 +66,8 @@
 
 <section id="courses">
 
+            <!-- Hidden or global features-->
+
             <div class="delete-panel hidden" id="delete-panel">
                 <h3>Courses Selected for Deletion</h3>
                 <table id="delete-table">
@@ -89,6 +91,17 @@
             <h2><i class="fa-solid fa-square-root-variable"></i>
                 <span class="title-text">Math Courses</span>
             </h2>
+                <div class="pagination-controls">
+                    Show:
+                    <select id="rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                    courses per page
+                </div>
             <table class="course-table">
                 <thead>
                     <tr>
@@ -121,8 +134,65 @@
                         <td>Dr. Morales</td>
                         <td>Ana Torres</td>
                     </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
+                                        <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
+                        <td><input type="checkbox" class="course-select"></td>
+                        <td>MATH 310</td>
+                        <td>Statistics</td>
+                        <td>Dr. Morales</td>
+                        <td>Ana Torres</td>
+                    </tr>
                 </tbody>
             </table>
+            <div class="pagination"></div>
         </div>
     </div>
 
@@ -133,6 +203,17 @@
             <h2><i class="fa-solid fa-computer"></i>
                 <span class="title-text">Computer Science Courses</span>
             </h2>
+                <div class="pagination-controls">
+                    Show:
+                    <select id="rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                    courses per page
+                </div>
             <table class="course-table">
                 <thead>
                     <tr>
@@ -167,6 +248,7 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="pagination"></div>
         </div>
     </div>
 
@@ -177,6 +259,17 @@
             <h2><i class="fa-solid fa-dna"></i>
                 <span class="title-text">Biology Courses</span>
             </h2>
+                <div class="pagination-controls">
+                    Show:
+                    <select id="rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                    courses per page
+                </div>
             <table class="course-table">
                 <thead>
                     <tr>
@@ -211,6 +304,7 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="pagination"></div>
         </div>
     </div>
 
@@ -221,6 +315,17 @@
             <h2><i class="fa-solid fa-briefcase"></i>
                 <span class="title-text">Business Courses</span>
             </h2>
+                <div class="pagination-controls">
+                    Show:
+                    <select id="rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                    courses per page
+                </div>
             <table class="course-table">
                 <thead>
                     <tr>
@@ -255,6 +360,7 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="pagination"></div>
         </div>
     </div>
 
@@ -297,8 +403,65 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteButton: null
     });
 
+    const tables = document.querySelectorAll(".course-table");
+    const rowsPerPageSelector = document.getElementById("rows-per-page");
+
+    function paginateTable(table, rowsPerPage) {
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const paginationContainer = table.parentElement.querySelector(".pagination");
+
+        let currentPage = 1;
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+        function renderPage(page) {
+            currentPage = page;
+
+            // Hide all rows
+            rows.forEach(row => row.style.display = "none");
+
+            // Show only the rows for this page
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+
+            rows.slice(start, end).forEach(row => {
+                row.style.display = "";
+            });
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            paginationContainer.innerHTML = "";
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+
+                if (i === currentPage) {
+                    btn.classList.add("active-page");
+                }
+
+                btn.addEventListener("click", () => renderPage(i));
+                paginationContainer.appendChild(btn);
+            }
+        }
+
+        renderPage(1);
+    }
+
+    // Initial pagination
+    tables.forEach(table => paginateTable(table, parseInt(rowsPerPageSelector.value)));
+
+    // Re-paginate when user changes rows per page
+    rowsPerPageSelector.addEventListener("change", () => {
+        tables.forEach(table => paginateTable(table, parseInt(rowsPerPageSelector.value)));
+    });
+
 });
 </script>
+
+
 
 </body>
 </html>
