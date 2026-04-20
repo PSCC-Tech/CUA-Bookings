@@ -312,3 +312,139 @@
 .book-btn:hover {
     background: #0069d9;
 }
+
+/* ================================
+   COURSES PANEL
+================================ */
+
+.courses-panel {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 450px;
+    height: fit-content;
+}
+
+.courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(74, 107, 223, 0.2);
+}
+
+.courses-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.courses-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.course-item {
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.course-item:hover {
+    transform: translateY(-2px);
+}
+
+.courses-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.course-action-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.course-action-btn:hover {
+    background: #218838;
+}
+
+.new-course-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f4f7fb;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.new-course-form.hidden {
+    display: none;
+}
+
+.new-course-form input {
+    flex: 1 1 140px;
+    padding: 10px 12px;
+    border: 1px solid #d3d8df;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.new-course-form button {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.new-course-form button#cancel-course-btn {
+    background: #6c757d;
+}
+
+.new-course-form button:hover {
+    opacity: 0.95;
+}
+
+.course-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.remove-course-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.remove-course-btn:hover {
+    background: #c82333;
+}
+
+.no-courses {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+}

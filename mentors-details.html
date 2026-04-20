@@ -120,6 +120,26 @@
                         <div class="no-events">Select a date with events to view them here</div>
                     </div>
                 </div>
+
+                <!-- Courses Panel -->
+                <div class="courses-panel" id="courses-panel" style="display: none;">
+                    <div class="courses-header">
+                        <h3>Courses Taught by Mentor</h3>
+                        <div class="courses-actions">
+                            <button type="button" class="course-action-btn" id="add-course-btn">+ Add Course</button>
+                        </div>
+                    </div>
+                    <div class="new-course-form hidden" id="new-course-form">
+                        <input type="text" id="new-course-id" placeholder="Course ID">
+                        <input type="text" id="new-course-name" placeholder="Course Name">
+                        <input type="text" id="new-course-category" placeholder="Category">
+                        <button type="button" id="save-course-btn">Save</button>
+                        <button type="button" id="cancel-course-btn">Cancel</button>
+                    </div>
+                    <div class="courses-list" id="courses-list">
+                        <div class="no-courses">No courses assigned to this mentor</div>
+                    </div>
+                </div>
     </section>
 
     </div>
@@ -357,6 +377,114 @@ document.addEventListener("DOMContentLoaded", () => {
         hideEditUI();
         exitEditMode(false);
     });
+
+    // Tab switching functionality
+    const mentorTabs = document.querySelectorAll('.mentor-tab');
+    mentorTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs
+            mentorTabs.forEach(t => t.classList.remove('active'));
+            // Add active to clicked tab
+            tab.classList.add('active');
+            const mentor = tab.dataset.mentor;
+            const calendarContainer = document.querySelector('.calendar-container');
+            const eventPanel = document.getElementById('event-panel');
+            const coursesPanel = document.getElementById('courses-panel');
+            if (mentor === '1') {
+                // Show bookings
+                calendarContainer.style.display = 'block';
+                eventPanel.style.display = 'block';
+                coursesPanel.style.display = 'none';
+            } else if (mentor === '2') {
+                // Show courses
+                calendarContainer.style.display = 'none';
+                eventPanel.style.display = 'none';
+                coursesPanel.style.display = 'block';
+                // Populate courses
+                renderMentorCourses();
+            }
+        });
+    });
+
+    let mentorCourses = [
+        { id: 'MATH101', name: 'Calculus I', category: 'Math' },
+        { id: 'COMP201', name: 'Data Structures I', category: 'Computer Science' }
+    ];
+
+    const courseAddButton = document.getElementById('add-course-btn');
+    const saveCourseButton = document.getElementById('save-course-btn');
+    const cancelCourseButton = document.getElementById('cancel-course-btn');
+    const newCourseForm = document.getElementById('new-course-form');
+    const newCourseId = document.getElementById('new-course-id');
+    const newCourseName = document.getElementById('new-course-name');
+    const newCourseCategory = document.getElementById('new-course-category');
+
+    function renderMentorCourses() {
+        const coursesList = document.getElementById('courses-list');
+        if (mentorCourses.length > 0) {
+            coursesList.innerHTML = mentorCourses.map(course => `
+                <div class="course-item" data-course-id="${course.id}">
+                    <div class="course-item-text">
+                        <strong>${course.id}</strong>: ${course.name} (${course.category})
+                    </div>
+                    <button type="button" class="remove-course-btn">Remove</button>
+                </div>
+            `).join('');
+        } else {
+            coursesList.innerHTML = '<div class="no-courses">No courses assigned to this mentor</div>';
+        }
+        attachCourseRemoveListeners();
+    }
+
+    function attachCourseRemoveListeners() {
+        document.querySelectorAll('.remove-course-btn').forEach(button => {
+            button.onclick = () => {
+                const courseItem = button.closest('.course-item');
+                const courseId = courseItem?.dataset.courseId;
+                const courseName = courseItem?.querySelector('.course-item-text')?.textContent?.trim() || courseId;
+                if (!courseId) return;
+
+                const confirmed = confirm(`Delete course ${courseName}? This cannot be undone.`);
+                if (!confirmed) return;
+
+                mentorCourses = mentorCourses.filter(course => course.id !== courseId);
+                renderMentorCourses();
+            };
+        });
+    }
+
+    function openNewCourseForm() {
+        newCourseForm.classList.remove('hidden');
+        courseAddButton.disabled = true;
+        newCourseId.focus();
+    }
+
+    function closeNewCourseForm() {
+        newCourseForm.classList.add('hidden');
+        courseAddButton.disabled = false;
+        newCourseId.value = '';
+        newCourseName.value = '';
+        newCourseCategory.value = '';
+    }
+
+    function saveNewCourse() {
+        const id = newCourseId.value.trim();
+        const name = newCourseName.value.trim();
+        const category = newCourseCategory.value.trim();
+
+        if (!id || !name) {
+            alert('Please enter both a course ID and course name.');
+            return;
+        }
+
+        mentorCourses.push({ id, name, category: category || 'Unspecified' });
+        renderMentorCourses();
+        closeNewCourseForm();
+    }
+
+    courseAddButton.addEventListener('click', openNewCourseForm);
+    saveCourseButton.addEventListener('click', saveNewCourse);
+    cancelCourseButton.addEventListener('click', closeNewCourseForm);
 });
 </script>
 
