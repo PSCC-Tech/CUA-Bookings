@@ -185,9 +185,9 @@
                     </tr>
                                         <tr data-name="Statistics" data-category="Math" data-mentor="Ana Torres">
                         <td><input type="checkbox" class="course-select"></td>
-                        <td>MATH 310</td>
-                        <td>Statistics</td>
-                        <td>Dr. Morales</td>
+                        <td>MATH 400</td>
+                        <td>Pre-Calculus</td>
+                        <td>Dr. Domenech</td>
                         <td>Ana Torres</td>
                     </tr>
                 </tbody>
@@ -392,8 +392,6 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    CoursesUI.init();
-
     TableManager.init({
         itemSelector: ".course-table tbody tr",
         categoryDropdown: document.getElementById("category-dropdown"),
@@ -403,61 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteButton: null
     });
 
-    const tables = document.querySelectorAll(".course-table");
-    const rowsPerPageSelector = document.getElementById("rows-per-page");
-
-    function paginateTable(table, rowsPerPage) {
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.querySelectorAll("tr"));
-        const paginationContainer = table.parentElement.querySelector(".pagination");
-
-        let currentPage = 1;
-        const totalPages = Math.ceil(rows.length / rowsPerPage);
-
-        function renderPage(page) {
-            currentPage = page;
-
-            // Hide all rows
-            rows.forEach(row => row.style.display = "none");
-
-            // Show only the rows for this page
-            const start = (page - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-
-            rows.slice(start, end).forEach(row => {
-                row.style.display = "";
-            });
-
-            renderPagination();
-        }
-
-        function renderPagination() {
-            paginationContainer.innerHTML = "";
-
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement("button");
-                btn.textContent = i;
-
-                if (i === currentPage) {
-                    btn.classList.add("active-page");
-                }
-
-                btn.addEventListener("click", () => renderPage(i));
-                paginationContainer.appendChild(btn);
-            }
-        }
-
-        renderPage(1);
-    }
-
-    // Initial pagination
-    tables.forEach(table => paginateTable(table, parseInt(rowsPerPageSelector.value)));
-
-    // Re-paginate when user changes rows per page
-    rowsPerPageSelector.addEventListener("change", () => {
-        tables.forEach(table => paginateTable(table, parseInt(rowsPerPageSelector.value)));
-    });
-
+    CoursesUI.init();
 });
 </script>
 

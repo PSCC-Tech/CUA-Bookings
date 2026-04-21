@@ -10,6 +10,7 @@ const CoursesUI = {
         this.setupCheckboxListeners();
         this.setupDeletePanelListeners();
         this.setupTableManagerCallbacks();
+        this.setupPaginationUI();
     },
 
     /* -----------------------------------------
@@ -22,14 +23,115 @@ const CoursesUI = {
         this.mentorDropdown = document.getElementById("mentor-dropdown");
         this.searchInput = document.getElementById("course-search");
         this.sections = document.querySelectorAll(".course-section");
-
-        // NEW: Delete panel elements
         this.deletePanel = document.getElementById("delete-panel");
         this.deleteTableBody = document.querySelector("#delete-table tbody");
         this.confirmDeleteBtn = document.getElementById("confirm-delete-btn");
 
         // All course rows
         this.courseRows = document.querySelectorAll(".course-table tbody tr");
+    },
+
+    scrollToTable(section) {
+        const table = section.querySelector(".course-table");
+
+        const top = table.getBoundingClientRect().top + window.scrollY - 20;
+
+        window.scrollTo({
+            top,
+            behavior: "smooth"
+        });
+    },
+
+    setupPaginationUI() {
+
+        // 1. Attach callback BEFORE registering tables
+        TableManager.callbacks.onPaginationChange = (tableId) => {
+            this.renderPaginationButtons(tableId);
+        };
+
+        // 2. Register tables and apply pagination
+        this.sections.forEach((section, index) => {
+            const table = section.querySelector(".course-table");
+            if (!table) return;
+
+            const tableId = `table-${index}`;
+            table.dataset.tableId = tableId;
+
+            // Register table
+            TableManager.registerTable(tableId, table);
+
+            // Rows-per-page selector
+            const selector = section.querySelector("#rows-per-page");
+            const initialRows = selector ? parseInt(selector.value) : 10;
+
+            if (selector) {
+                selector.addEventListener("change", () => {
+                    console.log("Calling setRowsPerPage for", tableId);
+                    TableManager.setRowsPerPage(tableId, parseInt(selector.value));
+                });
+            }
+
+            // Apply initial pagination
+            TableManager.setRowsPerPage(tableId, initialRows);
+
+            // 🔥 FORCE INITIAL RENDER (this was missing)
+            TableManager.callbacks.onPaginationChange(tableId);
+
+            // Link pagination container
+            const paginationDiv = section.querySelector(".pagination");
+            paginationDiv.dataset.tableId = tableId;
+        });
+    },
+
+    renderPaginationButtons(tableId) {
+
+        // Find the table by tableId
+        const table = document.querySelector(`.course-table[data-table-id="${tableId}"]`);
+        if (!table) return;
+
+        // From the table, find its section
+        const section = table.closest(".course-section");
+        if (!section) return;
+
+        const paginationDiv = section.querySelector(".pagination");
+        paginationDiv.innerHTML = "";
+
+        const totalPages = TableManager.getTotalPages(tableId);
+        const currentPage = TableManager.pagination.tables[tableId].currentPage;
+
+        // PREVIOUS
+        const prevBtn = document.createElement("button");
+        prevBtn.textContent = "Previous";
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener("click", () => {
+            TableManager.goToPage(tableId, currentPage - 1);
+            this.scrollToTable(section);
+        });
+        paginationDiv.appendChild(prevBtn);
+
+        // NUMBERS
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.textContent = i;
+            if (i === currentPage) btn.classList.add("active-page");
+
+            btn.addEventListener("click", () => {
+                TableManager.goToPage(tableId, i);
+                this.scrollToTable(section);
+            });
+
+            paginationDiv.appendChild(btn);
+        }
+
+        // NEXT
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "Next";
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener("click", () => {
+            TableManager.goToPage(tableId, currentPage + 1);
+            this.scrollToTable(section);
+        });
+        paginationDiv.appendChild(nextBtn);
     },
 
     /* -----------------------------------------
@@ -73,22 +175,18 @@ const CoursesUI = {
     },
 
     setSelectedOption(dropdown, option) {
-        // Remove previous selection
         dropdown.querySelectorAll("div").forEach(o => o.classList.remove("selected"));
-
-        // Mark new selection
         option.classList.add("selected");
-
-        // Close dropdown
         dropdown.classList.add("hidden");
 
-        // OPTIONAL: If using TableManager filtering
         if (dropdown === this.categoryDropdown) {
-            TableManager.filterByCategory(option.dataset.category);
+            TableManager.filters.category = option.dataset.category;
+            TableManager.applyFilters(this.courseRows);
         }
 
         if (dropdown === this.mentorDropdown) {
-            TableManager.filterByMentor(option.dataset.mentor);
+            TableManager.filters.mentor = option.dataset.mentor;
+            TableManager.applyFilters(this.courseRows);
         }
     },
 

@@ -5,14 +5,21 @@ const TableManager = {
         search: ""
     },
 
-    callbacks: {
-        onSelectionChange: null,   // UI Manager will set this
-        onFilterComplete: null     // UI Manager will set this
+    pagination: {
+        tables: {} // tableId → { rows, rowsPerPage, currentPage }
     },
 
+    callbacks: {
+        onSelectionChange: null,
+        onFilterComplete: null,
+        onPaginationChange: null
+    },
+
+    /* -----------------------------------------
+       INIT (no more itemSelector)
+    ----------------------------------------- */
     init(config) {
         const {
-            itemSelector,
             categoryDropdown,
             mentorDropdown,
             searchInput,
@@ -22,30 +29,21 @@ const TableManager = {
             onFilterComplete
         } = config;
 
-        const items = [...document.querySelectorAll(itemSelector)];
-
-        // Register callbacks
         if (onSelectionChange) this.callbacks.onSelectionChange = onSelectionChange;
         if (onFilterComplete) this.callbacks.onFilterComplete = onFilterComplete;
 
         /* CATEGORY FILTER */
         if (categoryDropdown) {
-
             const options = Array.from(categoryDropdown.querySelectorAll("div"));
-
-            // Sort visually, but DO NOT destroy DOM or listeners
             const sorted = [...options].sort((a, b) =>
                 a.textContent.trim().localeCompare(b.textContent.trim())
             );
-
-            // Reorder nodes without replacing them
             sorted.forEach(option => categoryDropdown.appendChild(option));
 
-            // Add TableManager filtering logic WITHOUT overwriting UI listeners
             options.forEach(option => {
                 option.addEventListener("click", () => {
                     this.filters.category = option.dataset.category;
-                    this.applyFilters(items);
+                    this.applyFilters();
                 });
             });
         }
@@ -55,7 +53,7 @@ const TableManager = {
             mentorDropdown.querySelectorAll("div").forEach(option => {
                 option.addEventListener("click", () => {
                     this.filters.mentor = option.dataset.mentor;
-                    this.applyFilters(items);
+                    this.applyFilters();
                 });
             });
         }
@@ -64,29 +62,30 @@ const TableManager = {
         if (searchInput) {
             searchInput.addEventListener("input", () => {
                 this.filters.search = searchInput.value.trim().toLowerCase();
-                this.applyFilters(items);
+                this.applyFilters();
             });
         }
 
         /* SELECT ALL */
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener("change", () => {
-                items.forEach(item => {
+                this.getAllRows().forEach(item => {
                     const cb = item.querySelector("input[type='checkbox']");
                     if (cb) cb.checked = selectAllCheckbox.checked;
                 });
-
-                this.triggerSelectionChange(items);
+                this.triggerSelectionChange();
             });
 
-            items.forEach(item => {
+            this.getAllRows().forEach(item => {
                 const cb = item.querySelector("input[type='checkbox']");
                 if (!cb) return;
 
                 cb.addEventListener("change", () => {
-                    const allChecked = items.every(i => i.querySelector("input[type='checkbox']").checked);
+                    const allChecked = this.getAllRows().every(i =>
+                        i.querySelector("input[type='checkbox']").checked
+                    );
                     selectAllCheckbox.checked = allChecked;
-                    this.triggerSelectionChange(items);
+                    this.triggerSelectionChange();
                 });
             });
         }
@@ -94,60 +93,137 @@ const TableManager = {
         /* DELETE SELECTED */
         if (deleteButton) {
             deleteButton.addEventListener("click", () => {
-                items.forEach(item => {
+                this.getAllRows().forEach(item => {
                     const cb = item.querySelector("input[type='checkbox']");
                     if (cb && cb.checked) item.remove();
                 });
 
-                this.triggerSelectionChange(items);
-                this.applyFilters(items);
+                this.triggerSelectionChange();
+                this.applyFilters();
             });
         }
     },
 
-    /* MAIN FILTER PIPELINE */
-    applyFilters(items) {
-        const { category, mentor, search } = this.filters;
+    /* -----------------------------------------
+       PAGINATION REGISTRATION
+    ----------------------------------------- */
+    registerTable(tableId, tableElement) {
+        const rows = [...tableElement.querySelectorAll("tbody tr")];
 
-        items.forEach(item => {
-            let visible = true;
+        this.pagination.tables[tableId] = {
+            rows,
+            rowsPerPage: 10,
+            currentPage: 1
+        };
+    },
 
-            // CATEGORY FILTER
-            if (category !== "all") {
-                const multi = item.dataset.categories?.split(",") || [];
-                const single = item.dataset.category;
-                visible = multi.includes(category) || single === category;
+    setRowsPerPage(tableId, n) {
+        const table = this.pagination.tables[tableId];
+        if (!table) return;
+
+        table.rowsPerPage = n;
+        table.currentPage = 1;
+        this.applyPagination(tableId);
+    },
+
+    goToPage(tableId, page) {
+        const table = this.pagination.tables[tableId];
+        if (!table) return;
+
+        table.currentPage = page;
+        this.applyPagination(tableId);
+    },
+
+    getVisibleRows(tableId) {
+        const table = this.pagination.tables[tableId];
+        if (!table) return [];
+
+        return table.rows.filter(r => !r.classList.contains("hidden"));
+    },
+
+    getTotalPages(tableId) {
+        const table = this.pagination.tables[tableId];
+        if (!table) return 1;
+
+        const visible = this.getVisibleRows(tableId);
+        return Math.max(1, Math.ceil(visible.length / table.rowsPerPage));
+    },
+
+    applyPagination(tableId) {
+        const table = this.pagination.tables[tableId];
+        if (!table) return;
+
+        const visible = this.getVisibleRows(tableId);
+        const totalPages = this.getTotalPages(tableId);
+
+        if (table.currentPage > totalPages) {
+            table.currentPage = 1;
+        }
+
+        const start = (table.currentPage - 1) * table.rowsPerPage;
+        const end = start + table.rowsPerPage;
+
+        table.rows.forEach(r => r.classList.remove("page-hidden"));
+
+        visible.forEach((row, index) => {
+            if (index < start || index >= end) {
+                row.classList.add("page-hidden");
             }
-
-            // MENTOR FILTER
-            if (visible && mentor !== "all") {
-                visible = item.dataset.mentor === mentor;
-            }
-
-            // SEARCH FILTER
-            if (visible && search) {
-            const rowText = item.innerText.toLowerCase();
-            visible = rowText.includes(search);
-            }
-
-            item.classList.toggle("hidden", !visible);
-
-            // Highlight search matches
-            this.highlightItem(item, search);
         });
 
-        // Notify UI Manager
-        if (this.callbacks.onFilterComplete) {
-            this.callbacks.onFilterComplete(items);
+        if (this.callbacks.onPaginationChange) {
+            this.callbacks.onPaginationChange(tableId);
         }
     },
 
-    /* SEARCH HIGHLIGHTING */
+    /* -----------------------------------------
+       FILTER PIPELINE (now per-table)
+    ----------------------------------------- */
+    applyFilters() {
+        const { category, mentor, search } = this.filters;
+
+        Object.values(this.pagination.tables).forEach(table => {
+            table.rows.forEach(item => {
+                let visible = true;
+
+                if (category !== "all") {
+                    const multi = item.dataset.categories?.split(",") || [];
+                    const single = item.dataset.category;
+                    visible = multi.includes(category) || single === category;
+                }
+
+                if (visible && mentor !== "all") {
+                    visible = item.dataset.mentor === mentor;
+                }
+
+                if (visible && search) {
+                    const rowText = item.innerText.toLowerCase();
+                    visible = rowText.includes(search);
+                }
+
+                item.classList.toggle("hidden", !visible);
+                this.highlightItem(item, search);
+            });
+        });
+
+        // Apply pagination to all tables
+        Object.keys(this.pagination.tables).forEach(tableId => {
+            this.applyPagination(tableId);
+        });
+
+        if (this.callbacks.onFilterComplete) {
+            this.callbacks.onFilterComplete();
+        }
+    },
+
+    /* -----------------------------------------
+       HIGHLIGHTING
+    ----------------------------------------- */
     highlightItem(item, query) {
         const cells = item.querySelectorAll("td, label");
 
         cells.forEach(cell => {
-            if (cell.querySelector("input")) return; // skip checkboxes
+            if (cell.querySelector("input")) return;
 
             const original = cell.dataset.original || cell.innerText;
             cell.dataset.original = original;
@@ -162,11 +238,18 @@ const TableManager = {
         });
     },
 
-    /* DELETE BUTTON VISIBILITY */
-    triggerSelectionChange(items) {
+    /* -----------------------------------------
+       SELECTION
+    ----------------------------------------- */
+    getAllRows() {
+        return Object.values(this.pagination.tables)
+            .flatMap(t => t.rows);
+    },
+
+    triggerSelectionChange() {
         if (!this.callbacks.onSelectionChange) return;
 
-        const count = items.filter(i => {
+        const count = this.getAllRows().filter(i => {
             const cb = i.querySelector("input[type='checkbox']");
             return cb && cb.checked;
         }).length;
