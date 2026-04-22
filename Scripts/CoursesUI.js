@@ -11,6 +11,9 @@ const CoursesUI = {
         this.setupDeletePanelListeners();
         this.setupTableManagerCallbacks();
         this.setupPaginationUI();
+        this.setupPeopleDropdown();
+        this.initializePeopleCells();
+        this.attachPeopleCellListeners();
     },
 
     /* -----------------------------------------
@@ -47,6 +50,8 @@ const CoursesUI = {
         // 1. Attach callback BEFORE registering tables
         TableManager.callbacks.onPaginationChange = (tableId) => {
             this.renderPaginationButtons(tableId);
+            this.initializePeopleCells();
+            this.attachPeopleCellListeners();
         };
 
         // 2. Register tables and apply pagination
@@ -334,5 +339,102 @@ const CoursesUI = {
         } else {
             globalMsg.classList.add("hidden");
         }
-    }
+    },
+
+    initializePeopleCells() {
+        document.querySelectorAll(".professor-cell").forEach(cell => {
+            const list = cell.dataset.professors.split(",").map(s => s.trim());
+            const selected = list[0]; // default first person
+            cell.textContent = this.generatePreview(selected, list);
+        });
+
+        document.querySelectorAll(".mentor-cell").forEach(cell => {
+            const list = cell.dataset.mentors.split(",").map(s => s.trim());
+            const selected = list[0];
+            cell.textContent = this.generatePreview(selected, list);
+        });
+    },
+
+    generatePreview(selected, list) {
+        const others = list.length - 1;
+        return others > 0 ? `${selected} +${others} more` : selected;
+    },
+
+    /* -----------------------------------------
+    PEOPLE DROPDOWN (Professors & Mentors)
+    ----------------------------------------- */
+    setupPeopleDropdown() {
+        this.peopleDropdown = document.getElementById("people-dropdown");
+        this.peopleDropdownList = document.getElementById("people-dropdown-list");
+        this.peopleDropdownSearch = document.getElementById("people-dropdown-search");
+
+        this.activeCell = null;
+        this.fullList = [];
+
+        // Select a name
+        this.peopleDropdownList.addEventListener("click", (e) => {
+            if (e.target.tagName !== "LI") return;
+
+            const selected = e.target.textContent;
+            const list = this.fullList;
+
+            // Update cell text with preview
+            this.activeCell.textContent = this.generatePreview(selected, list);
+
+            // Save selected value to dataset (optional)
+            this.activeCell.dataset.selected = selected;
+
+            this.closePeopleDropdown();
+        });
+
+        // Close when clicking outside
+        document.addEventListener("click", (e) => {
+            if (!this.peopleDropdown.contains(e.target) &&
+                !e.target.classList.contains("professor-cell") &&
+                !e.target.classList.contains("mentor-cell")) {
+                this.closePeopleDropdown();
+            }
+        });
+    },
+
+    openPeopleDropdown(cell, list) {
+        this.activeCell = cell;
+        this.fullList = list.sort((a, b) => a.localeCompare(b));
+
+        this.peopleDropdownList.innerHTML = this.fullList
+            .map(name => `<li>${name}</li>`)
+            .join("");
+
+        const rect = cell.getBoundingClientRect();
+        this.peopleDropdown.style.top = `${rect.bottom + window.scrollY}px`;
+        this.peopleDropdown.style.left = `${rect.left + window.scrollX}px`;
+
+        this.peopleDropdown.classList.remove("hidden");
+        this.peopleDropdownSearch.value = "";
+        this.peopleDropdownSearch.focus();
+    },
+
+    closePeopleDropdown() {
+        this.peopleDropdown.classList.add("hidden");
+        this.activeCell = null;
+    },
+
+    attachPeopleCellListeners() {
+        // Professors
+        document.querySelectorAll(".professor-cell").forEach(cell => {
+            cell.addEventListener("click", () => {
+                const list = cell.dataset.professors.split(",").map(s => s.trim());
+                this.openPeopleDropdown(cell, list);
+            });
+        });
+
+        // Mentors
+        document.querySelectorAll(".mentor-cell").forEach(cell => {
+            cell.addEventListener("click", () => {
+                const list = cell.dataset.mentors.split(",").map(s => s.trim());
+                this.openPeopleDropdown(cell, list);
+            });
+        });
+    },
+    
 };

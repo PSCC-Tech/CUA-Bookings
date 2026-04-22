@@ -212,3 +212,35 @@
 .page-hidden {
     display: none;
 }
+
+.people-dropdown {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px;
+    width: 220px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+}
+
+.people-dropdown.hidden {
+    display: none !important;
+}
+
+.people-dropdown ul {
+    max-height: 200px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.people-dropdown li {
+    padding: 6px;
+    cursor: pointer;
+}
+
+.people-dropdown li:hover {
+    background: #f0f0f0;
+}

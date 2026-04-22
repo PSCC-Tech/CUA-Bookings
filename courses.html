@@ -117,8 +117,12 @@
                         <td><input type="checkbox" class="course-select"></td>
                         <td>MATH 101</td>
                         <td onclick="window.location='courses-details.html'"> College Algebra</td>
-                        <td>Dr. Rivera</td>
-                        <td>Maria Lopez</td>
+                        <td class="professor-cell"
+                            data-professors="Dr. Rivera, Dr. Santiago, Dr. Morales">
+                        </td>
+                        <td class="mentor-cell"
+                            data-mentors="Maria Lopez, John Perez, Ana Torres">
+                        </td>
                     </tr>
                     <tr data-name="Calculus I" data-category="Math" data-mentor="John Perez">
                         <td><input type="checkbox" class="course-select"></td>
@@ -386,6 +390,11 @@
 
 </div>
 
+<div id="people-dropdown" class="people-dropdown hidden">
+    <ul id="people-dropdown-list"></ul>
+</div>
+
+
 <script src="Scripts/TableManager.js"></script>
 <script src="Scripts/CoursesUI.js"></script>
 
@@ -404,8 +413,6 @@ document.addEventListener("DOMContentLoaded", () => {
     CoursesUI.init();
 });
 </script>
-
-
 
 </body>
 </html>
