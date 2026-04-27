@@ -7,11 +7,12 @@ const MentorsUI = {
         document.querySelectorAll(".mentor-select").forEach(cb => cb.checked = false);
         this.cacheElements();
         this.setupDropdowns();
+        this.attachDropdownSelectionHandlers(); // Add this to attach selection handlers
         this.setupCheckboxListeners();
         this.setupDeletePanelListeners();
         this.setupTableManagerCallbacks();
-        this.setupSearchListener(); // New: setup search listener
-        this.updateSectionVisibility(); // New: ensure initial visibility
+        this.setupSearchListener();
+        this.updateSectionVisibility();
     },
 
     /* -----------------------------------------
@@ -49,14 +50,31 @@ const MentorsUI = {
             }
         });
 
-        // New: Handle category selection
+        // Set initial "Show All" as selected
+        const showAllOption = this.categoryDropdown.querySelector('[data-category="all"]');
+        if (showAllOption && !showAllOption.classList.contains("selected")) {
+            showAllOption.classList.add("selected");
+        }
+    },
+
+    attachDropdownSelectionHandlers() {
+        // CATEGORY
         this.categoryDropdown.querySelectorAll("div").forEach(option => {
             option.addEventListener("click", () => {
-                this.selectedCategory = option.dataset.category;
-                this.categoryDropdown.classList.add("hidden"); // Hide dropdown after selection
-                this.updateSectionVisibility(); // Apply filter
+                this.setSelectedOption(this.categoryDropdown, option);
             });
         });
+    },
+
+    setSelectedOption(dropdown, option) {
+        dropdown.querySelectorAll("div").forEach(o => o.classList.remove("selected"));
+        option.classList.add("selected");
+        dropdown.classList.add("hidden");
+
+        if (dropdown === this.categoryDropdown) {
+            this.selectedCategory = option.dataset.category;
+            this.updateSectionVisibility();
+        }
     },
 
        /* -----------------------------------------

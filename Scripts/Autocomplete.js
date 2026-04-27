@@ -9,20 +9,40 @@ const Autocomplete = {
      * This structure allows easy switching between static data and backend APIs
      */
     dataSources: {
+        // Search by course ID (displays: "ID - Name")
         courses: {
-            // LOCAL DATA (replace with backend call later)
             getData: function(query) {
                 return Autocomplete.getStaticCourseData().filter(course =>
                     course.id.toLowerCase().includes(query.toLowerCase()) ||
                     course.name.toLowerCase().includes(query.toLowerCase())
                 );
             },
-            // FUTURE: Backend implementation
-            // getData: async function(query) {
-            //     const response = await fetch(`/api/courses/search?q=${encodeURIComponent(query)}`);
-            //     return await response.json();
-            // }
             formatDisplay: (item) => `${item.id} - ${item.name}`,
+            getId: (item) => item.id,
+            getName: (item) => item.name
+        },
+
+        // Search by course ID specifically (for ID field)
+        coursesByID: {
+            getData: function(query) {
+                return Autocomplete.getStaticCourseData().filter(course =>
+                    course.id.toLowerCase().includes(query.toLowerCase())
+                );
+            },
+            formatDisplay: (item) => `${item.id} - ${item.name}`,
+            getId: (item) => item.id,
+            getName: (item) => item.name
+        },
+
+        // Search by course name specifically (for Name field)
+        coursesByName: {
+            getData: function(query) {
+                return Autocomplete.getStaticCourseData().filter(course =>
+                    course.name.toLowerCase().includes(query.toLowerCase()) ||
+                    course.id.toLowerCase().includes(query.toLowerCase())
+                );
+            },
+            formatDisplay: (item) => `${item.name} (${item.id})`,
             getId: (item) => item.id,
             getName: (item) => item.name
         }
