@@ -294,9 +294,38 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    /**
+     * Initialize autocomplete for course ID field
+     * FUTURE: When backend is ready, update Autocomplete.js dataSources.courses.getData()
+     * to call API endpoint instead of getStaticCourseData()
+     */
+    function initializeAutocomplete() {
+        // Only initialize if not already initialized
+        if (newCourseId.autocompleteData) {
+            return;
+        }
+
+        Autocomplete.init(newCourseId, 'courses', {
+            minChars: 1,
+            maxResults: 8,
+            debounceMs: 300,
+            onSelect: handleCourseSelection
+        });
+    }
+
+    /**
+     * Handle when user selects a course from autocomplete suggestions
+     * Automatically fills in the course name field
+     */
+    function handleCourseSelection(suggestion) {
+        newCourseName.value = suggestion.name;
+        newCourseName.focus();
+    }
+
     function openNewCourseForm() {
         newCourseForm.classList.remove('hidden');
         courseAddButton.disabled = true;
+        initializeAutocomplete();
         newCourseId.focus();
     }
 
@@ -305,6 +334,10 @@ document.addEventListener("DOMContentLoaded", () => {
         courseAddButton.disabled = false;
         newCourseId.value = '';
         newCourseName.value = '';
+        // Clear autocomplete suggestions when closing form
+        if (newCourseId.autocompleteData) {
+            Autocomplete._clearSuggestions(newCourseId);
+        }
     }
 
     function saveNewCourse() {
@@ -313,6 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!id || !name) {
             alert('Please enter both a course ID and course name.');
+            return;
+        }
+
+        // Check for duplicates
+        if (mentorCourses.some(course => course.id === id)) {
+            alert(`Course ${id} is already assigned to this mentor.`);
             return;
         }
 
