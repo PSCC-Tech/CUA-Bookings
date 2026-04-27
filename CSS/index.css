@@ -220,3 +220,98 @@ button:hover {
     display: none;
 }
 /* End of FORM */
+
+/* Student ID + Name on same line */
+.student-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.student-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.single-group-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.radio-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+}
+
+/* Group counter aligned to the right of "Group" */
+.group-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    align-self: center;
+}
+
+
+.group-counter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.group-counter button,
+.group-counter span {
+    height: 30px;
+    width: 30px;
+}
+
+.group-counter button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    line-height: 1;
+    margin-bottom: 15px;
+}
+
+
+/* Adjust these values visually */
+#group-decrease {
+    top: 1px;   /* moves the minus DOWN */
+}
+
+#group-increase {
+    top: -1px;  /* moves the plus UP */
+}
+
+
+.group-counter span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 36px;
+    font-size: 18px;
+}
+
+.group-counter button:hover {
+    background: #ccc;
+}
+
+.hidden {
+    display: none;
+}
+
+.extra-student-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.extra-student-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #444;
+}

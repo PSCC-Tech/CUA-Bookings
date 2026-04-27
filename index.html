@@ -31,8 +31,8 @@
             </div>
         </nav>
 
-        <!-- MAIN CONTENT -->
-        <main class="content">
+    <!-- MAIN CONTENT -->
+    <main class="content">
 
             <!-- TOP OPTIONS -->
             <div class="top-menu">
@@ -47,7 +47,7 @@
 
                     <h2>New Booking</h2>
 
-                    <form>
+        <form>
                 <div class="course-row">
                         <label>Course</label>
                     <!-- Category Dropdown -->
@@ -67,7 +67,7 @@
                 <input type="text" placeholder="Course Name">
 
                     <label>Mentor</label>
-                    <input type="text">
+                    <input type="text" placeholder="Select mentor">
 
                     <label>Date & Time</label>
                     <button type="button" id="open-calendar-btn" class="date-btn">
@@ -77,32 +77,77 @@
                     <!-- Hidden input to store the actual value -->
                     <input type="hidden" id="selected-datetime" name="selected-datetime">
 
-                    <label>Student</label>
-                    <input type="text">
+                    <div id="student-1-block">
 
-                    <label>Email</label>
-                    <input type="email">
+                        <!-- STUDENT INFO (same line) -->
+                        <div class="student-row">
+                            <div class="student-field">
+                                <label>Student ID</label>
+                                <input type="text" id="student-id" placeholder="Enter student ID">
+                            </div>
 
-                    <label>Phone Number</label>
-                    <input type="text">
+                            <div class="student-field">
+                                <label>Student Name</label>
+                                <input type="text" id="student-name" placeholder="Enter student name">
+                            </div>
+                        </div>
+
+                        <!-- EMAIL + PHONE (must also be in a student-row) -->
+                        <div class="student-row">
+                            <div class="student-field">
+                                <label>Email</label>
+                                <input type="email" id="student-email" placeholder="Enter email">
+                            </div>
+
+                            <div class="student-field">
+                                <label>Phone Number</label>
+                                <input type="text" id="student-phone" placeholder="Enter phone number">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Extra students will be added here -->
+                    <div id="extra-students"></div>
 
                     <label>Location</label>
-                    <input type="text">
+                    <input type="text" placeholder="Select location">
 
+                    <!-- SINGLE OR GROUP -->
                     <label>Single or Group</label>
-                    <input type="text">
+                    <div class="single-group-wrapper">
+
+                        <div class="radio-wrapper">
+                            <label class="radio-option">
+                                <input type="radio" name="session-type" value="single" checked>
+                                Single
+                            </label>
+
+                            <label class="radio-option group-option">
+                                <input type="radio" name="session-type" value="group">
+                                Group
+                            </label>
+                        </div>
+
+                        <div id="group-size-container" class="group-counter hidden">
+                            <button type="button" id="group-decrease">−</button>
+                            <span id="group-size">2</span>
+                            <button type="button" id="group-increase">+</button>
+                        </div>
+
+                    </div>
 
                     <label>Topics to Discuss</label>
-                    <textarea rows="3"></textarea>
+                    <textarea rows="3" placeholder="What are the dopics to be discussed?"></textarea>
 
                     <label>Professor</label>
-                    <input type="text">
+                    <input type="text" placeholder="Who teaches this course?">
 
                     <label>Person Who Made the Citation</label>
-                    <input type="text">
+                    <input type="text" placeholder="Who made this booking?">
 
                     <button type="submit">Submit</button>
-                </form>
+        </form>
             </div>
                 <!-- FOOTER -->
             <footer class="footer">
@@ -114,11 +159,11 @@
                 Opciones como: tutor y curso serian drop-box.
                 Cierta informacion haria "autofil" si es un estudiante que ya tomo tutorias anteriormente.
             </footer>
-        </main>
+    </main>
 
     </div>
 
-<div id="calendar-modal" class="modal">
+    <div id="calendar-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="close-calendar">&times;</span>
 
@@ -130,7 +175,7 @@
                     <button id="confirm-no">Cancel</button>
                 </div>
             </div>
-        </div>
+    </div>
 
             
 <div id="calendar-ui-container" class="modal-calendar">
@@ -190,47 +235,8 @@
 
 </div>
 
-    <script src="Scripts/Calendar.js"></script>
-
-<script>
-    // Confirmation Script
-function openConfirmation(dateStr, timeStr) {
-    const confirmModal = document.getElementById("confirm-selection");
-    const confirmText = document.getElementById("confirm-text");
-
-    confirmText.textContent = `Confirm booking on ${dateStr} at ${timeStr}?`;
-    confirmModal.classList.remove("hidden");
-
-    document.getElementById("confirm-yes").onclick = () => {
-        setSelectedDateTime(dateStr, timeStr);
-        confirmModal.classList.add("hidden");
-    };
-
-    document.getElementById("confirm-no").onclick = () => {
-        confirmModal.classList.add("hidden");
-    };
-}
-</script>
-
-<script>
-    document.getElementById("open-calendar-btn").addEventListener("click", () => {
-        document.getElementById("calendar-modal").style.display = "flex";
-    });
-
-    document.getElementById("close-calendar").addEventListener("click", () => {
-        document.getElementById("calendar-modal").style.display = "none";
-    });
-
-    function setSelectedDateTime(dateString, timeString) {
-        const btn = document.getElementById("open-calendar-btn");
-        const hidden = document.getElementById("selected-datetime");
-
-        btn.textContent = `${dateString} — ${timeString}`;
-        hidden.value = `${dateString} ${timeString}`;
-
-        document.getElementById("calendar-modal").style.display = "none";
-    }
-</script>
+<script src="Scripts/Calendar.js"></script>
+<script src="Scripts/IndexUI.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
