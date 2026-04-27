@@ -21,14 +21,28 @@ const AddCoursesUI = {
        DROPDOWN TOGGLES
     ----------------------------------------- */
     setupDropdowns() {
-        this.categoryBtn.addEventListener("click", () => {
+        // Toggle dropdown
+        this.categoryBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
             this.categoryDropdown.classList.toggle("hidden");
         });
 
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest(".dropdown-wrapper")) {
-                this.categoryDropdown.classList.add("hidden");
-            }
+        // Prevent closing when clicking inside dropdown
+        this.categoryDropdown.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+
+        // Update button text + retract dropdown
+        this.categoryDropdown.querySelectorAll("div").forEach(option => {
+            option.addEventListener("click", () => {
+                this.categoryBtn.textContent = option.textContent.trim();
+                this.categoryDropdown.classList.add("hidden");   // ⭐ retract dropdown
+            });
+        });
+
+        // Close when clicking outside
+        document.addEventListener("click", () => {
+            this.categoryDropdown.classList.add("hidden");
         });
     },
 

@@ -192,6 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mentorContainer.appendChild(column);
     }
 
+    TableManager.registerTable("mentors", mentorContainer);
+
     /* ============================
        TOPICS LOGIC 
     ============================ */
@@ -238,8 +240,9 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ============================
        INIT UI + FILTERING
     ============================ */
-    AddCoursesUI.init();
 
+    AddCoursesUI.init();
+    
     TableManager.init({
         itemSelector: ".mentor-checkboxes label",
         categoryDropdown: document.getElementById("category-dropdown"),
