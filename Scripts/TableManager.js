@@ -108,7 +108,16 @@ const TableManager = {
        PAGINATION REGISTRATION
     ----------------------------------------- */
     registerTable(tableId, tableElement) {
-        const rows = [...tableElement.querySelectorAll("tbody tr")];
+        let rows = [];
+
+        // Support real tables
+        if (tableElement.querySelector("tbody")) {
+            rows = [...tableElement.querySelectorAll("tbody tr")];
+        }
+        // Support mentor checkbox lists
+        else {
+            rows = [...tableElement.querySelectorAll("label")];
+        }
 
         this.pagination.tables[tableId] = {
             rows,
@@ -212,7 +221,8 @@ const TableManager = {
         });
 
         if (this.callbacks.onFilterComplete) {
-            this.callbacks.onFilterComplete();
+            const allItems = this.getAllRows();
+            this.callbacks.onFilterComplete(allItems);
         }
     },
 
