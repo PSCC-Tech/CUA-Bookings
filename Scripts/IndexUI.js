@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     decreaseBtn.addEventListener("click", () => {
         let size = parseInt(groupSizeEl.textContent);
-        if (size > 1) {
+        if (size > 2) {
             groupSizeEl.textContent = size - 1;
             updateExtraStudents();
         }
