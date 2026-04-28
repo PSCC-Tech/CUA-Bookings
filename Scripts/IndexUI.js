@@ -148,4 +148,49 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // -------------------------
+    // CATEGORY DROPDOWN
+    // -------------------------
+    const categoryBtn = document.getElementById("category-btn");
+    const categoryDropdown = document.getElementById("category-dropdown");
+
+    // Open/close dropdown
+    categoryBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        categoryDropdown.classList.toggle("hidden");
+    });
+
+    // Close when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".dropdown-wrapper")) {
+            categoryDropdown.classList.add("hidden");
+        }
+    });
+
+    // When selecting a category
+    categoryDropdown.querySelectorAll("div").forEach(item => {
+        item.addEventListener("click", () => {
+            categoryBtn.textContent = item.textContent;
+            categoryDropdown.classList.add("hidden");
+        });
+    });
+
+    // Initialize autocomplete for course code
+    const courseCodeInput = document.getElementById("course-code");
+    if (courseCodeInput && Autocomplete) {
+        Autocomplete.init(courseCodeInput, 'courses', {
+            minChars: 1,
+            maxResults: 8,
+            debounceMs: 300,
+            onSelect: (suggestion) => {
+                courseCodeInput.value = suggestion.id;
+                // Optionally fill course name if available
+                const courseNameInput = document.querySelector('input[placeholder="Course Name"]');
+                if (courseNameInput) {
+                    courseNameInput.value = suggestion.name;
+                }
+            }
+        });
+    }
+
 });

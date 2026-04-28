@@ -61,7 +61,9 @@
                             <div data-category="all">Show All</div>
                         </div>
                     </div>
-                    <input type="text" class="course-code" placeholder="Course code">
+                    <div class="autocomplete-input-wrapper">
+                        <input type="text" id="course-code" class="course-code" placeholder="Course code">
+                    </div>
                 </div>
 
                 <input type="text" placeholder="Course Name">
@@ -135,7 +137,13 @@
                     </div>
 
                     <label>Location</label>
-                    <input type="text" placeholder="Enter location">
+                    <input list="location" placeholder="Enter location">
+                    <datalist id="location">
+                        <option value="CUA (Library 2nd Floor)">
+                        <option value="Online (Microsoft Teams)">
+                        <option value="PC & Mac Lab (C234-C235)">
+                        <option value="Grad. Department Office (Old)">
+                    </datalist>
 
                     <label>Topics to Discuss</label>
                     <textarea rows="3" placeholder="Enter topics"></textarea>
@@ -151,13 +159,7 @@
             </div>
                 <!-- FOOTER -->
             <footer class="footer">
-                CUA Booking Prototype
-                Antes de llegar a el form tendrias que seleccionar la materia y el mentor el cual
-                dara la tutoria. Otra opcion es tener el form programado para que el tutor y su
-                dispinibilidad determine las horas de cita disponibles. Date tendra un modal donde
-                se escoge la fecha de la cita similar a el sistema actual.
-                Opciones como: tutor y curso serian drop-box.
-                Cierta informacion haria "autofil" si es un estudiante que ya tomo tutorias anteriormente.
+
             </footer>
     </main>
 
@@ -236,37 +238,8 @@
 </div>
 
 <script src="Scripts/Calendar.js"></script>
+<script src="Scripts/Autocomplete.js"></script>
 <script src="Scripts/IndexUI.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-    const categoryBtn = document.getElementById("category-btn");
-    const categoryDropdown = document.getElementById("category-dropdown");
-
-    // Open/close dropdown
-    categoryBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        categoryDropdown.classList.toggle("hidden");
-    });
-
-    // Close when clicking outside
-    document.addEventListener("click", (e) => {
-        if (!e.target.closest(".dropdown-wrapper")) {
-            categoryDropdown.classList.add("hidden");
-        }
-    });
-
-    // When selecting a category
-    categoryDropdown.querySelectorAll("div").forEach(item => {
-        item.addEventListener("click", () => {
-            categoryBtn.textContent = item.textContent;
-            categoryDropdown.classList.add("hidden");
-        });
-    });
-
-});
-</script>
 
 </body>
 </html>

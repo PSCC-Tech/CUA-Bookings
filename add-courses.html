@@ -47,7 +47,9 @@
             <!-- Course Code -->
             <div class="form-group">
                 <label for="course-code">Course Code</label>
-                <input type="text" id="course-code" placeholder="e.g., MATH 101">
+                <div class="autocomplete-input-wrapper">
+                    <input type="text" id="course-code" placeholder="e.g., MATH 101">
+                </div>
             </div>
 
             <!-- Course Name -->
@@ -155,7 +157,7 @@
     </div>
 
 <script src="Scripts/TableManager.js"></script>
-<script src="Scripts/AddCoursesUI.js"></script>
+    <script src="Scripts/Autocomplete.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -242,6 +244,24 @@ document.addEventListener("DOMContentLoaded", () => {
     ============================ */
 
     AddCoursesUI.init();
+    
+    // Initialize autocomplete for course code
+    const courseCodeInput = document.getElementById("course-code");
+    if (courseCodeInput && Autocomplete) {
+        Autocomplete.init(courseCodeInput, 'courses', {
+            minChars: 1,
+            maxResults: 8,
+            debounceMs: 300,
+            onSelect: (suggestion) => {
+                courseCodeInput.value = suggestion.id;
+                // Optionally fill course name
+                const courseNameInput = document.getElementById("course-name");
+                if (courseNameInput) {
+                    courseNameInput.value = suggestion.name;
+                }
+            }
+        });
+    }
     
     TableManager.init({
         itemSelector: ".mentor-checkboxes label",
