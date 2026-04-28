@@ -397,6 +397,7 @@
 
 .new-course-form input {
     flex: 1 1 140px;
+    width: 60%;
     padding: 10px 12px;
     border: 1px solid #d3d8df;
     border-radius: 8px;

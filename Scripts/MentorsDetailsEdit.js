@@ -295,31 +295,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Initialize autocomplete for course ID field
-     * FUTURE: When backend is ready, update Autocomplete.js dataSources.courses.getData()
+     * Initialize autocomplete for both course ID and course name fields
+     * FUTURE: When backend is ready, update Autocomplete.js dataSources.coursesByID/coursesByName
      * to call API endpoint instead of getStaticCourseData()
      */
     function initializeAutocomplete() {
-        // Only initialize if not already initialized
-        if (newCourseId.autocompleteData) {
-            return;
+        // Initialize Course ID field autocomplete
+        if (!newCourseId.autocompleteData) {
+            Autocomplete.init(newCourseId, 'coursesByID', {
+                minChars: 1,
+                maxResults: 8,
+                debounceMs: 300,
+                onSelect: (suggestion) => handleCourseIdSelection(suggestion)
+            });
         }
 
-        Autocomplete.init(newCourseId, 'courses', {
-            minChars: 1,
-            maxResults: 8,
-            debounceMs: 300,
-            onSelect: handleCourseSelection
-        });
+        // Initialize Course Name field autocomplete
+        if (!newCourseName.autocompleteData) {
+            Autocomplete.init(newCourseName, 'coursesByName', {
+                minChars: 1,
+                maxResults: 8,
+                debounceMs: 300,
+                onSelect: (suggestion) => handleCourseNameSelection(suggestion)
+            });
+        }
     }
 
     /**
-     * Handle when user selects a course from autocomplete suggestions
+     * Handle when user selects a course from Course ID field
      * Automatically fills in the course name field
      */
-    function handleCourseSelection(suggestion) {
-        newCourseName.value = suggestion.name;
+    function handleCourseIdSelection(suggestion) {
+        newCourseId.value = suggestion.id;      // Ensure ID field has the ID
+        newCourseName.value = suggestion.name;  // Fill name field with course name
         newCourseName.focus();
+    }
+
+    /**
+     * Handle when user selects a course from Course Name field
+     * Automatically fills in the course ID field
+     */
+    function handleCourseNameSelection(suggestion) {
+        newCourseName.value = suggestion.name;  // Ensure name field has the name
+        newCourseId.value = suggestion.id;      // Fill ID field with course ID
+        newCourseId.focus();
     }
 
     function openNewCourseForm() {
@@ -337,6 +356,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Clear autocomplete suggestions when closing form
         if (newCourseId.autocompleteData) {
             Autocomplete._clearSuggestions(newCourseId);
+        }
+        if (newCourseName.autocompleteData) {
+            Autocomplete._clearSuggestions(newCourseName);
         }
     }
 

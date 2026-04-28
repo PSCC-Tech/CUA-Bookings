@@ -4,41 +4,47 @@
  */
 
 // ============================================
-// EXAMPLE 1: Simple Fetch-based API
+// EXAMPLE 1: Simple Fetch-based API (Both Fields)
 // ============================================
-// When your backend is ready, replace the getData function in Autocomplete.js
+// When your backend is ready, replace the getData functions in Autocomplete.js
 
 /*
-const exampleSimpleAPI = {
-    // Replace this in Autocomplete.dataSources.courses.getData:
+// For coursesByID data source:
+const exampleSimpleAPIbyID = {
     getData: async function(query) {
-        const response = await fetch(`/api/courses/search?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`/api/courses/search?q=${encodeURIComponent(query)}&searchBy=id`);
         const data = await response.json();
-        return data.courses; // Backend returns { courses: [...] }
+        return data.courses;
+    }
+};
+
+// For coursesByName data source:
+const exampleSimpleAPIbyName = {
+    getData: async function(query) {
+        const response = await fetch(`/api/courses/search?q=${encodeURIComponent(query)}&searchBy=name`);
+        const data = await response.json();
+        return data.courses;
     }
 };
 */
 
 // ============================================
-// EXAMPLE 2: With Error Handling & Timeout
+// EXAMPLE 2: With Error Handling & Timeout (Both Fields)
 // ============================================
 /*
 const exampleWithErrorHandling = {
-    getData: async function(query) {
+    search: async function(query, searchBy = 'id') {
         try {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
+            const timeout = setTimeout(() => controller.abort(), 5000);
 
             const response = await fetch(
-                `/api/courses/search?q=${encodeURIComponent(query)}`,
+                `/api/courses/search?q=${encodeURIComponent(query)}&searchBy=${searchBy}`,
                 { signal: controller.signal }
             );
             clearTimeout(timeout);
 
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
             return await response.json();
         } catch (error) {
             console.error('Course search failed:', error);
@@ -46,184 +52,187 @@ const exampleWithErrorHandling = {
         }
     }
 };
+
+// Use in Autocomplete.js:
+// coursesByID.getData = async (query) => exampleWithErrorHandling.search(query, 'id');
+// coursesByName.getData = async (query) => exampleWithErrorHandling.search(query, 'name');
 */
 
 // ============================================
-// EXAMPLE 3: With Caching for Performance
+// EXAMPLE 3: Unified API Handling
 // ============================================
 /*
-const exampleWithCaching = {
-    cache: new Map(),
-    cacheTimeout: 5 * 60 * 1000, // 5 minutes
+// If your backend returns the same format for both searches:
 
-    getData: async function(query) {
-        // Check cache first
-        if (this.cache.has(query)) {
-            const cached = this.cache.get(query);
+function initializeCoursesAutocomplete() {
+    const courseSearchFunction = async function(query) {
+        try {
+            const response = await fetch(`/api/courses/search?q=${encodeURIComponent(query)}`);
+            if (!response.ok) throw new Error('Search failed');
+            return await response.json();
+        } catch (error) {
+            console.error('Course search error:', error);
+            return [];
+        }
+    };
+
+    // Update all course data sources to use the same backend function
+    Autocomplete.dataSources.courses.getData = courseSearchFunction;
+    Autocomplete.dataSources.coursesByID.getData = courseSearchFunction;
+    Autocomplete.dataSources.coursesByName.getData = courseSearchFunction;
+}
+
+// Call this on app initialization:
+document.addEventListener('DOMContentLoaded', initializeCoursesAutocomplete);
+*/
+
+// ============================================
+// EXAMPLE 4: With Caching for Performance
+// ============================================
+/*
+class CourseSearchCache {
+    constructor(cacheTimeMs = 5 * 60 * 1000) {
+        this.cache = new Map();
+        this.cacheTimeout = cacheTimeMs;
+    }
+
+    async search(query, searchBy = 'id') {
+        const cacheKey = `${searchBy}:${query}`;
+        
+        if (this.cache.has(cacheKey)) {
+            const cached = this.cache.get(cacheKey);
             if (Date.now() - cached.timestamp < this.cacheTimeout) {
                 return cached.data;
             }
-            // Invalidate expired cache
-            this.cache.delete(query);
+            this.cache.delete(cacheKey);
         }
 
-        // Fetch from API
-        const response = await fetch(`/api/courses/search?q=${encodeURIComponent(query)}`);
+        const response = await fetch(
+            `/api/courses/search?q=${encodeURIComponent(query)}&searchBy=${searchBy}`
+        );
         const data = await response.json();
 
-        // Store in cache
-        this.cache.set(query, {
-            data: data,
-            timestamp: Date.now()
-        });
-
+        this.cache.set(cacheKey, { data, timestamp: Date.now() });
         return data;
-    },
+    }
 
     clearCache() {
         this.cache.clear();
     }
-};
+}
+
+const courseCache = new CourseSearchCache();
+
+// Use in Autocomplete.js:
+// coursesByID.getData = (query) => courseCache.search(query, 'id');
+// coursesByName.getData = (query) => courseCache.search(query, 'name');
 */
 
 // ============================================
-// EXAMPLE 4: Integration Steps (In MentorsDetailsEdit.js)
+// EXAMPLE 5: Complete Integration Setup
 // ============================================
 
 /*
-// STEP 1: Load your data source at app startup
-function initializeAutocompleteWithBackend() {
-    // Define your custom getData function
-    const customGetData = async function(query) {
-        const response = await fetch(`/api/courses/search?q=${encodeURIComponent(query)}`);
-        if (!response.ok) throw new Error('Search failed');
-        return await response.json();
+// In your main app initialization file:
+
+async function initializeAutocompleteWithBackend() {
+    // Define your backend search function
+    async function searchCourses(query, searchBy = 'all') {
+        try {
+            const response = await fetch(
+                `/api/courses/search?q=${encodeURIComponent(query)}&searchBy=${searchBy}`
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            return Array.isArray(data) ? data : data.courses || [];
+        } catch (error) {
+            console.error('Course search error:', error);
+            return [];
+        }
+    }
+
+    // Update Course ID search
+    Autocomplete.dataSources.coursesByID.getData = async function(query) {
+        return await searchCourses(query, 'id');
     };
 
-    // Update the Autocomplete module to use your backend
-    Autocomplete.updateDataSource('courses', customGetData);
+    // Update Course Name search
+    Autocomplete.dataSources.coursesByName.getData = async function(query) {
+        return await searchCourses(query, 'name');
+    };
+
+    // Update general courses search
+    Autocomplete.dataSources.courses.getData = async function(query) {
+        return await searchCourses(query, 'all');
+    };
 }
 
-// STEP 2: Call this when page loads or auth completes
+// Call when DOM is ready
 document.addEventListener('DOMContentLoaded', initializeAutocompleteWithBackend);
-
-// STEP 3: Initialize autocomplete as usual (no changes needed)
-Autocomplete.init(newCourseId, 'courses', {
-    minChars: 1,
-    maxResults: 8,
-    onSelect: handleCourseSelection
-});
 */
 
 // ============================================
-// EXAMPLE 5: Hybrid - Load All Courses on Init
-// ============================================
-/*
-// If you want to fetch all courses once at startup:
-
-const allCourses = []; // Will be populated
-
-async function loadAllCoursesOnce() {
-    const response = await fetch('/api/courses');
-    const data = await response.json();
-    allCourses = data.courses;
-
-    // Then use local filtering
-    Autocomplete.dataSources.courses.getData = function(query) {
-        return allCourses.filter(course =>
-            course.id.toLowerCase().includes(query.toLowerCase()) ||
-            course.name.toLowerCase().includes(query.toLowerCase())
-        );
-    };
-}
-
-document.addEventListener('DOMContentLoaded', loadAllCoursesOnce);
-*/
-
-// ============================================
-// EXPECTED BACKEND RESPONSE FORMAT
+// EXPECTED BACKEND RESPONSE FORMATS
 // ============================================
 
 /*
-GET /api/courses/search?q=math
+GET /api/courses/search?q=math&searchBy=id
 
 Response (200 OK):
 [
-    {
-        "id": "MATH101",
-        "name": "Calculus I"
-    },
-    {
-        "id": "MATH102",
-        "name": "Calculus II"
-    },
-    {
-        "id": "MATH201",
-        "name": "Linear Algebra"
-    }
+    { "id": "MATH101", "name": "Calculus I" },
+    { "id": "MATH102", "name": "Calculus II" },
+    { "id": "MATH201", "name": "Linear Algebra" }
 ]
 
-OR with metadata:
+OR
+
+GET /api/courses/search?q=calculus&searchBy=name
+
+Response (200 OK):
+[
+    { "id": "MATH101", "name": "Calculus I" },
+    { "id": "MATH102", "name": "Calculus II" }
+]
+
+With metadata:
 {
     "courses": [
         { "id": "MATH101", "name": "Calculus I" },
         { "id": "MATH102", "name": "Calculus II" }
     ],
     "total": 100,
-    "limit": 8
+    "searchBy": "name",
+    "query": "calculus"
 }
 */
 
 // ============================================
-// TESTING BACKEND INTEGRATION
+// BROWSER TESTING
 // ============================================
 
 /*
-// Quick test in browser console:
+// Test in browser console to verify setup:
 
-// Test 1: Verify data source is set
-console.log(Autocomplete.dataSources.courses.getData);
+// Test 1: Check data sources
+console.log('Available data sources:', Object.keys(Autocomplete.dataSources));
 
-// Test 2: Manually search
-Autocomplete.dataSources.courses.getData('math').then(results => {
-    console.log('Results:', results);
+// Test 2: Test Course ID search
+Autocomplete.dataSources.coursesByID.getData('MATH').then(results => {
+    console.log('Search by ID (MATH):', results);
 });
 
-// Test 3: Check what user selected
+// Test 3: Test Course Name search
+Autocomplete.dataSources.coursesByName.getData('Calculus').then(results => {
+    console.log('Search by Name (Calculus):', results);
+});
+
+// Test 4: Monitor selections
 document.getElementById('new-course-id').addEventListener('autocomplete-select', (e) => {
-    console.log('Selected:', e.detail.suggestion);
-    // This fires when user picks a course from suggestions
+    console.log('Selected from Course ID field:', e.detail.suggestion);
 });
-*/
 
-// ============================================
-// ADVANCED: Dynamic Data Source Switching
-// ============================================
-
-/*
-// Support different data sources based on context:
-
-const DataSources = {
-    productionAPI: async function(query) {
-        const response = await fetch(`/api/courses/search?q=${query}`);
-        return await response.json();
-    },
-
-    stagingAPI: async function(query) {
-        const response = await fetch(`/staging-api/courses/search?q=${query}`);
-        return await response.json();
-    },
-
-    mockData: function(query) {
-        return Autocomplete.getStaticCourseData().filter(course =>
-            course.id.toLowerCase().includes(query.toLowerCase())
-        );
-    }
-};
-
-// Switch data source based on environment:
-const environment = process.env.NODE_ENV || 'development';
-const dataSourceName = environment === 'production' ? 'productionAPI' : 'mockData';
-
-Autocomplete.updateDataSource('courses', DataSources[dataSourceName]);
+document.getElementById('new-course-name').addEventListener('autocomplete-select', (e) => {
+    console.log('Selected from Course Name field:', e.detail.suggestion);
+});
 */

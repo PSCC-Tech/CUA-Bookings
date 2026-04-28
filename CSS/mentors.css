@@ -1,19 +1,17 @@
 /* HEADER ABOVE GRID */
 .booking-header {
+position: sticky;
+    top: 0;
+    z-index: 1000;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    background-color: white;
     margin: 5px;
     padding: 20px;
-}
-
-/* HEADER LAYOUT */
-.booking-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 25px;
+    border-bottom: 1px solid #ddd; /* optional */
 }
 
 /* Push title left, controls right */
@@ -77,6 +75,21 @@
 .dropdown div {
     padding: 8px 12px;
     cursor: pointer;
+}
+
+.dropdown div.selected {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 600;
+    position: relative;
+}
+
+.dropdown div.selected::after {
+    content: "✓";
+    position: absolute;
+    right: 10px;
+    font-size: 0.9rem;
+    color: var(--accent);
 }
 
 .dropdown div:hover {
