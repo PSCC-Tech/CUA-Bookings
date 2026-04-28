@@ -149,10 +149,54 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // -------------------------
-    // CATEGORY DROPDOWN
+    // MENTOR DATA
+    // -------------------------
+    const mentorsData = [
+        { name: "John Smith", categories: ["Math", "Computer Science"] },
+        { name: "John Doe", categories: ["Business", "Biology"] },
+        { name: "Jane Smith", categories: ["Math", "Biology"] },
+        { name: "Jane Doe", categories: ["Biology", "Math"] },
+        { name: "Dr. Wilson", categories: ["Computer Science", "Math"] },
+        { name: "Dr. Adams", categories: ["Business"] }
+    ];
+
+    // -------------------------
+    // CATEGORY DROPDOWN + FILTERING
     // -------------------------
     const categoryBtn = document.getElementById("category-btn");
     const categoryDropdown = document.getElementById("category-dropdown");
+    const mentorSelect = document.getElementById("mentor-select");
+    const courseCodeInput = document.getElementById("course-code");
+
+    let selectedCategory = 'Show All';
+
+    // Function to update mentors based on selected category
+    function updateMentorsForCategory(category) {
+        if (!mentorSelect) return;
+        
+        // Reset select to default option
+        mentorSelect.value = '';
+        
+        // Get mentors for this category
+        let mentorsForCategory = mentorsData;
+        if (category && category !== 'Show All' && category !== 'all') {
+            mentorsForCategory = mentorsData.filter(mentor => mentor.categories.includes(category));
+        }
+        
+        // Update select options - keep the first default option, remove others
+        const options = mentorSelect.querySelectorAll('option');
+        options.forEach((option, index) => {
+            if (index > 0) option.remove();
+        });
+        
+        // Add mentor options
+        mentorsForCategory.forEach(mentor => {
+            const option = document.createElement('option');
+            option.value = mentor.name;
+            option.textContent = mentor.name;
+            mentorSelect.appendChild(option);
+        });
+    }
 
     // Open/close dropdown
     categoryBtn.addEventListener("click", (e) => {
@@ -167,21 +211,53 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Function to set selected option with checkmark
+    function setSelectedOption(option) {
+        categoryDropdown.querySelectorAll("div").forEach(o => o.classList.remove("selected"));
+        option.classList.add("selected");
+    }
+
     // When selecting a category
     categoryDropdown.querySelectorAll("div").forEach(item => {
         item.addEventListener("click", () => {
-            categoryBtn.textContent = item.textContent;
+            setSelectedOption(item);
+            
+            selectedCategory = item.textContent.trim();
+            categoryBtn.textContent = selectedCategory;
             categoryDropdown.classList.add("hidden");
+            
+            // Clear course code and course name inputs
+            if (courseCodeInput) {
+                courseCodeInput.value = '';
+            }
+            const courseNameInput = document.querySelector('input[placeholder="Course Name"]');
+            if (courseNameInput) {
+                courseNameInput.value = '';
+            }
+            
+            // Disable mentor select and clear it
+            if (mentorSelect) {
+                mentorSelect.disabled = true;
+                mentorSelect.value = '';
+            }
+            
+            // Update autocomplete filter
+            if (courseCodeInput && courseCodeInput.autocompleteData && Autocomplete) {
+                Autocomplete.setCategory(courseCodeInput, selectedCategory);
+            }
+            
+            // Update mentors display
+            updateMentorsForCategory(selectedCategory);
         });
     });
 
     // Initialize autocomplete for course code
-    const courseCodeInput = document.getElementById("course-code");
     if (courseCodeInput && Autocomplete) {
         Autocomplete.init(courseCodeInput, 'courses', {
             minChars: 1,
             maxResults: 8,
             debounceMs: 300,
+            categoryFilter: selectedCategory,
             onSelect: (suggestion) => {
                 courseCodeInput.value = suggestion.id;
                 // Optionally fill course name if available
@@ -189,8 +265,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (courseNameInput) {
                     courseNameInput.value = suggestion.name;
                 }
+                
+                // Update category to match the selected course's category
+                selectedCategory = suggestion.category;
+                categoryBtn.textContent = selectedCategory;
+                
+                // Update checkmark on the category dropdown
+                const categoryOption = categoryDropdown.querySelector(`[data-category="${selectedCategory}"]`);
+                if (categoryOption) {
+                    setSelectedOption(categoryOption);
+                }
+                
+                // Update mentors based on the course's category
+                updateMentorsForCategory(selectedCategory);
+                
+                // Enable mentor select
+                if (mentorSelect) {
+                    mentorSelect.disabled = false;
+                }
             }
         });
+    }
+
+    // Initialize mentor list - start disabled
+    updateMentorsForCategory(selectedCategory);
+    if (mentorSelect) {
+        mentorSelect.disabled = true;
     }
 
 });

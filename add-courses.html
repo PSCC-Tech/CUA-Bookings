@@ -245,13 +245,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     AddCoursesUI.init();
     
-    // Initialize autocomplete for course code
+    // Get category button and setup category-based autocomplete filtering
+    const categoryBtn = document.getElementById("category-btn");
+    const categoryDropdown = document.getElementById("category-dropdown");
     const courseCodeInput = document.getElementById("course-code");
+    let selectedCategory = 'Show All';
+    
+    // Initialize autocomplete for course code
     if (courseCodeInput && Autocomplete) {
         Autocomplete.init(courseCodeInput, 'courses', {
             minChars: 1,
             maxResults: 8,
             debounceMs: 300,
+            categoryFilter: selectedCategory,
             onSelect: (suggestion) => {
                 courseCodeInput.value = suggestion.id;
                 // Optionally fill course name
@@ -260,6 +266,29 @@ document.addEventListener("DOMContentLoaded", () => {
                     courseNameInput.value = suggestion.name;
                 }
             }
+        });
+    }
+    
+    // Update autocomplete filter when category changes
+    if (categoryDropdown) {
+        categoryDropdown.querySelectorAll("div").forEach(item => {
+            item.addEventListener("click", () => {
+                selectedCategory = item.textContent.trim();
+                
+                // Clear course code and course name inputs
+                if (courseCodeInput) {
+                    courseCodeInput.value = '';
+                }
+                const courseNameInput = document.getElementById("course-name");
+                if (courseNameInput) {
+                    courseNameInput.value = '';
+                }
+                
+                // Update autocomplete filter
+                if (courseCodeInput && courseCodeInput.autocompleteData && Autocomplete) {
+                    Autocomplete.setCategory(courseCodeInput, selectedCategory);
+                }
+            });
         });
     }
     

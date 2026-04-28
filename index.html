@@ -58,7 +58,7 @@
                             <div data-category="Computer Science">Computer Science</div>
                             <div data-category="Biology">Biology</div>
                             <div data-category="Business">Business</div>
-                            <div data-category="all">Show All</div>
+                            <div data-category="all" class="selected">Show All</div>
                         </div>
                     </div>
                     <div class="autocomplete-input-wrapper">
@@ -69,7 +69,9 @@
                 <input type="text" placeholder="Course Name">
 
                     <label>Mentor</label>
-                    <input type="text" placeholder="Select mentor">
+                    <select id="mentor-select" placeholder="Select mentor">
+                        <option value="">-- Select a Mentor --</option>
+                    </select>
 
                     <label>Date & Time</label>
                     <button type="button" id="open-calendar-btn" class="date-btn">

@@ -54,16 +54,16 @@ const Autocomplete = {
      */
     getStaticCourseData() {
         return [
-            { id: 'MATH101', name: 'Calculus I' },
-            { id: 'MATH102', name: 'Calculus II' },
-            { id: 'MATH201', name: 'Linear Algebra' },
-            { id: 'COMP101', name: 'Intro to Computer Science' },
-            { id: 'COMP201', name: 'Data Structures I' },
-            { id: 'COMP202', name: 'Data Structures II' },
-            { id: 'COMP301', name: 'Algorithms' },
-            { id: 'PHYS101', name: 'Physics I' },
-            { id: 'PHYS102', name: 'Physics II' },
-            { id: 'CHEM101', name: 'Chemistry I' }
+            { id: 'MATH101', name: 'Calculus I', category: 'Math' },
+            { id: 'MATH102', name: 'Calculus II', category: 'Math' },
+            { id: 'MATH201', name: 'Linear Algebra', category: 'Math' },
+            { id: 'COMP101', name: 'Intro to Computer Science', category: 'Computer Science' },
+            { id: 'COMP201', name: 'Data Structures I', category: 'Computer Science' },
+            { id: 'COMP202', name: 'Data Structures II', category: 'Computer Science' },
+            { id: 'COMP301', name: 'Algorithms', category: 'Computer Science' },
+            { id: 'BIOL110', name: 'General Biology', category: 'Biology' },
+            { id: 'BIOL215', name: 'Human Anatomy', category: 'Biology' },
+            { id: 'BUSS101', name: 'Introduction to Business', category: 'Business' }
         ];
     },
 
@@ -82,6 +82,7 @@ const Autocomplete = {
             maxResults: 8,
             debounceMs: 300,
             onSelect: null,
+            categoryFilter: null,
             ...options
         };
 
@@ -134,7 +135,13 @@ const Autocomplete = {
         const data = inputElement.autocompleteData;
 
         try {
-            const results = data.dataSource.getData(query);
+            let results = data.dataSource.getData(query);
+            
+            // Apply category filter if set
+            if (data.config.categoryFilter && data.config.categoryFilter !== 'Show All' && data.config.categoryFilter !== 'all') {
+                results = results.filter(item => item.category === data.config.categoryFilter);
+            }
+            
             const limited = results.slice(0, data.config.maxResults);
 
             data.suggestions = limited;
@@ -333,6 +340,31 @@ const Autocomplete = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    /**
+     * Set category filter for autocomplete
+     * Filters results to show only items matching the category
+     */
+    setCategory(inputElement, category) {
+        if (!inputElement.autocompleteData) return;
+        inputElement.autocompleteData.config.categoryFilter = category;
+        // Refresh suggestions if input has value
+        const query = inputElement.value.trim();
+        if (query.length >= inputElement.autocompleteData.config.minChars) {
+            this._fetchAndDisplaySuggestions(query, inputElement);
+        }
+    },
+
+    /**
+     * Get filtered courses by category
+     */
+    getCoursesForCategory(category) {
+        const allCourses = this.getStaticCourseData();
+        if (!category || category === 'all' || category === 'Show All') {
+            return allCourses;
+        }
+        return allCourses.filter(course => course.category === category);
     },
 
     /**
