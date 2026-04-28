@@ -9,6 +9,7 @@ const ViewUI = {
         this.setupCardClickHandlers();
         this.setupInlineEditHandlers();
         this.setupSessionHandlers();
+        this.setupFilterHandlers();
     },
 
     cacheElements() {
@@ -16,32 +17,41 @@ const ViewUI = {
         this.closeBtn = document.querySelector(".modal-close");
 
         this.startBtn = document.getElementById("start-session-btn");
+        this.activeSessionsSection = document.getElementById("active-sessions");
+        this.activeSessionsContainer = document.querySelector(".active-session-cards");
         this.cancelSessionBtn = document.getElementById("cancel-session-btn");
 
         this.editBtn = document.getElementById("edit-booking-btn");
 
-        // NEW inline edit buttons
         this.saveInlineBtn = document.getElementById("save-inline-edit");
         this.cancelInlineBtn = document.getElementById("cancel-inline-edit");
 
-        this.bookingCards = Array.from(document.querySelectorAll(".booking-card"));
+        this.mentorBtn = document.getElementById("mentor-btn");
+        this.studentBtn = document.getElementById("student-btn");
+        this.mentorDropdown = document.getElementById("mentor-dropdown");
+        this.studentDropdown = document.getElementById("student-dropdown");
     },
 
     setupCardClickHandlers() {
-        this.bookingCards.forEach(card => {
-            card.addEventListener("click", () => {
-                this.activeCard = card;
-                this.populateModal(card);
-                this.modal.style.display = "flex";
-            });
+        // Handle clicks on ANY dynamically created booking card
+        document.addEventListener("click", (e) => {
+            const card = e.target.closest(".booking-card");
+            if (!card) return;
+
+            this.activeCard = card;
+            this.populateModal(card);
+            this.modal.style.display = "flex";
         });
 
+        // Close modal
         this.closeBtn.addEventListener("click", () => {
             this.modal.style.display = "none";
         });
 
-        this.modal.addEventListener("click", e => {
-            if (e.target === this.modal) this.modal.style.display = "none";
+        this.modal.addEventListener("click", (e) => {
+            if (e.target === this.modal) {
+                this.modal.style.display = "none";
+            }
         });
     },
 
@@ -53,11 +63,20 @@ const ViewUI = {
         document.getElementById("modal-location").textContent = card.dataset.location;
         document.getElementById("modal-topics").textContent = card.dataset.topics;
 
-        // Reset session button
-        this.startBtn.textContent = "Start Session";
-        this.startBtn.dataset.active = "false";
-        this.startBtn.classList.remove("stop-session-btn");
-        this.startBtn.classList.add("start-session-btn");
+        // If this booking is active, show Stop Session
+        if (card.dataset.active === "true") {
+            this.startBtn.textContent = "Stop Session";
+            this.startBtn.dataset.active = "true";
+            this.startBtn.classList.add("stop-session-btn");
+            this.startBtn.classList.remove("start-session-btn");
+        } 
+        // Otherwise show Start Session
+        else {
+            this.startBtn.textContent = "Start Session";
+            this.startBtn.dataset.active = "false";
+            this.startBtn.classList.remove("stop-session-btn");
+            this.startBtn.classList.add("start-session-btn");
+        }
 
         // Reset edit mode
         document.querySelector(".modal-actions").style.display = "flex";
@@ -76,6 +95,63 @@ const ViewUI = {
         this.cancelInlineBtn.addEventListener("click", () => {
             this.cancelInlineEdits();
         });
+    },
+
+    setupFilterHandlers() {
+        // Toggle dropdowns
+        this.mentorBtn.addEventListener("click", () => {
+            this.mentorDropdown.classList.toggle("hidden");
+            this.studentDropdown.classList.add("hidden");
+        });
+
+        this.studentBtn.addEventListener("click", () => {
+            this.studentDropdown.classList.toggle("hidden");
+            this.mentorDropdown.classList.add("hidden");
+        });
+
+        this.mentorDropdown.addEventListener("click", (e) => {
+            if (!e.target.dataset.value) return;
+
+            this.updateSelected("mentor", e.target);
+            this.filterBy("mentor", e.target.dataset.value);
+            this.mentorDropdown.classList.add("hidden");
+        });
+
+        this.studentDropdown.addEventListener("click", (e) => {
+            if (!e.target.dataset.value) return;
+
+            this.updateSelected("student", e.target);
+            this.filterBy("student", e.target.dataset.value);
+            this.studentDropdown.classList.add("hidden");
+        });
+
+    },
+
+    filterBy(type, value) {
+        const cards = document.querySelectorAll(".booking-card");
+
+        // SHOW ALL FIX
+        if (value === "all") {
+            cards.forEach(card => card.style.display = "block");
+            return;
+        }
+
+        cards.forEach(card => {
+            const text = card.querySelector(`.${type}`).textContent;
+            card.style.display = text.includes(value) ? "block" : "none";
+        });
+    },
+
+    updateSelected(type, optionDiv) {
+        const dropdown = document.getElementById(`${type}-dropdown`);
+
+        // Remove previous selection
+        dropdown.querySelectorAll("div").forEach(div => {
+            div.classList.remove("selected");
+        });
+
+        // Mark new selection
+        optionDiv.classList.add("selected");
     },
 
     enableEditMode() {
@@ -205,20 +281,57 @@ const ViewUI = {
         document.querySelector(".edit-actions-inline").style.display = "none";
     },
 
+    addToActiveSessions(card) {
+        this.activeSessionsSection.classList.remove("hidden");
+
+        const clone = card.cloneNode(true);
+        clone.classList.add("active-session-card");
+
+        // Keep dataset values
+        clone.dataset.active = "true";
+
+        this.activeSessionsContainer.appendChild(clone);
+    },
+
+    removeFromActiveSessions(id) {
+        const activeCard = this.activeSessionsContainer.querySelector(`[data-id="${id}"]`);
+        if (activeCard) activeCard.remove();
+
+        // Hide section if empty
+        if (this.activeSessionsContainer.children.length === 0) {
+            this.activeSessionsSection.classList.add("hidden");
+        }
+    },
+
     setupSessionHandlers() {
         this.startBtn.addEventListener("click", () => {
             const active = this.startBtn.dataset.active === "true";
 
             if (!active) {
+                // FIRST update UI state
                 this.startBtn.textContent = "Stop Session";
                 this.startBtn.dataset.active = "true";
                 this.startBtn.classList.add("stop-session-btn");
                 this.startBtn.classList.remove("start-session-btn");
+
+                // THEN add to active sessions
+                this.addToActiveSessions(this.activeCard);
+
+                // FINALLY close modal
+                this.modal.style.display = "none";
+
             } else {
+                // FIRST update UI state
                 this.startBtn.textContent = "Start Session";
                 this.startBtn.dataset.active = "false";
                 this.startBtn.classList.add("start-session-btn");
                 this.startBtn.classList.remove("stop-session-btn");
+
+                // THEN remove from active sessions
+                this.removeFromActiveSessions(this.activeCard.dataset.id);
+
+                // FINALLY close modal
+                this.modal.style.display = "none";
             }
         });
 
