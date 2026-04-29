@@ -98,6 +98,13 @@ const ViewUI = {
     },
 
     setupFilterHandlers() {
+        // Default selected options
+        const mentorAll = this.mentorDropdown.querySelector('[data-value="all"]');
+        const studentAll = this.studentDropdown.querySelector('[data-value="all"]');
+
+        if (mentorAll) mentorAll.classList.add("selected");
+        if (studentAll) studentAll.classList.add("selected");
+
         // Toggle dropdowns
         this.mentorBtn.addEventListener("click", () => {
             this.mentorDropdown.classList.toggle("hidden");
@@ -109,6 +116,7 @@ const ViewUI = {
             this.mentorDropdown.classList.add("hidden");
         });
 
+        // Mentor selection
         this.mentorDropdown.addEventListener("click", (e) => {
             if (!e.target.dataset.value) return;
 
@@ -117,6 +125,7 @@ const ViewUI = {
             this.mentorDropdown.classList.add("hidden");
         });
 
+        // Student selection
         this.studentDropdown.addEventListener("click", (e) => {
             if (!e.target.dataset.value) return;
 
@@ -124,7 +133,6 @@ const ViewUI = {
             this.filterBy("student", e.target.dataset.value);
             this.studentDropdown.classList.add("hidden");
         });
-
     },
 
     filterBy(type, value) {

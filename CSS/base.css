@@ -79,6 +79,53 @@ body {
     color: white;
 }
 
+.dropdown-wrapper {
+    position: relative; /* anchor point */
+    display: inline-block;
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;      /* directly under the button */
+    left: 0;        /* align left edges */
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 4px;
+    padding: 8px 0;
+    width: 180px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 20;
+}
+
+.dropdown div {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.dropdown div:hover {
+    background-color: #f0f0f0;
+}
+
+.dropdown div.selected {
+    font-weight: 700;
+    background: #f0f0ff;      /* subtle highlight */
+    position: relative;
+}
+
+.dropdown div.selected::after {
+    content: "✓";
+    position: absolute;
+    right: 10px;
+    color: #4c4cff;
+    font-weight: 700;
+}
+
+
+.hidden {
+    display: none;
+}
+
 /* MAIN CONTENT */
 .content {
     flex: 1;
@@ -190,5 +237,7 @@ body {
 .autocomplete-suggestions::-webkit-scrollbar-thumb:hover {
     background: #aab0b5;
 }
+
+
 
 /* End of GENERAL LAYOUT */

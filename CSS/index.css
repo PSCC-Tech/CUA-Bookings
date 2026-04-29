@@ -86,31 +86,6 @@ button:hover {
     background: #3a3ad6;
 }
 
-/* Dropdown Styling with Checkmarks */
-.dropdown div {
-    padding: 8px 12px;
-    cursor: pointer;
-    position: relative;
-}
-
-.dropdown div.selected {
-    background: var(--accent-light);
-    color: var(--accent);
-    font-weight: 600;
-}
-
-.dropdown div.selected::after {
-    content: "✓";
-    position: absolute;
-    right: 10px;
-    font-size: 0.9rem;
-    color: var(--accent);
-}
-
-.dropdown div:hover {
-    background-color: #f0f0f0;
-}
-
 /* End of basic FORM */
 
 /* Calendar Modal */
