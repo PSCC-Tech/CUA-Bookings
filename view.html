@@ -7,6 +7,8 @@
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css">
     <link rel="stylesheet" href="CSS/view.css">
+    <link rel="stylesheet" href="CSS/calendar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -145,18 +147,66 @@
 
         </div>
 
+        <div id="global-no-results" class="global-no-results hidden">
+            <div class="no-results-icon">🔍</div>
+            <div class="no-results-text">No matching bookings found.</div>
+        </div>
+
         <!-- FOOTER -->
         <footer class="footer">
-            CUA Booking Prototype
-            El administrador podria editar la informacion de las citas.
-            Las tutorias se pueden buscar por mentor, hora, estudiante o materia.
-            Si se desea registrar se le puede pedir al estudiante que se registre al llegar 
-            y al salir. De esta manera el administrador seleccionario un boton de start 
-            "start session" al finalizal le opremiria "end session" esto guarda dentro del
-            sistema las horas de inicio y final de la tutoria. Otra opcion seria pedirle al
-            estudiante firmar un papel al entrar y al salir con las horas de entrada y salida.
-            Luego esa informacion se entraria al sistema como "start time" y "end time".
+            
         </footer>
+
+        <!-- CALENDAR MODAL -->
+        <div id="calendar-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" id="close-calendar">&times;</span>
+
+                <div id="calendar-ui-container" class="modal-calendar">
+                    <!-- RIGHT COLUMN: CALENDAR -->
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <div class="nav-buttons">
+                                <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                                <button class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="month-year" id="month-year">September 2025</div>
+                        </div>
+                        
+                        <div class="weekdays">
+                            <div class="weekday">Sun</div>
+                            <div class="weekday">Mon</div>
+                            <div class="weekday">Tue</div>
+                            <div class="weekday">Wed</div>
+                            <div class="weekday">Thu</div>
+                            <div class="weekday">Fri</div>
+                            <div class="weekday">Sat</div>
+                        </div>
+
+                        <div class="days" id="days"></div>
+                        
+                        <div class="calendar-footer">
+                            <button class="today-btn" id="today-btn"><i class="fas fa-calendar-day"></i> Today</button>
+                            <div class="event-indicator">
+                                <i class="fas fa-circle" style="color: var(--accent); font-size: 0.6rem;"></i>
+                                <span>Has events</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Panel -->
+                    <div class="event-panel" id="event-panel">
+                        <div class="event-header">
+                            <div class="event-date" id="event-date">Select a date</div>
+                            <i class="fas fa-calendar-alt event-icon"></i>
+                        </div>
+                        <div class="event-list" id="event-list">
+                            <div class="no-events">Select a date with events to view them here</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </main>
 
@@ -221,6 +271,7 @@
 </div>
 
 <script src="Scripts/ViewData.js"></script>
+<script src="Scripts/Calendar.js"></script>
 <script src="Scripts/ViewUI.js"></script>
 
 <script>

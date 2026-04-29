@@ -1,4 +1,9 @@
 
+:root {
+    --accent: #00cec9;
+    --accent-light: #4c4cff;
+}
+
 /* HEADER ABOVE GRID */
 .booking-header {
     display: flex;
@@ -259,7 +264,8 @@
 }
 
 .edit-booking-btn {
-    background: var(--accent-light);
+    background: #007bff;
+    color: white;
     border: none;
     padding: 6px 12px;
     border-radius: 6px;
@@ -272,6 +278,44 @@
     justify-content: flex-end;
     align-items: center;
     margin-top: 20px;
+}
+
+.edit-actions-inline:not(.hidden) {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.global-no-results {
+    text-align: center;
+    margin: 30px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.global-no-results.hidden {
+    display: none;
+}
+
+.no-results-icon {
+    font-size: 3rem;
+    opacity: 0.7;
+}
+
+.no-results-text {
+    font-size: 1.2rem;
+    color: #555;
+}
+
+mark {
+    background: #fffb91;
+    color: inherit;
+    padding: 0;
+    border-radius: 2px;
 }
 
 .modal-actions button {
@@ -304,19 +348,33 @@
 }
 
 .save-btn {
-    background: var(--accent);
+    background: #28a745;
     color: white;
-    padding: 8px 14px;
+    padding: 10px 16px;
     border-radius: 6px;
     border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.save-btn:hover {
+    background: #218838;
+    opacity: 0.9;
 }
 
 .cancel-btn {
-    background: #aaa;
+    background: #dc3545;
     color: white;
-    padding: 8px 14px;
+    padding: 10px 16px;
     border-radius: 6px;
     border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.cancel-btn:hover {
+    background: #c82333;
+    opacity: 0.9;
 }
 
 .active-sessions {

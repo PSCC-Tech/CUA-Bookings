@@ -3,6 +3,8 @@ const ViewUI = {
     activeCard: null,
     editedDate: null,
     originalValues: {},
+    isEditMode: false,
+    selectedSearch: "",
 
     init() {
         this.cacheElements();
@@ -10,6 +12,9 @@ const ViewUI = {
         this.setupInlineEditHandlers();
         this.setupSessionHandlers();
         this.setupFilterHandlers();
+        this.setupSearchListener();
+        this.setupCalendarCloseHandler();
+        this.applyFilters(); // Ensure initial state is correct
     },
 
     cacheElements() {
@@ -30,6 +35,16 @@ const ViewUI = {
         this.studentBtn = document.getElementById("student-btn");
         this.mentorDropdown = document.getElementById("mentor-dropdown");
         this.studentDropdown = document.getElementById("student-dropdown");
+        this.searchInput = document.getElementById("booking-search");
+    },
+
+    setupCalendarCloseHandler() {
+        const closeCalendarBtn = document.getElementById("close-calendar");
+        if (closeCalendarBtn) {
+            closeCalendarBtn.addEventListener("click", () => {
+                document.getElementById("calendar-modal").style.display = "none";
+            });
+        }
     },
 
     setupCardClickHandlers() {
@@ -38,6 +53,11 @@ const ViewUI = {
             const card = e.target.closest(".booking-card");
             if (!card) return;
 
+            // Prevent card selection while in edit mode
+            if (this.isEditMode) {
+                return;
+            }
+
             this.activeCard = card;
             this.populateModal(card);
             this.modal.style.display = "flex";
@@ -45,11 +65,13 @@ const ViewUI = {
 
         // Close modal
         this.closeBtn.addEventListener("click", () => {
+            this.isEditMode = false;
             this.modal.style.display = "none";
         });
 
         this.modal.addEventListener("click", (e) => {
             if (e.target === this.modal) {
+                this.isEditMode = false;
                 this.modal.style.display = "none";
             }
         });
@@ -69,6 +91,10 @@ const ViewUI = {
             this.startBtn.dataset.active = "true";
             this.startBtn.classList.add("stop-session-btn");
             this.startBtn.classList.remove("start-session-btn");
+            // Disable edit button when session is active
+            this.editBtn.disabled = true;
+            this.editBtn.style.opacity = "0.5";
+            this.editBtn.style.cursor = "not-allowed";
         } 
         // Otherwise show Start Session
         else {
@@ -76,15 +102,24 @@ const ViewUI = {
             this.startBtn.dataset.active = "false";
             this.startBtn.classList.remove("stop-session-btn");
             this.startBtn.classList.add("start-session-btn");
+            // Enable edit button when session is not active
+            this.editBtn.disabled = false;
+            this.editBtn.style.opacity = "1";
+            this.editBtn.style.cursor = "pointer";
         }
 
         // Reset edit mode
         document.querySelector(".modal-actions").style.display = "flex";
-        document.querySelector(".edit-actions-inline").style.display = "none";
+        document.querySelector(".edit-actions-inline").classList.add("hidden");
     },
 
     setupInlineEditHandlers() {
         this.editBtn.addEventListener("click", () => {
+            // Prevent editing if session is active
+            if (this.editBtn.disabled) {
+                alert("Cannot edit booking while session is active. Stop the session first.");
+                return;
+            }
             this.enableEditMode();
         });
 
@@ -121,7 +156,7 @@ const ViewUI = {
             if (!e.target.dataset.value) return;
 
             this.updateSelected("mentor", e.target);
-            this.filterBy("mentor", e.target.dataset.value);
+            this.applyFilters();
             this.mentorDropdown.classList.add("hidden");
         });
 
@@ -130,24 +165,149 @@ const ViewUI = {
             if (!e.target.dataset.value) return;
 
             this.updateSelected("student", e.target);
-            this.filterBy("student", e.target.dataset.value);
+            this.applyFilters();
             this.studentDropdown.classList.add("hidden");
         });
     },
 
-    filterBy(type, value) {
-        const cards = document.querySelectorAll(".booking-card");
+    setupSearchListener() {
+        this.searchInput.addEventListener("input", () => {
+            this.selectedSearch = this.searchInput.value.trim().toLowerCase();
+            this.applyFilters();
+        });
+    },
 
-        // SHOW ALL FIX
-        if (value === "all") {
-            cards.forEach(card => card.style.display = "block");
+    applyFilters() {
+        let anyVisible = false;
+        const sections = document.querySelectorAll(".booking-date-group");
+
+        sections.forEach(section => {
+            const cards = section.querySelectorAll(".booking-card");
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const isVisible = this.isCardVisible(card);
+                card.style.display = isVisible ? "block" : "none";
+
+                if (isVisible) {
+                    visibleCount += 1;
+                    this.highlightCard(card);
+                } else {
+                    this.resetCardHighlight(card);
+                }
+            });
+
+            section.style.display = visibleCount > 0 ? "block" : "none";
+            if (visibleCount > 0) anyVisible = true;
+        });
+
+        const globalMsg = document.getElementById("global-no-results");
+        if (!anyVisible) {
+            globalMsg.classList.remove("hidden");
+        } else {
+            globalMsg.classList.add("hidden");
+        }
+    },
+
+    isCardVisible(card) {
+        const mentorFilter = this.getSelectedValue("mentor");
+        const studentFilter = this.getSelectedValue("student");
+
+        if (mentorFilter !== "all") {
+            const mentorText = card.querySelector(".mentor").textContent;
+            if (!mentorText.toLowerCase().includes(mentorFilter.toLowerCase())) {
+                return false;
+            }
+        }
+
+        if (studentFilter !== "all") {
+            const studentText = card.querySelector(".student").textContent;
+            if (!studentText.toLowerCase().includes(studentFilter.toLowerCase())) {
+                return false;
+            }
+        }
+
+        if (this.selectedSearch) {
+            const cardText = card.innerText.toLowerCase();
+            if (!cardText.includes(this.selectedSearch)) {
+                return false;
+            }
+        }
+
+        return true;
+    },
+
+    resetCardHighlight(card) {
+        if (card.dataset.originalHtml) {
+            card.innerHTML = card.dataset.originalHtml;
+        }
+    },
+
+    highlightCard(card) {
+        if (!card.dataset.originalHtml) {
+            card.dataset.originalHtml = card.innerHTML;
+        }
+
+        if (!this.selectedSearch) {
+            card.innerHTML = card.dataset.originalHtml;
             return;
         }
 
-        cards.forEach(card => {
-            const text = card.querySelector(`.${type}`).textContent;
-            card.style.display = text.includes(value) ? "block" : "none";
-        });
+        card.innerHTML = card.dataset.originalHtml;
+        const regex = new RegExp(this.escapeRegex(this.selectedSearch), "gi");
+        this.highlightTextNodes(card, regex);
+    },
+
+    highlightTextNodes(node, regex) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.nodeValue;
+            if (!text || !regex.test(text)) {
+                regex.lastIndex = 0;
+                return;
+            }
+
+            const parent = node.parentNode;
+            const fragment = document.createDocumentFragment();
+            let lastIndex = 0;
+            regex.lastIndex = 0;
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                const before = text.slice(lastIndex, match.index);
+                if (before) {
+                    fragment.appendChild(document.createTextNode(before));
+                }
+
+                const mark = document.createElement("mark");
+                mark.textContent = match[0];
+                fragment.appendChild(mark);
+                lastIndex = match.index + match[0].length;
+            }
+
+            const after = text.slice(lastIndex);
+            if (after) {
+                fragment.appendChild(document.createTextNode(after));
+            }
+
+            parent.replaceChild(fragment, node);
+            regex.lastIndex = 0;
+            return;
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== "MARK") {
+            const children = Array.from(node.childNodes);
+            children.forEach(child => this.highlightTextNodes(child, regex));
+        }
+    },
+
+    escapeRegex(value) {
+        return value.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+    },
+
+    getSelectedValue(type) {
+        const dropdown = document.getElementById(`${type}-dropdown`);
+        const selectedOption = dropdown.querySelector(".selected");
+        return selectedOption ? selectedOption.dataset.value : "all";
     },
 
     updateSelected(type, optionDiv) {
@@ -163,6 +323,7 @@ const ViewUI = {
     },
 
     enableEditMode() {
+        this.isEditMode = true;
         this.originalValues = {};
 
         document.querySelectorAll(".editable-field").forEach(row => {
@@ -215,13 +376,14 @@ const ViewUI = {
                 input.classList.add("date-btn");
 
                 input.addEventListener("click", () => {
-                    document.getElementById("calendar-modal").style.display = "flex";
-
-                    window.setSelectedDateTime = (dateStr, timeStr) => {
+                    // Set up the callback for calendar selection
+                    window.viewEditDateCallback = (dateStr, timeStr) => {
                         input.textContent = dateStr;
                         this.editedDate = dateStr;
                         document.getElementById("calendar-modal").style.display = "none";
                     };
+
+                    document.getElementById("calendar-modal").style.display = "flex";
                 });
             }
             else {
@@ -234,7 +396,7 @@ const ViewUI = {
         });
 
         document.querySelector(".modal-actions").style.display = "none";
-        document.querySelector(".edit-actions-inline").style.display = "flex";
+        document.querySelector(".edit-actions-inline").classList.remove("hidden");
     },
 
     saveInlineEdits() {
@@ -285,8 +447,9 @@ const ViewUI = {
     },
 
     exitEditMode() {
+        this.isEditMode = false;
         document.querySelector(".modal-actions").style.display = "flex";
-        document.querySelector(".edit-actions-inline").style.display = "none";
+        document.querySelector(".edit-actions-inline").classList.add("hidden");
     },
 
     addToActiveSessions(card) {
@@ -348,3 +511,12 @@ const ViewUI = {
         });
     }
 };
+
+// Global function called by Calendar.js when a date/time is selected
+function openConfirmation(dateStr, timeStr) {
+    // If in edit mode with a date callback set, use it
+    if (window.viewEditDateCallback && typeof window.viewEditDateCallback === "function") {
+        window.viewEditDateCallback(dateStr, timeStr);
+        window.viewEditDateCallback = null;
+    }
+}
