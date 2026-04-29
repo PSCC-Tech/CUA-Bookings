@@ -52,6 +52,14 @@ const CoursesUI = {
             this.renderPaginationButtons(tableId);
             this.initializePeopleCells();
             this.attachPeopleCellListeners();
+
+            // NEW: highlight AFTER preview is updated
+            const table = TableManager.pagination.tables[tableId];
+            if (table) {
+                table.rows.forEach(row => {
+                    TableManager.highlightItem(row, TableManager.filters.search);
+                });
+            }
         };
 
         // 2. Register tables and apply pagination
@@ -156,9 +164,25 @@ const CoursesUI = {
 
         // Close when clicking outside
         document.addEventListener("click", (e) => {
-            if (!e.target.closest(".right-group")) {
+            const inside =
+                e.target.closest("#category-btn") ||
+                e.target.closest("#mentor-btn") ||
+                e.target.closest("#category-dropdown") ||
+                e.target.closest("#mentor-dropdown") ||
+
+                // NEW: table dropdowns
+                e.target.closest(".professor-dropdown") ||
+                e.target.closest(".mentor-dropdown") ||
+                e.target.closest(".professor-cell") ||
+                e.target.closest(".mentor-cell");
+
+            if (!inside) {
                 this.categoryDropdown.classList.add("hidden");
                 this.mentorDropdown.classList.add("hidden");
+
+                // NEW: close table dropdowns
+                document.querySelectorAll(".professor-dropdown").forEach(d => d.classList.add("hidden"));
+                document.querySelectorAll(".mentor-dropdown").forEach(d => d.classList.add("hidden"));
             }
         });
     },
@@ -200,13 +224,16 @@ const CoursesUI = {
     ----------------------------------------- */
     buildMentorDropdown() {
         const mentorCells = document.querySelectorAll("tbody tr td:nth-child(5)");
+
         const mentors = [...new Set(
-            [...mentorCells].map(td => td.textContent.trim())
+            [...mentorCells]
+                .map(td => td.textContent.trim())
+                .filter(m => m.length > 0)   
         )].sort((a, b) => a.localeCompare(b));
 
         this.mentorDropdown.innerHTML =
-        mentors.map(m => `<div data-mentor="${m}">${m}</div>`).join("") +
-        `<div data-mentor="all" class="selected">Show All</div>`;
+            mentors.map(m => `<div data-mentor="${m}">${m}</div>`).join("") +
+            `<div data-mentor="all" class="selected">Show All</div>`;
     },
 
     /* -----------------------------------------
@@ -342,16 +369,65 @@ const CoursesUI = {
     },
 
     initializePeopleCells() {
+        const search = TableManager.filters.search?.toLowerCase() || "";
+        const activeMentorFilter = TableManager.filters.mentor?.toLowerCase() || "all";
+
+        // PROFESSORS
         document.querySelectorAll(".professor-cell").forEach(cell => {
-            const list = cell.dataset.professors.split(",").map(s => s.trim());
-            const selected = list[0]; // default first person
+            const raw = cell.dataset.professors;
+            if (!raw) return; // SAFETY FIX
+
+            const list = raw.split(",").map(s => s.trim());
+            let selected = list[0];
+
+            // Search match
+            if (search) {
+                const match = list.find(name =>
+                    name.toLowerCase().includes(search)
+                );
+                if (match) selected = match;
+            }
+
+            // Manual selection
+            if (cell.dataset.selected) {
+                selected = cell.dataset.selected;
+            }
+
             cell.textContent = this.generatePreview(selected, list);
+            cell.dataset.original = cell.textContent; 
         });
 
+        // MENTORS
         document.querySelectorAll(".mentor-cell").forEach(cell => {
-            const list = cell.dataset.mentors.split(",").map(s => s.trim());
-            const selected = list[0];
+            const raw = cell.dataset.mentors;
+            if (!raw) return; // SAFETY FIX
+
+            const list = raw.split(",").map(s => s.trim());
+            let selected = list[0];
+
+            // Mentor filter match
+            if (activeMentorFilter !== "all") {
+                const match = list.find(name =>
+                    name.toLowerCase() === activeMentorFilter
+                );
+                if (match) selected = match;
+            }
+
+            // Search match
+            if (search) {
+                const match = list.find(name =>
+                    name.toLowerCase().includes(search)
+                );
+                if (match) selected = match;
+            }
+
+            // Manual selection
+            if (cell.dataset.selected) {
+                selected = cell.dataset.selected;
+            }
+
             cell.textContent = this.generatePreview(selected, list);
+            cell.dataset.original = cell.textContent;
         });
     },
 
@@ -388,10 +464,15 @@ const CoursesUI = {
         });
 
         // Close when clicking outside
+        // Close when clicking outside
         document.addEventListener("click", (e) => {
-            if (!this.peopleDropdown.contains(e.target) &&
-                !e.target.classList.contains("professor-cell") &&
-                !e.target.classList.contains("mentor-cell")) {
+            const inside =
+                e.target.closest(".professor-cell") ||
+                e.target.closest(".mentor-cell") ||
+                e.target.closest("#people-dropdown") ||
+                e.target.closest("#people-dropdown-search");
+
+            if (!inside) {
                 this.closePeopleDropdown();
             }
         });
@@ -435,6 +516,7 @@ const CoursesUI = {
                 this.openPeopleDropdown(cell, list);
             });
         });
+
     },
     
 };

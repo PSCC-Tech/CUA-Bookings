@@ -202,18 +202,50 @@ const TableManager = {
                 }
 
                 if (visible && mentor !== "all") {
-                    visible = item.dataset.mentor === mentor;
+                    const mentorCell = item.querySelector(".mentor-cell");
+
+                    if (mentorCell && mentorCell.dataset.mentors) {
+                        const list = mentorCell.dataset.mentors
+                            .toLowerCase()
+                            .split(",")
+                            .map(s => s.trim());
+
+                        visible = list.includes(mentor.toLowerCase());
+                    } else {
+                        // fallback to single mentor dataset
+                        visible = item.dataset.mentor?.toLowerCase() === mentor.toLowerCase();
+                    }
                 }
 
                 if (visible && search) {
-                    const rowText = item.innerText.toLowerCase();
+                    let rowText = item.innerText.toLowerCase();
+
+                    // Include full professor list
+                    const profCell = item.querySelector(".professor-cell");
+                    if (profCell && profCell.dataset.professors) {
+                        rowText += " " + profCell.dataset.professors.toLowerCase();
+                    }
+
+                    // Include full mentor list
+                    const mentorCell = item.querySelector(".mentor-cell");
+                    if (mentorCell && mentorCell.dataset.mentors) {
+                        rowText += " " + mentorCell.dataset.mentors.toLowerCase();
+                    }
+
                     visible = rowText.includes(search);
                 }
 
                 item.classList.toggle("hidden", !visible);
-                this.highlightItem(item, search);
             });
         });
+
+        // After filtering all rows:
+        Object.values(this.pagination.tables).forEach(table => {
+            table.rows.forEach(row => {
+                this.highlightItem(row, search);
+            });
+        });
+
 
         // Apply pagination to all tables
         Object.keys(this.pagination.tables).forEach(tableId => {
@@ -235,7 +267,8 @@ const TableManager = {
         cells.forEach(cell => {
             if (cell.querySelector("input")) return;
 
-            const original = cell.dataset.original || cell.innerText;
+            // Always use the CURRENT preview text
+            const original = cell.innerText;
             cell.dataset.original = original;
 
             if (!query) {
