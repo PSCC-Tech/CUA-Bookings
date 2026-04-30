@@ -166,7 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
         eventListEl.appendChild(eventItem);
 
         eventItem.addEventListener("click", () => {
-            openConfirmation(dateStr, event.time);
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const months = [
+              "January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"
+            ];
+            const formattedDate = `${months[month - 1]} ${day}, ${year}`;
+            openConfirmation(formattedDate, event.time);
         });
         
       });

@@ -179,7 +179,7 @@
     display: none; /* hidden by default */
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 500;
 }
 
 /* MODAL BOX */
@@ -316,6 +316,57 @@ mark {
     color: inherit;
     padding: 0;
     border-radius: 2px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.modal .modal-content {
+    background: white;
+    padding: 20px;
+    width: 80%;
+    max-width: 1200px;
+    border-radius: 10px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #555;
+}
+
+.close-modal:hover {
+    color: #000;
+}
+
+.modal-calendar {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.calendar-container,
+.event-panel {
+    flex: 1;
+}
+
+@media (max-width: 1024px) {
+    .modal-calendar {
+        flex-direction: column;
+    }
 }
 
 .modal-actions button {

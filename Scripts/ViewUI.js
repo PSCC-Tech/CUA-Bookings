@@ -397,6 +397,9 @@ const ViewUI = {
 
         document.querySelector(".modal-actions").style.display = "none";
         document.querySelector(".edit-actions-inline").classList.remove("hidden");
+        this.editBtn.disabled = true;
+        this.editBtn.style.opacity = "0.5";
+        this.editBtn.style.cursor = "not-allowed";
     },
 
     saveInlineEdits() {
@@ -450,6 +453,9 @@ const ViewUI = {
         this.isEditMode = false;
         document.querySelector(".modal-actions").style.display = "flex";
         document.querySelector(".edit-actions-inline").classList.add("hidden");
+        this.editBtn.disabled = false;
+        this.editBtn.style.opacity = "1";
+        this.editBtn.style.cursor = "pointer";
     },
 
     addToActiveSessions(card) {
