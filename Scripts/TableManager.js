@@ -264,20 +264,34 @@ const TableManager = {
     highlightItem(item, query) {
         const cells = item.querySelectorAll("td, label");
 
+        const q = query.toLowerCase();
+
         cells.forEach(cell => {
             if (cell.querySelector("input")) return;
 
-            // Always use the CURRENT preview text
-            const original = cell.innerText;
-            cell.dataset.original = original;
+            let original = cell.textContent;
 
-            if (!query) {
+            // Normalize ALL whitespace to normal spaces
+            const normalized = original.replace(/\s+/g, " ");
+
+            if (!q) {
                 cell.innerHTML = original;
                 return;
             }
 
-            const regex = new RegExp(`(${query})`, "gi");
-            cell.innerHTML = original.replace(regex, `<mark>$1</mark>`);
+            const lower = normalized.toLowerCase();
+            const idx = lower.indexOf(q);
+
+            if (idx === -1) {
+                cell.innerHTML = original;
+                return;
+            }
+
+            const before = original.slice(0, idx);
+            const match = original.slice(idx, idx + q.length);
+            const after = original.slice(idx + q.length);
+
+            cell.innerHTML = `${before}<mark>${match}</mark>${after}`;
         });
     },
 
