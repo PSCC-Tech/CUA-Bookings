@@ -12,8 +12,6 @@ const CoursesUI = {
         this.setupTableManagerCallbacks();
         this.setupPaginationUI();
         this.setupPeopleDropdown();
-        this.initializePeopleCells();
-        this.attachPeopleCellListeners();
     },
 
     /* -----------------------------------------
@@ -389,12 +387,17 @@ const CoursesUI = {
             }
 
             // Manual selection
-            if (cell.dataset.selected) {
+            if (!search && cell.dataset.selected) {
                 selected = cell.dataset.selected;
             }
 
-            cell.textContent = this.generatePreview(selected, list);
-            cell.dataset.original = cell.textContent; 
+            const preview = this.generatePreview(selected, list);
+
+            if (cell.dataset.original !== preview) {
+                cell.textContent = preview;
+                cell.dataset.original = preview;
+            }
+            console.log("initializePeopleCells() ran");
         });
 
         // MENTORS
@@ -422,12 +425,16 @@ const CoursesUI = {
             }
 
             // Manual selection
-            if (cell.dataset.selected) {
+            if (!search && cell.dataset.selected) {
                 selected = cell.dataset.selected;
             }
 
-            cell.textContent = this.generatePreview(selected, list);
-            cell.dataset.original = cell.textContent;
+            const preview = this.generatePreview(selected, list);
+
+            if (cell.dataset.original !== preview) {
+                cell.textContent = preview;
+                cell.dataset.original = preview;
+            }
         });
     },
 
