@@ -177,7 +177,25 @@ document.addEventListener('DOMContentLoaded', function() {
         
       });
     } else {
-      eventListEl.innerHTML = '<div class="no-events">No events scheduled for this day</div>';
+      eventListEl.innerHTML = `
+        <div class="no-events">No events scheduled for this day</div>
+        <div class="select-date-option">
+          <button class="select-date-btn" id="select-date-btn">Select this date</button>
+        </div>
+      `;
+      
+      // Add event listener for the select date button
+      document.getElementById("select-date-btn").addEventListener("click", () => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const months = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        const formattedDate = `${months[month - 1]} ${day}, ${year}`;
+        // For view page, we might want to use a default time or get the current time
+        // For now, let's use "All day" or get the time from the booking being edited
+        openConfirmation(formattedDate, "All day");
+      });
     }
   }
   

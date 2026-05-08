@@ -376,11 +376,16 @@ const ViewUI = {
                 input.classList.add("date-btn");
 
                 input.addEventListener("click", () => {
+                    console.log("Date button clicked, setting callback");
+
                     // Set up the callback for calendar selection
                     window.viewEditDateCallback = (dateStr, timeStr) => {
+                        console.log("Callback called with:", dateStr, timeStr);
                         input.textContent = dateStr;
-                        this.editedDate = dateStr;
+                        input.dataset.selectedDate = dateStr;
                         document.getElementById("calendar-modal").style.display = "none";
+                        // Clear the callback after use
+                        window.viewEditDateCallback = null;
                     };
 
                     document.getElementById("calendar-modal").style.display = "flex";
@@ -413,6 +418,7 @@ const ViewUI = {
 
             const span = document.createElement("span");
             span.classList.add("field-value");
+            span.id = `modal-${field}`;
             span.textContent = newValue;
             input.replaceWith(span);
 
@@ -441,6 +447,7 @@ const ViewUI = {
 
             const span = document.createElement("span");
             span.classList.add("field-value");
+            span.id = `modal-${field}`;
             span.textContent = this.originalValues[field];
 
             input.replaceWith(span);
@@ -520,9 +527,14 @@ const ViewUI = {
 
 // Global function called by Calendar.js when a date/time is selected
 function openConfirmation(dateStr, timeStr) {
+    console.log("openConfirmation called with:", dateStr, timeStr);
+    console.log("viewEditDateCallback exists:", typeof window.viewEditDateCallback);
+
     // If in edit mode with a date callback set, use it
     if (window.viewEditDateCallback && typeof window.viewEditDateCallback === "function") {
         window.viewEditDateCallback(dateStr, timeStr);
         window.viewEditDateCallback = null;
+    } else {
+        console.error("viewEditDateCallback not set or not a function");
     }
 }
