@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CUA Bookings</title>
-    <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css">
     <link rel="stylesheet" href="CSS/account.css">
 </head>
@@ -31,30 +30,157 @@
         </nav>
 
         <!-- MAIN CONTENT -->
-        <main class="content">
+        <main class="content account-content">
 
-            <!-- FORM SECTION -->
-            <div class="form-container">
-
-                <h2>Account</h2>
-
-                <form>
-                    <div class="course-row">
-                        <label>Email</label>
-                        <input type="email" placeholder="Email">
-
-                        <label>Password</label>
-                        <input type="password" placeholder="Password">
+            <section class="account-shell">
+                <div class="account-header">
+                    <div>
+                        <p class="account-eyebrow">Administrator Account</p>
+                        <h1>CUA Administrator</h1>
+                        <p class="account-summary">System access for bookings, courses, mentors, absences, and reports.</p>
                     </div>
-                        <button type="submit">Login</button>
-                </form>
-            </div>
-            <!-- FOOTER -->
+
+                    <div class="account-status">
+                        <span class="status-dot"></span>
+                        Active
+                    </div>
+                </div>
+
+                <div class="account-grid">
+                    <section class="account-card profile-card">
+                        <div class="card-heading">
+                            <div>
+                                <h2>Profile</h2>
+                                <p>Primary contact record.</p>
+                            </div>
+
+                            <button type="button" id="edit-profile-btn" class="secondary-btn">Edit</button>
+                        </div>
+
+                        <form id="admin-profile-form" class="admin-profile-form">
+                            <div class="field-grid">
+                                <label>
+                                    Full name
+                                    <input type="text" name="fullName" value="Mariela Rodriguez" data-editable disabled>
+                                </label>
+
+                                <label>
+                                    Administrative title
+                                    <input type="text" name="title" value="CUA Program Coordinator" data-editable disabled>
+                                </label>
+
+                                <label>
+                                    Email
+                                    <input type="email" name="email" value="admin.cua@agu.inter.edu" data-editable disabled>
+                                </label>
+
+                                <label>
+                                    Phone number
+                                    <input type="tel" name="phone" value="787-555-2100" data-editable disabled>
+                                </label>
+
+                                <label>
+                                    Office
+                                    <input type="text" name="office" value="Library 2nd Floor" data-editable disabled>
+                                </label>
+
+                                <label>
+                                    Preferred contact
+                                    <select name="preferredContact" data-editable disabled>
+                                        <option selected>Email</option>
+                                        <option>Phone</option>
+                                        <option>Microsoft Teams</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div id="profile-message" class="profile-message" aria-live="polite"></div>
+
+                            <div class="edit-actions hidden">
+                                <button type="submit" class="primary-btn">Save Changes</button>
+                                <button type="button" id="cancel-profile-btn" class="danger-btn">Cancel</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="account-card">
+                        <div class="card-heading compact">
+                            <h2>Account Details</h2>
+                        </div>
+
+                        <div class="detail-list">
+                            <div>
+                                <span>Account ID</span>
+                                <strong>ADM-0001</strong>
+                            </div>
+                            <div>
+                                <span>Role</span>
+                                <strong>System Administrator</strong>
+                            </div>
+                            <div>
+                                <span>Access level</span>
+                                <strong>Full management</strong>
+                            </div>
+                            <div>
+                                <span>Last login</span>
+                                <strong>May 11, 2026, 9:18 AM</strong>
+                            </div>
+                            <div>
+                                <span>Password status</span>
+                                <strong>Updated recently</strong>
+                            </div>
+                            <div>
+                                <span>Two-step verification</span>
+                                <strong>Enabled</strong>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="account-card">
+                        <div class="card-heading compact">
+                            <h2>Permissions</h2>
+                        </div>
+
+                        <div class="permission-list">
+                            <span>Bookings</span>
+                            <span>Mentors</span>
+                            <span>Courses</span>
+                            <span>Absences</span>
+                            <span>Reports</span>
+                            <span>User Access</span>
+                        </div>
+                    </section>
+
+                    <section class="account-card">
+                        <div class="card-heading compact">
+                            <h2>Recent Activity</h2>
+                        </div>
+
+                        <ol class="activity-list">
+                            <li>
+                                <strong>Reviewed upcoming bookings</strong>
+                                <span>Today, 9:20 AM</span>
+                            </li>
+                            <li>
+                                <strong>Updated mentor availability</strong>
+                                <span>May 10, 2026, 3:45 PM</span>
+                            </li>
+                            <li>
+                                <strong>Added a course assignment</strong>
+                                <span>May 9, 2026, 11:12 AM</span>
+                            </li>
+                        </ol>
+                    </section>
+                </div>
+            </section>
+
             <footer class="footer">
 
             </footer>
         </main>
+    </div>
 
+    <script src="Scripts/AccountUI.js"></script>
 </body>
 
 </html>

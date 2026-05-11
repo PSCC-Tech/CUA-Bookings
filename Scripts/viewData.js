@@ -6,57 +6,142 @@ const ViewData = {
     init() {
         this.bookingGrid = document.querySelector(".booking-grid");
 
-        // Dummy data (replace with DB later)
+        // Prototype data for the current static UI. Replace with API data later.
         this.bookings = [
             {
                 id: 1,
                 date: "2026-04-14",
                 time: "10:00 AM",
                 mentor: "Sarah Smith",
-                student: "John Doe",
-                service: "Math Mentoring",
-                location: "CUA",
-                topics: "Polynoms and factoring."
+                name: "John Doe",
+                email: "john.doe@student.inter.edu",
+                phone: "787-555-0101",
+                sessionType: "Single",
+                groupSize: 1,
+                students: [
+                    {
+                        name: "John Doe",
+                        email: "john.doe@student.inter.edu",
+                        phone: "787-555-0101"
+                    }
+                ],
+                course: "MATH101 - Calculus I",
+                category: "Math",
+                location: "CUA (Library 2nd Floor)",
+                topics: "Polynomials and factoring.",
+                professor: "Dr. Rivera",
+                madeBy: "Maria Ortiz"
             },
             {
                 id: 2,
                 date: "2026-04-14",
                 time: "1:00 PM",
                 mentor: "Sarah Smith",
-                student: "John Doe",
-                service: "English Mentoring",
-                location: "Microsoft Teams",
-                topics: "Essay structure."
+                name: "Ana Torres",
+                email: "ana.torres@student.inter.edu",
+                phone: "787-555-0144",
+                sessionType: "Grouped",
+                groupSize: 2,
+                students: [
+                    {
+                        name: "Ana Torres",
+                        email: "ana.torres@student.inter.edu",
+                        phone: "787-555-0144"
+                    },
+                    {
+                        name: "Diego Morales",
+                        email: "diego.morales@student.inter.edu",
+                        phone: "787-555-0166"
+                    }
+                ],
+                course: "ENGL210 - Essay Writing",
+                category: "English",
+                location: "Online (Microsoft Teams)",
+                topics: "Essay structure.",
+                professor: "Prof. Hernandez",
+                madeBy: "Luis Santiago"
             },
             {
                 id: 3,
                 date: "2026-04-17",
                 time: "10:00 AM",
                 mentor: "Sarah Smith",
-                student: "John Doe",
-                service: "Math Mentoring",
-                location: "CUA",
-                topics: "Factoring review."
+                name: "Carlos Vega",
+                email: "carlos.vega@student.inter.edu",
+                phone: "787-555-0188",
+                sessionType: "Single",
+                groupSize: 1,
+                students: [
+                    {
+                        name: "Carlos Vega",
+                        email: "carlos.vega@student.inter.edu",
+                        phone: "787-555-0188"
+                    }
+                ],
+                course: "MATH101 - Calculus I",
+                category: "Math",
+                location: "CUA (Library 2nd Floor)",
+                topics: "Factoring review.",
+                professor: "Dr. Santiago",
+                madeBy: "Maria Ortiz"
             },
             {
                 id: 4,
                 date: "2026-04-17",
                 time: "2:00 PM",
                 mentor: "Sarah Smith",
-                student: "John Doe",
-                service: "Computer Mentoring",
-                location: "Microsoft Teams",
-                topics: "Intro to Python."
+                name: "Laura Ortiz",
+                email: "laura.ortiz@student.inter.edu",
+                phone: "787-555-0199",
+                sessionType: "Single",
+                groupSize: 1,
+                students: [
+                    {
+                        name: "Laura Ortiz",
+                        email: "laura.ortiz@student.inter.edu",
+                        phone: "787-555-0199"
+                    }
+                ],
+                course: "COMP101 - Intro to Computer Science",
+                category: "Computer Science",
+                location: "Online (Microsoft Teams)",
+                topics: "Intro to Python.",
+                professor: "Prof. Martinez",
+                madeBy: "Andrea Rivera"
             },
             {
                 id: 5,
                 date: "2026-04-27",
                 time: "12:00 PM",
                 mentor: "Sarah Smith",
-                student: "John Doe",
-                service: "Chemistry Mentoring",
-                location: "Microsoft Teams",
-                topics: "Balancing equations."
+                name: "Miguel Ramos",
+                email: "miguel.ramos@student.inter.edu",
+                phone: "787-555-0125",
+                sessionType: "Grouped",
+                groupSize: 3,
+                students: [
+                    {
+                        name: "Miguel Ramos",
+                        email: "miguel.ramos@student.inter.edu",
+                        phone: "787-555-0125"
+                    },
+                    {
+                        name: "Sofia Colon",
+                        email: "sofia.colon@student.inter.edu",
+                        phone: "787-555-0135"
+                    },
+                    {
+                        name: "Natalia Perez",
+                        email: "natalia.perez@student.inter.edu",
+                        phone: "787-555-0175"
+                    }
+                ],
+                course: "CHEM110 - General Chemistry",
+                category: "Chemistry",
+                location: "PC & Mac Lab (C234-C235)",
+                topics: "Balancing equations.",
+                professor: "Dr. Navarro",
+                madeBy: "Luis Santiago"
             }
         ];
 
@@ -147,27 +232,65 @@ const ViewData = {
     createBookingCard(b) {
         const card = document.createElement("div");
         card.className = "booking-card";
+        const students = this.getBookingStudents(b);
+        const primaryStudent = students[0];
+        const sessionType = this.normalizeSessionType(b.sessionType);
 
         // Required for ViewUI.js
         card.dataset.id = b.id;
-        card.dataset.name = b.student;
-        card.dataset.service = b.service;
+        card.dataset.name = primaryStudent.name;
+        card.dataset.email = primaryStudent.email;
+        card.dataset.phone = primaryStudent.phone;
+        card.dataset.sessionType = sessionType;
+        card.dataset.groupSize = String(students.length);
+        card.dataset.students = JSON.stringify(students);
+        card.dataset.course = b.course;
+        card.dataset.category = b.category;
         card.dataset.date = this.formatDateLabel(b.date);
         card.dataset.time = b.time;
+        card.dataset.mentor = b.mentor;
         card.dataset.location = b.location;
         card.dataset.topics = b.topics;
+        card.dataset.professor = b.professor;
+        card.dataset.madeBy = b.madeBy;
 
         card.innerHTML = `
             <h3>${b.time}</h3>
             <p class="mentor"><strong>Mentor</strong> ${b.mentor}</p>
-            <p class="student"><strong>Student</strong> ${b.student}</p>
-            <p><strong>Service:</strong> ${b.service}</p>
-            <p><strong>Location:</strong> ${b.location}</p>
+            <p class="student"><strong>Student</strong> ${this.getStudentSummary(students)}</p>
+            <p class="course-summary"><strong>Course:</strong> ${b.course}</p>
+            <p class="location-summary"><strong>Location:</strong> ${b.location}</p>
         `;
 
         return card;
     },
 
+    getBookingStudents(booking) {
+        const students = Array.isArray(booking.students) && booking.students.length
+            ? booking.students
+            : [
+                {
+                    name: booking.name,
+                    email: booking.email,
+                    phone: booking.phone
+                }
+            ];
+
+        return students.map(student => ({
+            name: student.name || "",
+            email: student.email || "",
+            phone: student.phone || ""
+        }));
+    },
+
+    normalizeSessionType(value) {
+        return /group/i.test(value || "") ? "Grouped" : "Single";
+    },
+
+    getStudentSummary(students) {
+        const primaryName = students[0]?.name || "Unnamed student";
+        return students.length > 1 ? `${primaryName} + ${students.length - 1}` : primaryName;
+    },
 
     /* -----------------------------
        POPULATE FILTER DROPDOWNS
@@ -180,8 +303,10 @@ const ViewData = {
 
         this.bookings.forEach(b => {
             mentors.add(b.mentor);
-            students.add(b.student);
-            categories.add(b.service);
+            this.getBookingStudents(b).forEach(student => {
+                if (student.name) students.add(student.name);
+            });
+            categories.add(b.category);
             hours.add(b.time);
         });
 
@@ -195,42 +320,19 @@ const ViewData = {
         const dropdown = document.getElementById(id);
         dropdown.innerHTML = "";
 
-        values.forEach(v => {
-            const div = document.createElement("div");
-            div.textContent = v;
-            div.dataset.value = v;
-            dropdown.appendChild(div);
-        });
+        [...values]
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(v => {
+                const div = document.createElement("div");
+                div.textContent = v;
+                div.dataset.value = v;
+                dropdown.appendChild(div);
+            });
 
-        // Add "Show All"
         const all = document.createElement("div");
         all.textContent = "Show All";
         all.dataset.value = "all";
+        all.classList.add("selected");
         dropdown.appendChild(all);
-
-        const ViewFilters = {
-            populateDropdowns() {
-                this.populate("mentor");
-                this.populate("student");
-            },
-
-            populate(type) {
-                const dropdown = document.getElementById(`${type}-dropdown`);
-                dropdown.innerHTML = "";
-
-                const values = ["all", ...ViewData.getUniqueValues(type)];
-
-                values.forEach(value => {
-                    const div = document.createElement("div");
-                    div.textContent = value === "all" ? "Show All" : value;
-                    div.dataset.value = value;
-
-                    // ⭐ Default selection
-                    if (value === "all") div.classList.add("selected");
-
-                    dropdown.appendChild(div);
-                });
-            }
-        };
     }
 };

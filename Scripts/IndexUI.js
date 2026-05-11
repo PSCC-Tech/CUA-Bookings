@@ -16,7 +16,10 @@ function openConfirmation(dateStr, timeStr) {
     };
 }
 
-document.getElementById("open-calendar-btn").addEventListener("click", () => {
+document.getElementById("open-calendar-btn").addEventListener("click", (event) => {
+    if (event.currentTarget.disabled) return;
+
+    document.dispatchEvent(new CustomEvent("cua-calendar-before-open"));
     document.getElementById("calendar-modal").style.display = "flex";
 });
 
@@ -28,8 +31,9 @@ function setSelectedDateTime(dateString, timeString) {
     const btn = document.getElementById("open-calendar-btn");
     const hidden = document.getElementById("selected-datetime");
 
-    btn.textContent = `${dateString} — ${timeString}`;
     hidden.value = `${dateString} ${timeString}`;
+    btn.textContent = `${dateString} - ${timeString}`;
+    btn.classList.add("has-selection");
 
     document.getElementById("calendar-modal").style.display = "none";
 }
@@ -151,14 +155,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------------------------
     // MENTOR DATA
     // -------------------------
-    const mentorsData = [
-        { name: "John Smith", categories: ["Math", "Computer Science"] },
-        { name: "John Doe", categories: ["Business", "Biology"] },
-        { name: "Jane Smith", categories: ["Math", "Biology"] },
-        { name: "Jane Doe", categories: ["Biology", "Math"] },
-        { name: "Dr. Wilson", categories: ["Computer Science", "Math"] },
-        { name: "Dr. Adams", categories: ["Business"] }
-    ];
+    const mentorsData = window.MentorScheduleStore
+        ? window.MentorScheduleStore.listMentors().map(mentor => ({
+            name: mentor.name,
+            categories: mentor.categories
+        }))
+        : [
+            { name: "John Smith", categories: ["Math", "Computer Science"] },
+            { name: "John Doe", categories: ["Business", "Biology"] },
+            { name: "Jane Smith", categories: ["Math", "Biology"] },
+            { name: "Jane Doe", categories: ["Biology", "Math"] },
+            { name: "Dr. Wilson", categories: ["Computer Science", "Math"] },
+            { name: "Dr. Adams", categories: ["Business"] }
+        ];
 
     // -------------------------
     // CATEGORY DROPDOWN + FILTERING
@@ -167,35 +176,132 @@ document.addEventListener("DOMContentLoaded", () => {
     const categoryDropdown = document.getElementById("category-dropdown");
     const mentorSelect = document.getElementById("mentor-select");
     const courseCodeInput = document.getElementById("course-code");
+    const courseNameInput = document.querySelector('input[placeholder="Course Name"]');
+    const dateTimeButton = document.getElementById("open-calendar-btn");
+    const selectedDateTimeInput = document.getElementById("selected-datetime");
 
     let selectedCategory = 'Show All';
+    let selectedCourse = null;
 
-    // Function to update mentors based on selected category
-    function updateMentorsForCategory(category) {
-        if (!mentorSelect) return;
-        
-        // Reset select to default option
-        mentorSelect.value = '';
-        
-        // Get mentors for this category
-        let mentorsForCategory = mentorsData;
-        if (category && category !== 'Show All' && category !== 'all') {
-            mentorsForCategory = mentorsData.filter(mentor => mentor.categories.includes(category));
+    function getCourseMentors(course) {
+        if (course && window.MentorScheduleStore) {
+            return window.MentorScheduleStore.getMentorsForCourse(course.id)
+                .map(mentor => ({
+                    name: mentor.name,
+                    categories: mentor.categories
+                }));
         }
-        
-        // Update select options - keep the first default option, remove others
+
+        if (selectedCategory && selectedCategory !== "Show All" && selectedCategory !== "all") {
+            return mentorsData.filter(mentor => mentor.categories.includes(selectedCategory));
+        }
+
+        return mentorsData;
+    }
+
+    function updateMentorOptions(mentors, disabled = false) {
+        if (!mentorSelect) return;
+
+        mentorSelect.value = '';
+        mentorSelect.disabled = disabled;
+
         const options = mentorSelect.querySelectorAll('option');
         options.forEach((option, index) => {
             if (index > 0) option.remove();
         });
-        
-        // Add mentor options
-        mentorsForCategory.forEach(mentor => {
+
+        mentors.forEach(mentor => {
             const option = document.createElement('option');
             option.value = mentor.name;
             option.textContent = mentor.name;
             mentorSelect.appendChild(option);
         });
+    }
+
+    function clearSelectedDateTime() {
+        selectedDateTimeInput.value = "";
+        dateTimeButton.classList.remove("has-selection");
+    }
+
+    function updateDateTimeButtonState() {
+        if (!selectedCourse) {
+            dateTimeButton.disabled = true;
+            dateTimeButton.textContent = "Select a Course First";
+            clearSelectedDateTime();
+            return;
+        }
+
+        dateTimeButton.disabled = false;
+        dateTimeButton.textContent = "Choose Date & Time";
+    }
+
+    function syncCalendarCourse(onlySelectedMentor = false) {
+        if (!window.CUACalendar || !selectedCourse) return;
+
+        window.CUACalendar.setCourse(
+            selectedCourse.id,
+            mentorSelect.value,
+            onlySelectedMentor && Boolean(mentorSelect.value)
+        );
+    }
+
+    function prepareCalendarForOpen() {
+        if (!selectedCourse) return;
+
+        const hasSelectedMentor = Boolean(mentorSelect.value);
+        syncCalendarCourse(hasSelectedMentor);
+
+        if (hasSelectedMentor && window.CUACalendar) {
+            window.CUACalendar.setMentor(mentorSelect.value);
+        }
+    }
+
+    function selectCourse(course) {
+        selectedCourse = course;
+        courseCodeInput.value = course.id;
+        selectedCategory = course.category;
+        categoryBtn.textContent = selectedCategory;
+
+        if (courseNameInput) {
+            courseNameInput.value = course.name;
+        }
+
+        const categoryOption = categoryDropdown.querySelector(`[data-category="${selectedCategory}"]`);
+        if (categoryOption) {
+            setSelectedOption(categoryOption);
+        }
+
+        if (courseCodeInput.autocompleteData && window.Autocomplete) {
+            window.Autocomplete.setCategory(courseCodeInput, selectedCategory);
+        }
+
+        updateMentorOptions(getCourseMentors(course), false);
+        updateDateTimeButtonState();
+        syncCalendarCourse(false);
+    }
+
+    function clearSelectedCourse() {
+        selectedCourse = null;
+
+        if (mentorSelect) {
+            updateMentorOptions(getCourseMentors(null), true);
+        }
+
+        if (window.CUACalendar) {
+            window.CUACalendar.setCourse("");
+        }
+
+        updateDateTimeButtonState();
+    }
+
+    function findExactCourse(value) {
+        if (!window.Autocomplete || !window.Autocomplete.getStaticCourseData) return null;
+
+        const query = value.trim().toLowerCase();
+        return window.Autocomplete.getStaticCourseData().find(course =>
+            course.id.toLowerCase() === query ||
+            course.name.toLowerCase() === query
+        ) || null;
     }
 
     // Open/close dropdown
@@ -221,33 +327,24 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryDropdown.querySelectorAll("div").forEach(item => {
         item.addEventListener("click", () => {
             setSelectedOption(item);
-            
+
             selectedCategory = item.textContent.trim();
             categoryBtn.textContent = selectedCategory;
             categoryDropdown.classList.add("hidden");
-            
+
             // Clear course code and course name inputs
             if (courseCodeInput) {
                 courseCodeInput.value = '';
             }
-            const courseNameInput = document.querySelector('input[placeholder="Course Name"]');
             if (courseNameInput) {
                 courseNameInput.value = '';
             }
-            
-            // Disable mentor select and clear it
-            if (mentorSelect) {
-                mentorSelect.disabled = true;
-                mentorSelect.value = '';
-            }
-            
+            clearSelectedCourse();
+
             // Update autocomplete filter
             if (courseCodeInput && courseCodeInput.autocompleteData && Autocomplete) {
                 Autocomplete.setCategory(courseCodeInput, selectedCategory);
             }
-            
-            // Update mentors display
-            updateMentorsForCategory(selectedCategory);
         });
     });
 
@@ -259,38 +356,53 @@ document.addEventListener("DOMContentLoaded", () => {
             debounceMs: 300,
             categoryFilter: selectedCategory,
             onSelect: (suggestion) => {
-                courseCodeInput.value = suggestion.id;
-                // Optionally fill course name if available
-                const courseNameInput = document.querySelector('input[placeholder="Course Name"]');
-                if (courseNameInput) {
-                    courseNameInput.value = suggestion.name;
-                }
-                
-                // Update category to match the selected course's category
-                selectedCategory = suggestion.category;
-                categoryBtn.textContent = selectedCategory;
-                
-                // Update checkmark on the category dropdown
-                const categoryOption = categoryDropdown.querySelector(`[data-category="${selectedCategory}"]`);
-                if (categoryOption) {
-                    setSelectedOption(categoryOption);
-                }
-                
-                // Update mentors based on the course's category
-                updateMentorsForCategory(selectedCategory);
-                
-                // Enable mentor select
-                if (mentorSelect) {
-                    mentorSelect.disabled = false;
-                }
+                selectCourse(suggestion);
             }
         });
     }
 
+    courseCodeInput.addEventListener("input", () => {
+        if (!courseCodeInput.value.trim()) {
+            if (courseNameInput) {
+                courseNameInput.value = "";
+            }
+            clearSelectedCourse();
+            return;
+        }
+
+        if (selectedCourse && courseCodeInput.value.trim() !== selectedCourse.id) {
+            clearSelectedCourse();
+        }
+    });
+
+    courseCodeInput.addEventListener("blur", () => {
+        if (selectedCourse || !courseCodeInput.value.trim()) return;
+
+        const matchingCourse = findExactCourse(courseCodeInput.value);
+        if (matchingCourse) {
+            selectCourse(matchingCourse);
+        }
+    });
+
+    mentorSelect.addEventListener("change", () => {
+        clearSelectedDateTime();
+
+        if (!selectedCourse) return;
+
+        if (mentorSelect.value && window.CUACalendar) {
+            window.CUACalendar.setCourse(selectedCourse.id, mentorSelect.value, true);
+            window.CUACalendar.setMentor(mentorSelect.value);
+        } else {
+            syncCalendarCourse(false);
+        }
+
+        updateDateTimeButtonState();
+    });
+
+    document.addEventListener("cua-calendar-before-open", prepareCalendarForOpen);
+
     // Initialize mentor list - start disabled
-    updateMentorsForCategory(selectedCategory);
-    if (mentorSelect) {
-        mentorSelect.disabled = true;
-    }
+    updateMentorOptions(getCourseMentors(null), true);
+    updateDateTimeButtonState();
 
 });

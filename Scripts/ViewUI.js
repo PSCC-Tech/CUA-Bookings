@@ -1,8 +1,11 @@
 const ViewUI = {
 
     activeCard: null,
-    editedDate: null,
     originalValues: {},
+    originalStudents: [],
+    modalStudents: [],
+    editStudents: [],
+    currentStudentIndex: 0,
     isEditMode: false,
     selectedSearch: "",
 
@@ -10,11 +13,12 @@ const ViewUI = {
         this.cacheElements();
         this.setupCardClickHandlers();
         this.setupInlineEditHandlers();
+        this.setupStudentNavigationHandlers();
         this.setupSessionHandlers();
         this.setupFilterHandlers();
         this.setupSearchListener();
         this.setupCalendarCloseHandler();
-        this.applyFilters(); // Ensure initial state is correct
+        this.applyFilters();
     },
 
     cacheElements() {
@@ -27,14 +31,25 @@ const ViewUI = {
         this.cancelSessionBtn = document.getElementById("cancel-session-btn");
 
         this.editBtn = document.getElementById("edit-booking-btn");
-
         this.saveInlineBtn = document.getElementById("save-inline-edit");
         this.cancelInlineBtn = document.getElementById("cancel-inline-edit");
 
+        this.studentControls = document.getElementById("student-session-controls");
+        this.studentPosition = document.getElementById("student-position");
+        this.prevStudentBtn = document.getElementById("prev-student-btn");
+        this.nextStudentBtn = document.getElementById("next-student-btn");
+        this.addStudentBtn = document.getElementById("add-student-btn");
+        this.deleteStudentBtn = document.getElementById("delete-student-btn");
+        this.groupSizeBadge = document.getElementById("group-size-badge");
+
         this.mentorBtn = document.getElementById("mentor-btn");
         this.studentBtn = document.getElementById("student-btn");
+        this.categoryBtn = document.getElementById("category-btn");
+        this.hourBtn = document.getElementById("hour-btn");
         this.mentorDropdown = document.getElementById("mentor-dropdown");
         this.studentDropdown = document.getElementById("student-dropdown");
+        this.categoryDropdown = document.getElementById("category-dropdown");
+        this.hourDropdown = document.getElementById("hour-dropdown");
         this.searchInput = document.getElementById("booking-search");
     },
 
@@ -48,74 +63,69 @@ const ViewUI = {
     },
 
     setupCardClickHandlers() {
-        // Handle clicks on ANY dynamically created booking card
         document.addEventListener("click", (e) => {
             const card = e.target.closest(".booking-card");
-            if (!card) return;
-
-            // Prevent card selection while in edit mode
-            if (this.isEditMode) {
-                return;
-            }
+            if (!card || this.isEditMode) return;
 
             this.activeCard = card;
             this.populateModal(card);
             this.modal.style.display = "flex";
         });
 
-        // Close modal
         this.closeBtn.addEventListener("click", () => {
-            this.isEditMode = false;
-            this.modal.style.display = "none";
+            this.closeModal();
         });
 
         this.modal.addEventListener("click", (e) => {
             if (e.target === this.modal) {
-                this.isEditMode = false;
-                this.modal.style.display = "none";
+                this.closeModal();
             }
         });
     },
 
-    populateModal(card) {
-        document.getElementById("modal-name").textContent = card.dataset.name;
-        document.getElementById("modal-service").textContent = card.dataset.service;
-        document.getElementById("modal-date").textContent = card.dataset.date;
-        document.getElementById("modal-time").textContent = card.dataset.time;
-        document.getElementById("modal-location").textContent = card.dataset.location;
-        document.getElementById("modal-topics").textContent = card.dataset.topics;
+    closeModal() {
+        if (this.isEditMode) return;
+        this.modal.style.display = "none";
+    },
 
-        // If this booking is active, show Stop Session
+    populateModal(card) {
+        this.modalStudents = this.getStudentsFromCard(card);
+        this.currentStudentIndex = 0;
+
+        this.setFieldText("mentor", card.dataset.mentor);
+        this.setFieldText("location", card.dataset.location);
+        this.setFieldText("course", card.dataset.course);
+        this.setFieldText("topics", card.dataset.topics);
+        this.setFieldText("professor", card.dataset.professor);
+        this.setFieldText("madeBy", card.dataset.madeBy);
+        this.setSessionTypeText(this.getCardSessionType(card), this.modalStudents);
+        this.renderCurrentStudentDetails();
+        this.updateStudentControls();
+
         if (card.dataset.active === "true") {
             this.startBtn.textContent = "Stop Session";
             this.startBtn.dataset.active = "true";
             this.startBtn.classList.add("stop-session-btn");
             this.startBtn.classList.remove("start-session-btn");
-            // Disable edit button when session is active
             this.editBtn.disabled = true;
             this.editBtn.style.opacity = "0.5";
             this.editBtn.style.cursor = "not-allowed";
-        } 
-        // Otherwise show Start Session
-        else {
+        } else {
             this.startBtn.textContent = "Start Session";
             this.startBtn.dataset.active = "false";
             this.startBtn.classList.remove("stop-session-btn");
             this.startBtn.classList.add("start-session-btn");
-            // Enable edit button when session is not active
             this.editBtn.disabled = false;
             this.editBtn.style.opacity = "1";
             this.editBtn.style.cursor = "pointer";
         }
 
-        // Reset edit mode
         document.querySelector(".modal-actions").style.display = "flex";
         document.querySelector(".edit-actions-inline").classList.add("hidden");
     },
 
     setupInlineEditHandlers() {
         this.editBtn.addEventListener("click", () => {
-            // Prevent editing if session is active
             if (this.editBtn.disabled) {
                 alert("Cannot edit booking while session is active. Stop the session first.");
                 return;
@@ -132,41 +142,134 @@ const ViewUI = {
         });
     },
 
+    setupStudentNavigationHandlers() {
+        this.prevStudentBtn?.addEventListener("click", () => {
+            this.goToStudent(-1);
+        });
+
+        this.nextStudentBtn?.addEventListener("click", () => {
+            this.goToStudent(1);
+        });
+
+        this.addStudentBtn?.addEventListener("click", () => {
+            this.addStudentToEdit();
+        });
+
+        this.deleteStudentBtn?.addEventListener("click", () => {
+            this.deleteCurrentStudentFromEdit();
+        });
+    },
+
+    goToStudent(direction) {
+        const students = this.getWorkingStudents();
+        if (students.length < 2) return;
+
+        if (this.isEditMode) {
+            this.saveCurrentStudentDraft();
+        }
+
+        this.currentStudentIndex = (this.currentStudentIndex + direction + students.length) % students.length;
+        this.renderCurrentStudentDetails();
+        this.updateStudentControls();
+    },
+
+    addStudentToEdit() {
+        if (!this.isEditMode) return;
+
+        this.saveCurrentStudentDraft();
+        this.setSessionTypeControl("Grouped");
+        this.ensureGroupedStudentCount();
+        this.editStudents.push(this.createBlankStudent());
+        this.currentStudentIndex = this.editStudents.length - 1;
+
+        this.renderCurrentStudentDetails();
+        this.updateStudentControls();
+        this.getFieldControl("name")?.focus();
+    },
+
+    deleteCurrentStudentFromEdit() {
+        if (!this.isEditMode || this.getCurrentSessionType() !== "Grouped") return;
+
+        this.saveCurrentStudentDraft();
+
+        if (this.editStudents.length <= 1) {
+            return;
+        }
+
+        this.editStudents.splice(this.currentStudentIndex, 1);
+
+        if (this.editStudents.length === 1) {
+            this.setSessionTypeControl("Single");
+            this.currentStudentIndex = 0;
+        } else if (this.currentStudentIndex >= this.editStudents.length) {
+            this.currentStudentIndex = this.editStudents.length - 1;
+        }
+
+        this.renderCurrentStudentDetails();
+        this.updateStudentControls();
+        this.getFieldControl("name")?.focus();
+    },
+
     setupFilterHandlers() {
-        // Default selected options
-        const mentorAll = this.mentorDropdown.querySelector('[data-value="all"]');
-        const studentAll = this.studentDropdown.querySelector('[data-value="all"]');
+        this.filterDropdowns = {
+            mentor: this.mentorDropdown,
+            student: this.studentDropdown,
+            category: this.categoryDropdown,
+            hour: this.hourDropdown
+        };
 
-        if (mentorAll) mentorAll.classList.add("selected");
-        if (studentAll) studentAll.classList.add("selected");
+        this.filterButtons = {
+            mentor: this.mentorBtn,
+            student: this.studentBtn,
+            category: this.categoryBtn,
+            hour: this.hourBtn
+        };
 
-        // Toggle dropdowns
-        this.mentorBtn.addEventListener("click", () => {
-            this.mentorDropdown.classList.toggle("hidden");
-            this.studentDropdown.classList.add("hidden");
+        Object.entries(this.filterDropdowns).forEach(([type, dropdown]) => {
+            if (!dropdown) return;
+
+            const allOption = dropdown.querySelector('[data-value="all"]');
+            if (allOption) allOption.classList.add("selected");
+
+            dropdown.addEventListener("click", (e) => {
+                if (!e.target.dataset.value) return;
+
+                this.updateSelected(type, e.target);
+                this.applyFilters();
+                dropdown.classList.add("hidden");
+            });
         });
 
-        this.studentBtn.addEventListener("click", () => {
-            this.studentDropdown.classList.toggle("hidden");
-            this.mentorDropdown.classList.add("hidden");
+        Object.entries(this.filterButtons).forEach(([type, button]) => {
+            if (!button) return;
+
+            button.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this.toggleFilterDropdown(type);
+            });
         });
 
-        // Mentor selection
-        this.mentorDropdown.addEventListener("click", (e) => {
-            if (!e.target.dataset.value) return;
-
-            this.updateSelected("mentor", e.target);
-            this.applyFilters();
-            this.mentorDropdown.classList.add("hidden");
+        document.addEventListener("click", (e) => {
+            if (e.target.closest(".booking-header .dropdown-wrapper")) return;
+            this.closeAllFilterDropdowns();
         });
+    },
 
-        // Student selection
-        this.studentDropdown.addEventListener("click", (e) => {
-            if (!e.target.dataset.value) return;
+    toggleFilterDropdown(type) {
+        const dropdown = this.filterDropdowns[type];
+        if (!dropdown) return;
 
-            this.updateSelected("student", e.target);
-            this.applyFilters();
-            this.studentDropdown.classList.add("hidden");
+        const shouldOpen = dropdown.classList.contains("hidden");
+        this.closeAllFilterDropdowns();
+
+        if (shouldOpen) {
+            dropdown.classList.remove("hidden");
+        }
+    },
+
+    closeAllFilterDropdowns() {
+        Object.values(this.filterDropdowns || {}).forEach(dropdown => {
+            if (dropdown) dropdown.classList.add("hidden");
         });
     },
 
@@ -212,29 +315,55 @@ const ViewUI = {
     isCardVisible(card) {
         const mentorFilter = this.getSelectedValue("mentor");
         const studentFilter = this.getSelectedValue("student");
+        const categoryFilter = this.getSelectedValue("category");
+        const hourFilter = this.getSelectedValue("hour");
 
         if (mentorFilter !== "all") {
-            const mentorText = card.querySelector(".mentor").textContent;
+            const mentorText = card.dataset.mentor || card.querySelector(".mentor").textContent;
             if (!mentorText.toLowerCase().includes(mentorFilter.toLowerCase())) {
                 return false;
             }
         }
 
         if (studentFilter !== "all") {
-            const studentText = card.querySelector(".student").textContent;
-            if (!studentText.toLowerCase().includes(studentFilter.toLowerCase())) {
+            if (!this.getStudentSearchText(card).includes(studentFilter.toLowerCase())) {
                 return false;
             }
         }
 
+        if (categoryFilter !== "all" && card.dataset.category !== categoryFilter) {
+            return false;
+        }
+
+        if (hourFilter !== "all" && card.dataset.time !== hourFilter) {
+            return false;
+        }
+
         if (this.selectedSearch) {
-            const cardText = card.innerText.toLowerCase();
+            const cardText = this.getCardSearchText(card);
             if (!cardText.includes(this.selectedSearch)) {
                 return false;
             }
         }
 
         return true;
+    },
+
+    getStudentSearchText(card) {
+        const students = this.getStudentsFromCard(card);
+        return [
+            card.dataset.name,
+            card.querySelector(".student")?.textContent,
+            ...students.flatMap(student => [student.name, student.email, student.phone])
+        ].join(" ").toLowerCase();
+    },
+
+    getCardSearchText(card) {
+        return [
+            card.innerText,
+            ...Object.values(card.dataset),
+            this.getStudentSearchText(card)
+        ].join(" ").toLowerCase();
     },
 
     resetCardHighlight(card) {
@@ -301,7 +430,7 @@ const ViewUI = {
     },
 
     escapeRegex(value) {
-        return value.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+        return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     },
 
     getSelectedValue(type) {
@@ -313,92 +442,32 @@ const ViewUI = {
     updateSelected(type, optionDiv) {
         const dropdown = document.getElementById(`${type}-dropdown`);
 
-        // Remove previous selection
         dropdown.querySelectorAll("div").forEach(div => {
             div.classList.remove("selected");
         });
 
-        // Mark new selection
         optionDiv.classList.add("selected");
     },
 
     enableEditMode() {
         this.isEditMode = true;
         this.originalValues = {};
+        this.originalStudents = this.modalStudents.map(student => ({ ...student }));
+        this.editStudents = this.modalStudents.map(student => ({ ...student }));
 
         document.querySelectorAll(".editable-field").forEach(row => {
             const field = row.dataset.field;
             const span = row.querySelector(".field-value");
-            const value = span.textContent.trim();
+            const value = this.getEditableDisplayValue(field, span);
 
             this.originalValues[field] = value;
 
-            let input;
-
-            if (field === "topics") {
-                input = document.createElement("textarea");
-                input.rows = 4;
-                input.value = value;
-            }
-            else if (field === "service") {
-                input = document.createElement("select");
-                ["Math Tutoring","Computer Mentoring","Biology Help","Business Coaching"]
-                    .forEach(opt => {
-                        const o = document.createElement("option");
-                        o.textContent = opt;
-                        if (opt === value) o.selected = true;
-                        input.appendChild(o);
-                    });
-            }
-            else if (field === "time") {
-                input = document.createElement("select");
-                ["8:00 AM","9:00 AM","10:00 AM","11:00 AM","1:00 PM","2:00 PM","3:00 PM"]
-                    .forEach(opt => {
-                        const o = document.createElement("option");
-                        o.textContent = opt;
-                        if (opt === value) o.selected = true;
-                        input.appendChild(o);
-                    });
-            }
-            else if (field === "location") {
-                input = document.createElement("select");
-                ["Microsoft Teams","Library","Science Building","Business Center","CUA"]
-                    .forEach(opt => {
-                        const o = document.createElement("option");
-                        o.textContent = opt;
-                        if (opt === value) o.selected = true;
-                        input.appendChild(o);
-                    });
-            }
-            else if (field === "date") {
-                input = document.createElement("button");
-                input.textContent = value;
-                input.classList.add("date-btn");
-
-                input.addEventListener("click", () => {
-                    console.log("Date button clicked, setting callback");
-
-                    // Set up the callback for calendar selection
-                    window.viewEditDateCallback = (dateStr, timeStr) => {
-                        console.log("Callback called with:", dateStr, timeStr);
-                        input.textContent = dateStr;
-                        input.dataset.selectedDate = dateStr;
-                        document.getElementById("calendar-modal").style.display = "none";
-                        // Clear the callback after use
-                        window.viewEditDateCallback = null;
-                    };
-
-                    document.getElementById("calendar-modal").style.display = "flex";
-                });
-            }
-            else {
-                input = document.createElement("input");
-                input.type = "text";
-                input.value = value;
-            }
-
+            const input = this.createEditorForField(field, value);
             span.replaceWith(input);
         });
+
+        this.renderCurrentStudentDetails();
+        this.updateStudentControls();
 
         document.querySelector(".modal-actions").style.display = "none";
         document.querySelector(".edit-actions-inline").classList.remove("hidden");
@@ -407,62 +476,426 @@ const ViewUI = {
         this.editBtn.style.cursor = "not-allowed";
     },
 
+    getEditableDisplayValue(field, span) {
+        if (field === "name" || field === "email" || field === "phone") {
+            const student = this.getWorkingStudents()[this.currentStudentIndex] || this.createBlankStudent();
+            return student[field] || "";
+        }
+
+        if (field === "sessionType") {
+            return this.getCurrentSessionType();
+        }
+
+        return span.textContent.trim();
+    },
+
+    createEditorForField(field, value) {
+        let input;
+
+        if (field === "topics") {
+            input = document.createElement("textarea");
+            input.rows = 4;
+            input.value = value;
+        } else if (field === "sessionType") {
+            input = document.createElement("select");
+            ["Single", "Grouped"].forEach(opt => {
+                const option = document.createElement("option");
+                option.value = opt;
+                option.textContent = opt;
+                if (opt === this.normalizeSessionType(value)) option.selected = true;
+                input.appendChild(option);
+            });
+            input.addEventListener("change", () => this.handleSessionTypeChange());
+        } else if (field === "location") {
+            input = document.createElement("select");
+            const locationOptions = [
+                "CUA (Library 2nd Floor)",
+                "Online (Microsoft Teams)",
+                "PC & Mac Lab (C234-C235)",
+                "Grad. Department Office (Old)"
+            ];
+
+            if (value && !locationOptions.includes(value)) {
+                locationOptions.push(value);
+            }
+
+            locationOptions.forEach(opt => {
+                const option = document.createElement("option");
+                option.textContent = opt;
+                if (opt === value) option.selected = true;
+                input.appendChild(option);
+            });
+        } else {
+            input = document.createElement("input");
+            input.type = field === "email" ? "email" : field === "phone" ? "tel" : "text";
+            input.value = value;
+        }
+
+        input.dataset.field = field;
+        return input;
+    },
+
+    handleSessionTypeChange() {
+        if (!this.isEditMode) return;
+
+        this.saveCurrentStudentDraft();
+
+        if (this.getCurrentSessionType() === "Grouped") {
+            this.ensureGroupedStudentCount();
+        } else {
+            const primary = this.editStudents[0] || this.createBlankStudent();
+            this.editStudents = [{ ...primary }];
+            this.currentStudentIndex = 0;
+        }
+
+        this.renderCurrentStudentDetails();
+        this.updateStudentControls();
+    },
+
     saveInlineEdits() {
+        this.saveCurrentStudentDraft();
+
+        let sessionType = this.getCurrentSessionType();
+        if (sessionType === "Grouped") {
+            this.ensureGroupedStudentCount();
+        } else {
+            const primary = this.editStudents[0] || this.createBlankStudent();
+            this.editStudents = [{ ...primary }];
+            this.currentStudentIndex = 0;
+        }
+
+        const students = this.editStudents.map(student => this.sanitizeStudent(student));
+        const savedValues = {};
+
         document.querySelectorAll(".editable-field").forEach(row => {
             const field = row.dataset.field;
-            const input = row.querySelector("input, select, textarea, button");
+            const input = row.querySelector("input, select, textarea");
 
-            const newValue = input.tagName === "BUTTON"
-                ? input.textContent
-                : input.value;
+            if (field === "name" || field === "email" || field === "phone") {
+                savedValues[field] = students[0][field] || "";
+            } else if (field === "sessionType") {
+                savedValues[field] = this.getSessionTypeDisplay(sessionType, students);
+            } else {
+                savedValues[field] = input.value;
+            }
 
             const span = document.createElement("span");
             span.classList.add("field-value");
             span.id = `modal-${field}`;
-            span.textContent = newValue;
+            span.textContent = savedValues[field];
             input.replaceWith(span);
-
-            this.activeCard.dataset[field] = newValue;
-
-            if (field === "time") {
-                this.activeCard.querySelector("h3").textContent = newValue;
-            }
-            if (field === "location") {
-                this.activeCard.querySelector("p:nth-child(5)").innerHTML =
-                    `<strong>Location:</strong> ${newValue}`;
-            }
-            if (field === "service") {
-                this.activeCard.querySelector("p:nth-child(4)").innerHTML =
-                    `<strong>Service:</strong> ${newValue}`;
-            }
         });
 
+        this.isEditMode = false;
+        this.modalStudents = students;
+        this.currentStudentIndex = 0;
+        this.writeCardData(savedValues, sessionType, students);
+        this.renderCurrentStudentDetails();
+        this.updateStudentControls();
         this.exitEditMode();
+
+        delete this.activeCard.dataset.originalHtml;
+        this.syncFilterOptionsFromCards();
+        this.applyFilters();
     },
 
     cancelInlineEdits() {
         document.querySelectorAll(".editable-field").forEach(row => {
             const field = row.dataset.field;
-            const input = row.querySelector("input, select, textarea, button");
+            const input = row.querySelector("input, select, textarea");
+            if (!input) return;
 
             const span = document.createElement("span");
             span.classList.add("field-value");
             span.id = `modal-${field}`;
-            span.textContent = this.originalValues[field];
-
+            span.textContent = this.getOriginalDisplayValue(field);
             input.replaceWith(span);
         });
 
+        this.isEditMode = false;
+        this.modalStudents = this.originalStudents.map(student => ({ ...student }));
+        this.currentStudentIndex = 0;
+        this.renderCurrentStudentDetails();
+        this.setSessionTypeText(this.getCardSessionType(this.activeCard), this.modalStudents);
+        this.updateStudentControls();
         this.exitEditMode();
     },
 
+    getOriginalDisplayValue(field) {
+        if (field === "name" || field === "email" || field === "phone") {
+            return this.originalStudents[0]?.[field] || "";
+        }
+
+        if (field === "sessionType") {
+            return this.getSessionTypeDisplay(
+                this.getCardSessionType(this.activeCard),
+                this.originalStudents
+            );
+        }
+
+        return this.originalValues[field] || "";
+    },
+
     exitEditMode() {
-        this.isEditMode = false;
         document.querySelector(".modal-actions").style.display = "flex";
         document.querySelector(".edit-actions-inline").classList.add("hidden");
         this.editBtn.disabled = false;
         this.editBtn.style.opacity = "1";
         this.editBtn.style.cursor = "pointer";
+        this.updateStudentControls();
+    },
+
+    saveCurrentStudentDraft() {
+        if (!this.isEditMode) return;
+
+        const student = this.editStudents[this.currentStudentIndex] || this.createBlankStudent();
+        student.name = this.getFieldControl("name")?.value || "";
+        student.email = this.getFieldControl("email")?.value || "";
+        student.phone = this.getFieldControl("phone")?.value || "";
+        this.editStudents[this.currentStudentIndex] = student;
+    },
+
+    renderCurrentStudentDetails() {
+        const students = this.getWorkingStudents();
+        const student = students[this.currentStudentIndex] || this.createBlankStudent();
+
+        if (this.isEditMode) {
+            this.setFieldControlValue("name", student.name);
+            this.setFieldControlValue("email", student.email);
+            this.setFieldControlValue("phone", student.phone);
+            return;
+        }
+
+        this.setFieldText("name", student.name);
+        this.setFieldText("email", student.email);
+        this.setFieldText("phone", student.phone);
+    },
+
+    updateStudentControls() {
+        const students = this.getWorkingStudents();
+        const sessionType = this.getCurrentSessionType();
+        const isGrouped = sessionType === "Grouped";
+        const showControls = isGrouped || students.length > 1;
+
+        this.studentControls?.classList.toggle("hidden", !showControls);
+        this.addStudentBtn?.classList.toggle("hidden", !(this.isEditMode && isGrouped));
+        this.deleteStudentBtn?.classList.toggle("hidden", !(this.isEditMode && isGrouped && students.length > 1));
+
+        if (this.studentPosition) {
+            this.studentPosition.textContent = `Student ${this.currentStudentIndex + 1} of ${Math.max(students.length, 1)}`;
+        }
+
+        const disableCycle = students.length < 2;
+        if (this.prevStudentBtn) this.prevStudentBtn.disabled = disableCycle;
+        if (this.nextStudentBtn) this.nextStudentBtn.disabled = disableCycle;
+
+        if (this.groupSizeBadge) {
+            this.groupSizeBadge.textContent = String(Math.max(students.length, isGrouped ? 2 : 1));
+            this.groupSizeBadge.classList.toggle("hidden", !(this.isEditMode && isGrouped));
+        }
+    },
+
+    getWorkingStudents() {
+        return this.isEditMode ? this.editStudents : this.modalStudents;
+    },
+
+    getFieldControl(field) {
+        return document.querySelector(`.editable-field[data-field="${field}"] input, .editable-field[data-field="${field}"] select, .editable-field[data-field="${field}"] textarea`);
+    },
+
+    setFieldControlValue(field, value) {
+        const control = this.getFieldControl(field);
+        if (control) control.value = value || "";
+    },
+
+    setFieldText(field, value) {
+        const span = document.getElementById(`modal-${field}`);
+        if (span) span.textContent = value || "";
+    },
+
+    setSessionTypeText(sessionType, students) {
+        this.setFieldText("sessionType", this.getSessionTypeDisplay(sessionType, students));
+    },
+
+    setSessionTypeControl(value) {
+        const control = this.getFieldControl("sessionType");
+        if (control) control.value = this.normalizeSessionType(value);
+    },
+
+    getCurrentSessionType() {
+        if (this.isEditMode) {
+            return this.normalizeSessionType(this.getFieldControl("sessionType")?.value || "Single");
+        }
+
+        return this.getCardSessionType(this.activeCard);
+    },
+
+    getCardSessionType(card) {
+        return this.normalizeSessionType(card?.dataset.sessionType || "Single");
+    },
+
+    normalizeSessionType(value) {
+        return /group/i.test(value || "") ? "Grouped" : "Single";
+    },
+
+    getSessionTypeDisplay(sessionType, students) {
+        return this.normalizeSessionType(sessionType) === "Grouped"
+            ? `Grouped ${Math.max(students.length, 2)}`
+            : "Single";
+    },
+
+    ensureGroupedStudentCount() {
+        while (this.editStudents.length < 2) {
+            this.editStudents.push(this.createBlankStudent());
+        }
+    },
+
+    getStudentsFromCard(card) {
+        let students = [];
+
+        if (card?.dataset.students) {
+            try {
+                const parsed = JSON.parse(card.dataset.students);
+                if (Array.isArray(parsed)) {
+                    students = parsed.map(student => this.sanitizeStudent(student));
+                }
+            } catch (error) {
+                students = [];
+            }
+        }
+
+        if (!students.length) {
+            students = [this.sanitizeStudent({
+                name: card?.dataset.name,
+                email: card?.dataset.email,
+                phone: card?.dataset.phone
+            })];
+        }
+
+        if (this.getCardSessionType(card) === "Grouped" && students.length < 2) {
+            students.push(this.createBlankStudent());
+        }
+
+        return students;
+    },
+
+    sanitizeStudent(student = {}) {
+        return {
+            name: student.name || "",
+            email: student.email || "",
+            phone: student.phone || ""
+        };
+    },
+
+    createBlankStudent() {
+        return { name: "", email: "", phone: "" };
+    },
+
+    writeCardData(values, sessionType, students) {
+        const primaryStudent = students[0] || this.createBlankStudent();
+
+        this.activeCard.dataset.mentor = values.mentor;
+        this.activeCard.dataset.name = primaryStudent.name;
+        this.activeCard.dataset.email = primaryStudent.email;
+        this.activeCard.dataset.phone = primaryStudent.phone;
+        this.activeCard.dataset.sessionType = sessionType;
+        this.activeCard.dataset.groupSize = String(students.length);
+        this.activeCard.dataset.students = JSON.stringify(students);
+        this.activeCard.dataset.location = values.location;
+        this.activeCard.dataset.course = values.course;
+        this.activeCard.dataset.topics = values.topics;
+        this.activeCard.dataset.professor = values.professor;
+        this.activeCard.dataset.madeBy = values.madeBy;
+
+        this.activeCard.querySelector(".mentor").innerHTML = `<strong>Mentor</strong> ${values.mentor}`;
+        this.activeCard.querySelector(".student").innerHTML = `<strong>Student</strong> ${this.getCardStudentSummary(students)}`;
+        this.activeCard.querySelector(".location-summary").innerHTML = `<strong>Location:</strong> ${values.location}`;
+        this.activeCard.querySelector(".course-summary").innerHTML = `<strong>Course:</strong> ${values.course}`;
+
+        this.updateBookingRecord(values, sessionType, students);
+    },
+
+    getCardStudentSummary(students) {
+        const primaryName = students[0]?.name || "Unnamed student";
+        return students.length > 1 ? `${primaryName} + ${students.length - 1}` : primaryName;
+    },
+
+    updateBookingRecord(values, sessionType, students) {
+        if (typeof ViewData === "undefined" || !Array.isArray(ViewData.bookings)) return;
+
+        const id = Number(this.activeCard.dataset.id);
+        const record = ViewData.bookings.find(booking => Number(booking.id) === id);
+        if (!record) return;
+
+        Object.assign(record, {
+            mentor: values.mentor,
+            name: students[0]?.name || "",
+            email: students[0]?.email || "",
+            phone: students[0]?.phone || "",
+            sessionType,
+            groupSize: students.length,
+            students: students.map(student => ({ ...student })),
+            location: values.location,
+            course: values.course,
+            topics: values.topics,
+            professor: values.professor,
+            madeBy: values.madeBy
+        });
+    },
+
+    syncFilterOptionsFromCards() {
+        const previousSelection = {
+            mentor: this.getSelectedValue("mentor"),
+            student: this.getSelectedValue("student"),
+            category: this.getSelectedValue("category"),
+            hour: this.getSelectedValue("hour")
+        };
+
+        const values = {
+            mentor: new Set(),
+            student: new Set(),
+            category: new Set(),
+            hour: new Set()
+        };
+
+        document.querySelectorAll(".booking-grid .booking-card").forEach(card => {
+            if (card.dataset.mentor) values.mentor.add(card.dataset.mentor);
+            if (card.dataset.category) values.category.add(card.dataset.category);
+            if (card.dataset.time) values.hour.add(card.dataset.time);
+
+            this.getStudentsFromCard(card).forEach(student => {
+                if (student.name) values.student.add(student.name);
+            });
+        });
+
+        Object.entries(values).forEach(([type, set]) => {
+            this.fillFilterDropdown(type, set, previousSelection[type]);
+        });
+    },
+
+    fillFilterDropdown(type, values, selectedValue) {
+        const dropdown = this.filterDropdowns[type];
+        if (!dropdown) return;
+
+        dropdown.innerHTML = "";
+
+        [...values]
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(value => {
+                const option = document.createElement("div");
+                option.textContent = value;
+                option.dataset.value = value;
+                if (value === selectedValue) option.classList.add("selected");
+                dropdown.appendChild(option);
+            });
+
+        const all = document.createElement("div");
+        all.textContent = "Show All";
+        all.dataset.value = "all";
+        if (selectedValue === "all" || !values.has(selectedValue)) {
+            all.classList.add("selected");
+        }
+        dropdown.appendChild(all);
     },
 
     addToActiveSessions(card) {
@@ -470,8 +903,6 @@ const ViewUI = {
 
         const clone = card.cloneNode(true);
         clone.classList.add("active-session-card");
-
-        // Keep dataset values
         clone.dataset.active = "true";
 
         this.activeSessionsContainer.appendChild(clone);
@@ -481,7 +912,6 @@ const ViewUI = {
         const activeCard = this.activeSessionsContainer.querySelector(`[data-id="${id}"]`);
         if (activeCard) activeCard.remove();
 
-        // Hide section if empty
         if (this.activeSessionsContainer.children.length === 0) {
             this.activeSessionsSection.classList.add("hidden");
         }
@@ -492,29 +922,20 @@ const ViewUI = {
             const active = this.startBtn.dataset.active === "true";
 
             if (!active) {
-                // FIRST update UI state
                 this.startBtn.textContent = "Stop Session";
                 this.startBtn.dataset.active = "true";
                 this.startBtn.classList.add("stop-session-btn");
                 this.startBtn.classList.remove("start-session-btn");
-
-                // THEN add to active sessions
+                this.activeCard.dataset.active = "true";
                 this.addToActiveSessions(this.activeCard);
-
-                // FINALLY close modal
                 this.modal.style.display = "none";
-
             } else {
-                // FIRST update UI state
                 this.startBtn.textContent = "Start Session";
                 this.startBtn.dataset.active = "false";
                 this.startBtn.classList.add("start-session-btn");
                 this.startBtn.classList.remove("stop-session-btn");
-
-                // THEN remove from active sessions
+                this.activeCard.dataset.active = "false";
                 this.removeFromActiveSessions(this.activeCard.dataset.id);
-
-                // FINALLY close modal
                 this.modal.style.display = "none";
             }
         });
@@ -525,16 +946,9 @@ const ViewUI = {
     }
 };
 
-// Global function called by Calendar.js when a date/time is selected
 function openConfirmation(dateStr, timeStr) {
-    console.log("openConfirmation called with:", dateStr, timeStr);
-    console.log("viewEditDateCallback exists:", typeof window.viewEditDateCallback);
-
-    // If in edit mode with a date callback set, use it
     if (window.viewEditDateCallback && typeof window.viewEditDateCallback === "function") {
         window.viewEditDateCallback(dateStr, timeStr);
         window.viewEditDateCallback = null;
-    } else {
-        console.error("viewEditDateCallback not set or not a function");
     }
 }

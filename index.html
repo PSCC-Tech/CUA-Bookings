@@ -38,7 +38,7 @@
             <div class="top-menu">
                 <span class="top-option active">Create</span>
                 <span class="top-option" onclick="window.location='absence.html'">Absence</span>
-                <span class="top-option" onclick="window.location='view.html'">View</span>
+                <span class="top-option" onclick="window.location='view.html'">Upcoming</span>
                 <span class="top-option">Data</span>
             </div>
 
@@ -74,8 +74,8 @@
                     </select>
 
                     <label>Date & Time</label>
-                    <button type="button" id="open-calendar-btn" class="date-btn">
-                        Select Date & Time
+                    <button type="button" id="open-calendar-btn" class="date-btn" disabled>
+                        Select a Course First
                     </button>
 
                     <!-- Hidden input to store the actual value -->
@@ -169,10 +169,20 @@
 
     <div id="calendar-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" id="close-calendar">&times;</span>
+            <button type="button" class="close-modal" id="close-calendar" aria-label="Close calendar">&times;</button>
+
+            <div class="calendar-modal-header">
+                <div>
+                    <span class="calendar-modal-kicker">Mentor Schedule</span>
+                    <h3>Choose Date & Time</h3>
+                </div>
+                <span class="calendar-modal-status">Course availability</span>
+            </div>
 
         <div id="confirm-selection" class="modal hidden">
             <div class="modal-content small">
+                <div class="confirm-icon"><i class="fas fa-calendar-check"></i></div>
+                <h3>Confirm this time?</h3>
                 <p id="confirm-text"></p>
                 <div class="confirm-actions">
                     <button id="confirm-yes">Confirm</button>
@@ -181,7 +191,7 @@
             </div>
     </div>
 
-            
+
 <div id="calendar-ui-container" class="modal-calendar">
     <div class="mentor-tabs">
                 <button class="mentor-tab active" data-mentor="1">Mentor 1</button>
@@ -200,7 +210,7 @@
                     </div>
                     <div class="month-year" id="month-year">September 2025</div>
                 </div>
-                
+
                 <div class="weekdays">
                     <div class="weekday">Sun</div>
                     <div class="weekday">Mon</div>
@@ -212,7 +222,7 @@
                 </div>
 
                 <div class="days" id="days"></div>
-                
+
                 <div class="calendar-footer">
                     <button class="today-btn" id="today-btn"><i class="fas fa-calendar-day"></i> Today</button>
                     <div class="event-indicator">

@@ -2,7 +2,7 @@
 .form-container {
     background: white;
     padding: 25px;
-    width: 100%; 
+    width: 100%;
     max-width: 500px;
     margin: auto;
     border-radius: 10px;
@@ -79,7 +79,48 @@ button {
 }
 
 .date-btn {
-    background-color:cadetblue;
+    min-height: 48px;
+    padding: 0 18px;
+    background: linear-gradient(135deg, #1f7a8c 0%, #2ec4b6 100%);
+    color: white;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(31, 122, 140, 0.2);
+    font-weight: 700;
+    letter-spacing: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.date-btn::before {
+    content: "\f073";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.date-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #176676 0%, #22afa2 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(31, 122, 140, 0.26);
+}
+
+.date-btn:disabled {
+    background: #edf0f4;
+    color: #7b8491;
+    border-color: #d5dce5;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.date-btn:disabled::before {
+    color: #9aa3af;
+}
+
+.date-btn.has-selection {
+    background: linear-gradient(135deg, #287d3c 0%, #4caf50 100%);
+    box-shadow: 0 8px 18px rgba(40, 125, 60, 0.22);
 }
 
 button:hover {
@@ -93,36 +134,132 @@ button:hover {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(18, 25, 38, 0.58);
     justify-content: center;
     align-items: center;
     z-index: 999;
+    padding: 24px;
+    backdrop-filter: blur(4px);
 }
 
 .modal-content {
     background: white;
-    padding: 20px;
-    width: 80%;
-    max-width: 1200px;
-    border-radius: 10px;
-    max-height: 90vh;
+    padding: 24px;
+    width: min(1120px, 100%);
+    border-radius: 16px;
+    max-height: min(92vh, 920px);
     overflow-y: auto;
     position: relative;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
 }
 
 .close-modal {
     position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 1.5rem;
+    top: 18px;
+    right: 18px;
+    width: 38px;
+    height: 38px;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #dbe3ee;
+    border-radius: 999px;
+    font-size: 1.35rem;
+    line-height: 1;
     cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.close-modal:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.calendar-modal-header {
+    width: 100%;
+    max-width: 1040px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 6px 48px 18px 0;
+    border-bottom: 1px solid #e6ebf2;
+    margin-bottom: 18px;
+}
+
+.calendar-modal-kicker {
+    display: block;
+    color: #1f7a8c;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.calendar-modal-header h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 1.45rem;
+    line-height: 1.2;
+}
+
+.calendar-modal-status {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #eaf7f6;
+    color: #176676;
+    font-size: 0.86rem;
+    font-weight: 700;
 }
 
 /* Modal calendar layout */
 /* Add spacing above the mentor tabs */
 .modal-calendar .mentor-tabs {
-    margin-top: 10px;
-    margin-bottom: 15px;
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 0 18px;
+    padding: 6px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    background: #f1f5f9;
+    border: 1px solid #dbe3ee;
+    border-radius: 12px;
+}
+
+.modal-calendar .mentor-tab {
+    flex: 1;
+    min-height: 40px;
+    margin: 0;
+    padding: 9px 14px;
+    background: transparent;
+    color: #526071;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-weight: 700;
+    box-shadow: none;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-calendar .mentor-tab:hover {
+    background: #e7edf5;
+    color: #172033;
+}
+
+.modal-calendar .mentor-tab.active {
+    background: white;
+    color: #1f7a8c;
+    border-color: #dbe3ee;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
 }
 
 /* Center the entire calendar UI inside the modal */
@@ -136,9 +273,10 @@ button:hover {
 .modal-calendar .mentor-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 25px; /* slightly tighter spacing */
+    gap: 24px;
     width: 100%;
-    max-width: 1100px; /* centers the layout */
+    max-width: 1040px;
+    align-items: start;
 }
 
 /* Make sure the modal content itself is centered */
@@ -152,11 +290,13 @@ button:hover {
 #confirm-selection {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(15, 23, 42, 0.52);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 2000;
+    padding: 18px;
+    backdrop-filter: blur(3px);
 }
 
 #confirm-selection.hidden {
@@ -164,21 +304,71 @@ button:hover {
 }
 
 #confirm-selection .modal-content.small {
-    width: 300px;
-    padding: 20px;
-    border-radius: 10px;
+    width: min(380px, 100%);
+    padding: 28px;
+    border-radius: 16px;
     background: white;
     text-align: center;
+    box-shadow: 0 22px 70px rgba(15, 23, 42, 0.34);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.confirm-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #eaf7f6;
+    color: #1f7a8c;
+    font-size: 1.35rem;
+}
+
+#confirm-selection h3 {
+    margin: 0 0 8px;
+    color: #172033;
+    font-size: 1.2rem;
+}
+
+#confirm-text {
+    margin: 0;
+    color: #526071;
+    line-height: 1.45;
 }
 
 .confirm-actions {
     display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
 }
 
 .confirm-actions button {
-    padding: 8px 16px;
+    min-width: 118px;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+#confirm-yes {
+    background: #1f7a8c;
+}
+
+#confirm-yes:hover {
+    background: #176676;
+}
+
+#confirm-no {
+    background: #eef2f7;
+    color: #334155;
+    border: 1px solid #d7dee8;
+}
+
+#confirm-no:hover {
+    background: #e2e8f0;
 }
 
 /* RESPONSIVE BEHAVIOR */
@@ -204,12 +394,29 @@ button:hover {
 /* Mobile adjustments */
 @media (max-width: 600px) {
     .modal-content {
-        padding: 10px;
+        padding: 18px;
+    }
+
+    .calendar-modal-header {
+        padding-right: 42px;
+        flex-direction: column;
+    }
+
+    .calendar-modal-status {
+        margin-top: 0;
     }
 
     .modal-calendar .mentor-tabs {
         flex-wrap: wrap;
         gap: 10px;
+    }
+
+    .modal-calendar .mentor-tab {
+        flex: 1 1 100%;
+    }
+
+    .confirm-actions {
+        flex-direction: column;
     }
 }
 

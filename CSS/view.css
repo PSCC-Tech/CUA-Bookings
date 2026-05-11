@@ -211,6 +211,107 @@
     margin: 10px 0;
 }
 
+.editable-field input,
+.editable-field select,
+.editable-field textarea {
+    margin-left: 6px;
+    padding: 6px 8px;
+    border: 1px solid #ccd3dd;
+    border-radius: 5px;
+    font: inherit;
+}
+
+.editable-field textarea {
+    display: block;
+    width: 100%;
+    margin: 6px 0 0;
+    resize: vertical;
+}
+
+.student-session-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 8px;
+}
+
+.student-session-controls.hidden {
+    display: none;
+}
+
+.student-position {
+    color: #555;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.student-cycle-btn,
+.add-student-btn,
+.student-delete-btn {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid #cbd5df;
+    border-radius: 5px;
+    background: white;
+    color: #2a4d69;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.student-cycle-btn:disabled {
+    color: #b0bac5;
+    background: #f5f7f9;
+    cursor: not-allowed;
+}
+
+.student-cycle-btn:not(:disabled):hover,
+.add-student-btn:hover {
+    border-color: #2a4d69;
+    background: #f3f7fb;
+}
+
+.student-delete-btn {
+    color: #b34242;
+}
+
+.student-delete-btn:hover {
+    border-color: #b34242;
+    background: #fff5f5;
+}
+
+.add-student-btn.hidden,
+.student-delete-btn.hidden {
+    display: none;
+}
+
+.student-email-field .add-student-btn {
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.group-size-badge {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: #555;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.group-size-badge.hidden {
+    display: none;
+}
+
 .start-session-btn,
 .stop-session-btn {
     margin-top: 0;
