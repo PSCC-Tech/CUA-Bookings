@@ -529,6 +529,214 @@ mark {
     opacity: 0.9;
 }
 
+/* Compact booking details modal */
+.modal-overlay {
+    padding: 24px;
+}
+
+.modal-overlay .booking-modal-content {
+    width: min(92vw, 560px);
+    max-width: 560px;
+    max-height: 86vh;
+    padding: 18px 20px 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.booking-modal-content,
+.booking-modal-content * {
+    box-sizing: border-box;
+}
+
+.booking-modal-content .modal-close {
+    top: 10px;
+    right: 14px;
+    font-size: 22px;
+}
+
+.booking-modal-content .modal-header {
+    margin: 0 28px 12px 0;
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.booking-modal-content .edit-booking-btn {
+    min-height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.booking-modal-content .modal-details {
+    display: grid;
+    gap: 7px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    max-height: min(64vh, 560px);
+}
+
+.modal-overlay.is-editing .booking-modal-content .modal-details {
+    max-height: min(58vh, 500px);
+}
+
+.booking-modal-content .editable-field {
+    display: grid;
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    min-height: 30px;
+    margin: 0;
+}
+
+.booking-modal-content .editable-field strong {
+    color: #34495e;
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.booking-modal-content .field-value {
+    min-width: 0;
+    color: #2d3436;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.booking-modal-content .editable-field input,
+.booking-modal-content .editable-field select,
+.booking-modal-content .editable-field textarea {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 7px 9px;
+    border: 1px solid #cbd5df;
+    border-radius: 6px;
+    background: #fff;
+    color: #2d3436;
+    font-size: 14px;
+}
+
+.booking-modal-content .editable-field input,
+.booking-modal-content .editable-field select {
+    height: 34px;
+}
+
+.booking-modal-content .editable-field textarea {
+    min-height: 72px;
+    max-height: 104px;
+    resize: vertical;
+}
+
+.date-time-editor {
+    min-width: 0;
+}
+
+.date-time-select-btn {
+    width: 100%;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid #cbd5df;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #2a4d69;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: left;
+}
+
+.date-time-select-btn:hover {
+    border-color: #2a4d69;
+    background: #eef4fa;
+}
+
+.student-session-controls {
+    justify-content: space-between;
+    gap: 10px;
+    margin: 2px 0;
+    padding: 8px;
+    border: 1px solid #d8e0e8;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.student-control-group,
+.student-control-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.booking-modal-content .student-position {
+    min-width: 96px;
+    color: #34495e;
+    font-size: 13px;
+}
+
+.booking-modal-content .student-cycle-btn,
+.booking-modal-content .add-student-btn,
+.booking-modal-content .student-delete-btn {
+    height: 30px;
+    border-radius: 6px;
+}
+
+.booking-modal-content .student-cycle-btn {
+    width: 30px;
+}
+
+.booking-modal-content .add-student-btn,
+.booking-modal-content .student-delete-btn {
+    width: auto;
+    padding: 0 9px;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.booking-modal-content .add-student-btn {
+    color: #1f6f4a;
+    border-color: #b8d8c6;
+    background: #f2fbf6;
+}
+
+.booking-modal-content .add-student-btn:hover {
+    border-color: #1f6f4a;
+    background: #e6f6ed;
+}
+
+.booking-modal-content .student-delete-btn {
+    color: #a33a3a;
+    border-color: #e4bbbb;
+}
+
+.booking-modal-content .modal-actions,
+.booking-modal-content .edit-actions-inline:not(.hidden) {
+    margin-top: 14px;
+}
+
+.booking-modal-content .modal-actions button,
+.booking-modal-content .edit-actions-inline button {
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.booking-modal-content .start-session-btn,
+.booking-modal-content .stop-session-btn {
+    width: auto;
+    flex: 1;
+}
+
+.booking-modal-content .cancel-session-btn {
+    flex: 0 0 auto;
+}
+
 .active-sessions {
     margin: 0 1rem 2rem 1rem;
 }

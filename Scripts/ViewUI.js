@@ -58,6 +58,7 @@ const ViewUI = {
         if (closeCalendarBtn) {
             closeCalendarBtn.addEventListener("click", () => {
                 document.getElementById("calendar-modal").style.display = "none";
+                window.viewEditDateCallback = null;
             });
         }
     },
@@ -93,6 +94,7 @@ const ViewUI = {
         this.currentStudentIndex = 0;
 
         this.setFieldText("mentor", card.dataset.mentor);
+        this.setFieldText("dateTime", this.formatDateTimeDisplay(card.dataset.date, card.dataset.time));
         this.setFieldText("location", card.dataset.location);
         this.setFieldText("course", card.dataset.course);
         this.setFieldText("topics", card.dataset.topics);
@@ -122,6 +124,7 @@ const ViewUI = {
 
         document.querySelector(".modal-actions").style.display = "flex";
         document.querySelector(".edit-actions-inline").classList.add("hidden");
+        this.modal.classList.remove("is-editing");
     },
 
     setupInlineEditHandlers() {
@@ -178,7 +181,9 @@ const ViewUI = {
 
         this.saveCurrentStudentDraft();
         this.setSessionTypeControl("Grouped");
-        this.ensureGroupedStudentCount();
+        if (!this.editStudents.length) {
+            this.editStudents.push(this.createBlankStudent());
+        }
         this.editStudents.push(this.createBlankStudent());
         this.currentStudentIndex = this.editStudents.length - 1;
 
@@ -188,7 +193,7 @@ const ViewUI = {
     },
 
     deleteCurrentStudentFromEdit() {
-        if (!this.isEditMode || this.getCurrentSessionType() !== "Grouped") return;
+        if (!this.isEditMode) return;
 
         this.saveCurrentStudentDraft();
 
@@ -452,6 +457,8 @@ const ViewUI = {
     enableEditMode() {
         this.isEditMode = true;
         this.originalValues = {};
+        this.originalValues.date = this.activeCard?.dataset.date || "";
+        this.originalValues.time = this.activeCard?.dataset.time || "";
         this.originalStudents = this.modalStudents.map(student => ({ ...student }));
         this.editStudents = this.modalStudents.map(student => ({ ...student }));
 
@@ -474,6 +481,7 @@ const ViewUI = {
         this.editBtn.disabled = true;
         this.editBtn.style.opacity = "0.5";
         this.editBtn.style.cursor = "not-allowed";
+        this.modal.classList.add("is-editing");
     },
 
     getEditableDisplayValue(field, span) {
@@ -482,8 +490,15 @@ const ViewUI = {
             return student[field] || "";
         }
 
+        if (field === "dateTime") {
+            return this.formatDateTimeDisplay(
+                this.activeCard?.dataset.date,
+                this.activeCard?.dataset.time
+            );
+        }
+
         if (field === "sessionType") {
-            return this.getCurrentSessionType();
+            return this.getCardSessionType(this.activeCard);
         }
 
         return span.textContent.trim();
@@ -492,7 +507,9 @@ const ViewUI = {
     createEditorForField(field, value) {
         let input;
 
-        if (field === "topics") {
+        if (field === "dateTime") {
+            input = this.createDateTimeEditor(value);
+        } else if (field === "topics") {
             input = document.createElement("textarea");
             input.rows = 4;
             input.value = value;
@@ -535,6 +552,74 @@ const ViewUI = {
         return input;
     },
 
+    createDateTimeEditor(value) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "date-time-editor";
+        wrapper.dataset.field = "dateTime";
+
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.dataset.fieldControl = "dateTime";
+        hidden.dataset.date = this.activeCard?.dataset.date || "";
+        hidden.dataset.time = this.activeCard?.dataset.time || "";
+        hidden.value = value || this.formatDateTimeDisplay(hidden.dataset.date, hidden.dataset.time);
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "date-time-select-btn";
+        const icon = document.createElement("i");
+        icon.className = "fas fa-calendar-alt";
+        const text = document.createElement("span");
+        text.className = "date-time-button-text";
+        text.textContent = hidden.value || "Choose Date & Time";
+        button.appendChild(icon);
+        button.appendChild(text);
+        button.addEventListener("click", () => this.openDateTimePicker(wrapper));
+
+        wrapper.appendChild(button);
+        wrapper.appendChild(hidden);
+
+        return wrapper;
+    },
+
+    openDateTimePicker(editor) {
+        const calendarModal = document.getElementById("calendar-modal");
+        if (!calendarModal) return;
+
+        const mentor = this.getFieldControl("mentor")?.value || this.activeCard?.dataset.mentor || "";
+        const course = this.getFieldControl("course")?.value || this.activeCard?.dataset.course || "";
+
+        window.viewEditDateCallback = (dateStr, timeStr) => {
+            this.setDateTimeEditorValue(editor, dateStr, timeStr);
+            calendarModal.style.display = "none";
+            window.viewEditDateCallback = null;
+        };
+
+        if (window.CUACalendar) {
+            const courseCode = this.extractCourseCode(course);
+            window.CUACalendar.setCourse(courseCode, mentor, Boolean(mentor));
+            if (mentor) window.CUACalendar.setMentor(mentor);
+        }
+
+        calendarModal.style.display = "flex";
+    },
+
+    setDateTimeEditorValue(editor, dateStr, timeStr) {
+        const hidden = editor?.querySelector('[data-field-control="dateTime"]');
+        const text = editor?.querySelector(".date-time-button-text");
+        const displayValue = this.formatDateTimeDisplay(dateStr, timeStr);
+
+        if (hidden) {
+            hidden.dataset.date = dateStr;
+            hidden.dataset.time = timeStr;
+            hidden.value = displayValue;
+        }
+
+        if (text) {
+            text.textContent = displayValue;
+        }
+    },
+
     handleSessionTypeChange() {
         if (!this.isEditMode) return;
 
@@ -569,21 +654,25 @@ const ViewUI = {
 
         document.querySelectorAll(".editable-field").forEach(row => {
             const field = row.dataset.field;
-            const input = row.querySelector("input, select, textarea");
+            const input = this.getRowControl(row);
 
             if (field === "name" || field === "email" || field === "phone") {
                 savedValues[field] = students[0][field] || "";
+            } else if (field === "dateTime") {
+                savedValues.date = input?.dataset.date || this.activeCard?.dataset.date || "";
+                savedValues.time = input?.dataset.time || this.activeCard?.dataset.time || "";
+                savedValues[field] = this.formatDateTimeDisplay(savedValues.date, savedValues.time);
             } else if (field === "sessionType") {
                 savedValues[field] = this.getSessionTypeDisplay(sessionType, students);
             } else {
-                savedValues[field] = input.value;
+                savedValues[field] = input?.value || "";
             }
 
             const span = document.createElement("span");
             span.classList.add("field-value");
             span.id = `modal-${field}`;
             span.textContent = savedValues[field];
-            input.replaceWith(span);
+            this.replaceEditorWithSpan(row, input, span);
         });
 
         this.isEditMode = false;
@@ -602,14 +691,14 @@ const ViewUI = {
     cancelInlineEdits() {
         document.querySelectorAll(".editable-field").forEach(row => {
             const field = row.dataset.field;
-            const input = row.querySelector("input, select, textarea");
+            const input = this.getRowControl(row);
             if (!input) return;
 
             const span = document.createElement("span");
             span.classList.add("field-value");
             span.id = `modal-${field}`;
             span.textContent = this.getOriginalDisplayValue(field);
-            input.replaceWith(span);
+            this.replaceEditorWithSpan(row, input, span);
         });
 
         this.isEditMode = false;
@@ -624,6 +713,10 @@ const ViewUI = {
     getOriginalDisplayValue(field) {
         if (field === "name" || field === "email" || field === "phone") {
             return this.originalStudents[0]?.[field] || "";
+        }
+
+        if (field === "dateTime") {
+            return this.formatDateTimeDisplay(this.originalValues.date, this.originalValues.time);
         }
 
         if (field === "sessionType") {
@@ -642,7 +735,17 @@ const ViewUI = {
         this.editBtn.disabled = false;
         this.editBtn.style.opacity = "1";
         this.editBtn.style.cursor = "pointer";
+        this.modal.classList.remove("is-editing");
         this.updateStudentControls();
+    },
+
+    getRowControl(row) {
+        return row.querySelector('[data-field-control], input, select, textarea');
+    },
+
+    replaceEditorWithSpan(row, control, span) {
+        const editor = row.querySelector(".date-time-editor") || control;
+        if (editor) editor.replaceWith(span);
     },
 
     saveCurrentStudentDraft() {
@@ -675,11 +778,11 @@ const ViewUI = {
         const students = this.getWorkingStudents();
         const sessionType = this.getCurrentSessionType();
         const isGrouped = sessionType === "Grouped";
-        const showControls = isGrouped || students.length > 1;
+        const showControls = isGrouped || students.length > 1 || this.isEditMode;
 
         this.studentControls?.classList.toggle("hidden", !showControls);
-        this.addStudentBtn?.classList.toggle("hidden", !(this.isEditMode && isGrouped));
-        this.deleteStudentBtn?.classList.toggle("hidden", !(this.isEditMode && isGrouped && students.length > 1));
+        this.addStudentBtn?.classList.toggle("hidden", !this.isEditMode);
+        this.deleteStudentBtn?.classList.toggle("hidden", !(this.isEditMode && students.length > 1));
 
         if (this.studentPosition) {
             this.studentPosition.textContent = `Student ${this.currentStudentIndex + 1} of ${Math.max(students.length, 1)}`;
@@ -691,7 +794,7 @@ const ViewUI = {
 
         if (this.groupSizeBadge) {
             this.groupSizeBadge.textContent = String(Math.max(students.length, isGrouped ? 2 : 1));
-            this.groupSizeBadge.classList.toggle("hidden", !(this.isEditMode && isGrouped));
+            this.groupSizeBadge.classList.add("hidden");
         }
     },
 
@@ -795,6 +898,8 @@ const ViewUI = {
         const primaryStudent = students[0] || this.createBlankStudent();
 
         this.activeCard.dataset.mentor = values.mentor;
+        this.activeCard.dataset.date = values.date || this.activeCard.dataset.date;
+        this.activeCard.dataset.time = values.time || this.activeCard.dataset.time;
         this.activeCard.dataset.name = primaryStudent.name;
         this.activeCard.dataset.email = primaryStudent.email;
         this.activeCard.dataset.phone = primaryStudent.phone;
@@ -807,12 +912,14 @@ const ViewUI = {
         this.activeCard.dataset.professor = values.professor;
         this.activeCard.dataset.madeBy = values.madeBy;
 
+        this.activeCard.querySelector("h3").textContent = this.activeCard.dataset.time;
         this.activeCard.querySelector(".mentor").innerHTML = `<strong>Mentor</strong> ${values.mentor}`;
         this.activeCard.querySelector(".student").innerHTML = `<strong>Student</strong> ${this.getCardStudentSummary(students)}`;
         this.activeCard.querySelector(".location-summary").innerHTML = `<strong>Location:</strong> ${values.location}`;
         this.activeCard.querySelector(".course-summary").innerHTML = `<strong>Course:</strong> ${values.course}`;
 
         this.updateBookingRecord(values, sessionType, students);
+        this.moveCardToDateGroup(this.activeCard);
     },
 
     getCardStudentSummary(students) {
@@ -835,12 +942,96 @@ const ViewUI = {
             sessionType,
             groupSize: students.length,
             students: students.map(student => ({ ...student })),
+            date: this.toISODate(values.date) || record.date,
+            time: values.time || record.time,
             location: values.location,
             course: values.course,
             topics: values.topics,
             professor: values.professor,
             madeBy: values.madeBy
         });
+    },
+
+    formatDateTimeDisplay(date, time) {
+        if (!date && !time) return "No date selected";
+        if (!date) return time;
+        if (!time) return date;
+        return `${date} - ${time}`;
+    },
+
+    extractCourseCode(courseValue = "") {
+        return String(courseValue).split("-")[0].trim().replace(/\s+/g, "");
+    },
+
+    toISODate(dateLabel = "") {
+        const cleaned = String(dateLabel).replace(/^[A-Za-z]+,\s*/, "").trim();
+        const parsed = new Date(cleaned);
+        if (Number.isNaN(parsed.getTime())) return "";
+
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, "0");
+        const day = String(parsed.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    },
+
+    parseDisplayDate(dateLabel = "") {
+        const cleaned = String(dateLabel).replace(/^[A-Za-z]+,\s*/, "").trim();
+        const parsed = new Date(cleaned);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    },
+
+    parseCardTime(time = "") {
+        const parsed = new Date(`1970-01-01 ${time}`);
+        return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    },
+
+    moveCardToDateGroup(card) {
+        const bookingGrid = document.querySelector(".booking-grid");
+        const dateLabel = card?.dataset.date;
+        if (!bookingGrid || !card || !dateLabel) return;
+
+        const originalGroup = card.closest(".booking-date-group");
+        let targetGroup = [...bookingGrid.querySelectorAll(".booking-date-group")]
+            .find(group => group.querySelector(".booking-date-label")?.textContent.trim() === dateLabel);
+
+        if (!targetGroup) {
+            targetGroup = document.createElement("div");
+            targetGroup.className = "booking-date-group";
+            targetGroup.innerHTML = `
+                <div class="booking-date-label"></div>
+                <div class="booking-date-cards"></div>
+            `;
+            targetGroup.querySelector(".booking-date-label").textContent = dateLabel;
+            bookingGrid.appendChild(targetGroup);
+            this.sortDateGroups(bookingGrid);
+        }
+
+        targetGroup.querySelector(".booking-date-cards").appendChild(card);
+        this.sortCardsInGroup(targetGroup);
+
+        if (originalGroup && originalGroup !== targetGroup && !originalGroup.querySelector(".booking-card")) {
+            originalGroup.remove();
+        }
+    },
+
+    sortDateGroups(bookingGrid) {
+        const groups = [...bookingGrid.querySelectorAll(".booking-date-group")];
+        groups
+            .sort((a, b) => {
+                const dateA = this.parseDisplayDate(a.querySelector(".booking-date-label")?.textContent);
+                const dateB = this.parseDisplayDate(b.querySelector(".booking-date-label")?.textContent);
+                return (dateA?.getTime() || 0) - (dateB?.getTime() || 0);
+            })
+            .forEach(group => bookingGrid.appendChild(group));
+    },
+
+    sortCardsInGroup(group) {
+        const row = group.querySelector(".booking-date-cards");
+        if (!row) return;
+
+        [...row.querySelectorAll(".booking-card")]
+            .sort((a, b) => this.parseCardTime(a.dataset.time) - this.parseCardTime(b.dataset.time))
+            .forEach(card => row.appendChild(card));
     },
 
     syncFilterOptionsFromCards() {

@@ -246,7 +246,7 @@
     </main>
 
     <div id="booking-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content booking-modal-content">
             <span class="modal-close">&times;</span>
 
             <h2 class="modal-header">
@@ -261,17 +261,31 @@
                     <span id="modal-mentor" class="field-value"></span>
                 </p>
 
+                <p class="editable-field date-time-field" data-field="dateTime">
+                    <strong>Date & Time:</strong>
+                    <span id="modal-dateTime" class="field-value"></span>
+                </p>
+
                 <div id="student-session-controls" class="student-session-controls hidden">
-                    <button type="button" id="prev-student-btn" class="student-cycle-btn" aria-label="Previous student">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span id="student-position" class="student-position">Student 1 of 1</span>
-                    <button type="button" id="next-student-btn" class="student-cycle-btn" aria-label="Next student">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <button type="button" id="delete-student-btn" class="student-delete-btn hidden" aria-label="Delete student">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="student-control-group">
+                        <button type="button" id="prev-student-btn" class="student-cycle-btn" aria-label="Previous student">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="student-position" class="student-position">Student 1 of 1</span>
+                        <button type="button" id="next-student-btn" class="student-cycle-btn" aria-label="Next student">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="student-control-actions">
+                        <button type="button" id="add-student-btn" class="add-student-btn hidden" aria-label="Add student">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Student</span>
+                        </button>
+                        <button type="button" id="delete-student-btn" class="student-delete-btn hidden" aria-label="Delete student">
+                            <i class="fas fa-trash"></i>
+                            <span>Remove</span>
+                        </button>
+                    </div>
                 </div>
 
                 <p class="editable-field" data-field="name">
@@ -282,9 +296,6 @@
                 <p class="editable-field student-email-field" data-field="email">
                     <strong>Email:</strong>
                     <span id="modal-email" class="field-value"></span>
-                    <button type="button" id="add-student-btn" class="add-student-btn hidden" aria-label="Add student">
-                        <i class="fas fa-plus"></i>
-                    </button>
                 </p>
 
                 <p class="editable-field" data-field="phone">
