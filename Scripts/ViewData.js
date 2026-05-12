@@ -13,6 +13,7 @@ const ViewData = {
                 date: "2026-04-14",
                 time: "10:00 AM",
                 mentor: "Sarah Smith",
+                studentId: "S1003245",
                 name: "John Doe",
                 email: "john.doe@student.inter.edu",
                 phone: "787-555-0101",
@@ -20,6 +21,7 @@ const ViewData = {
                 groupSize: 1,
                 students: [
                     {
+                        studentId: "S1003245",
                         name: "John Doe",
                         email: "john.doe@student.inter.edu",
                         phone: "787-555-0101"
@@ -37,6 +39,7 @@ const ViewData = {
                 date: "2026-04-14",
                 time: "1:00 PM",
                 mentor: "Sarah Smith",
+                studentId: "S1004187",
                 name: "Ana Torres",
                 email: "ana.torres@student.inter.edu",
                 phone: "787-555-0144",
@@ -44,11 +47,13 @@ const ViewData = {
                 groupSize: 2,
                 students: [
                     {
+                        studentId: "S1004187",
                         name: "Ana Torres",
                         email: "ana.torres@student.inter.edu",
                         phone: "787-555-0144"
                     },
                     {
+                        studentId: "S1005332",
                         name: "Diego Morales",
                         email: "diego.morales@student.inter.edu",
                         phone: "787-555-0166"
@@ -66,6 +71,7 @@ const ViewData = {
                 date: "2026-04-17",
                 time: "10:00 AM",
                 mentor: "Sarah Smith",
+                studentId: "S1006291",
                 name: "Carlos Vega",
                 email: "carlos.vega@student.inter.edu",
                 phone: "787-555-0188",
@@ -73,6 +79,7 @@ const ViewData = {
                 groupSize: 1,
                 students: [
                     {
+                        studentId: "S1006291",
                         name: "Carlos Vega",
                         email: "carlos.vega@student.inter.edu",
                         phone: "787-555-0188"
@@ -90,6 +97,7 @@ const ViewData = {
                 date: "2026-04-17",
                 time: "2:00 PM",
                 mentor: "Sarah Smith",
+                studentId: "S1007340",
                 name: "Laura Ortiz",
                 email: "laura.ortiz@student.inter.edu",
                 phone: "787-555-0199",
@@ -97,6 +105,7 @@ const ViewData = {
                 groupSize: 1,
                 students: [
                     {
+                        studentId: "S1007340",
                         name: "Laura Ortiz",
                         email: "laura.ortiz@student.inter.edu",
                         phone: "787-555-0199"
@@ -114,6 +123,7 @@ const ViewData = {
                 date: "2026-04-27",
                 time: "12:00 PM",
                 mentor: "Sarah Smith",
+                studentId: "S1008458",
                 name: "Miguel Ramos",
                 email: "miguel.ramos@student.inter.edu",
                 phone: "787-555-0125",
@@ -121,16 +131,19 @@ const ViewData = {
                 groupSize: 3,
                 students: [
                     {
+                        studentId: "S1008458",
                         name: "Miguel Ramos",
                         email: "miguel.ramos@student.inter.edu",
                         phone: "787-555-0125"
                     },
                     {
+                        studentId: "S1009164",
                         name: "Sofia Colon",
                         email: "sofia.colon@student.inter.edu",
                         phone: "787-555-0135"
                     },
                     {
+                        studentId: "S1010286",
                         name: "Natalia Perez",
                         email: "natalia.perez@student.inter.edu",
                         phone: "787-555-0175"
@@ -238,6 +251,7 @@ const ViewData = {
 
         // Required for ViewUI.js
         card.dataset.id = b.id;
+        card.dataset.studentId = primaryStudent.studentId;
         card.dataset.name = primaryStudent.name;
         card.dataset.email = primaryStudent.email;
         card.dataset.phone = primaryStudent.phone;
@@ -270,6 +284,7 @@ const ViewData = {
             ? booking.students
             : [
                 {
+                    studentId: booking.studentId,
                     name: booking.name,
                     email: booking.email,
                     phone: booking.phone
@@ -277,6 +292,7 @@ const ViewData = {
             ];
 
         return students.map(student => ({
+            studentId: student.studentId || "",
             name: student.name || "",
             email: student.email || "",
             phone: student.phone || ""

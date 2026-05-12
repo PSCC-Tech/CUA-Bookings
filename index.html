@@ -73,6 +73,18 @@
                         <option value="">-- Select a Mentor --</option>
                     </select>
 
+                    <label>Booking Type</label>
+                    <div class="booking-type-toggle" role="radiogroup" aria-label="Booking type">
+                        <label class="booking-type-option active">
+                            <input type="radio" name="booking-type" value="scheduled" checked>
+                            Scheduled
+                        </label>
+                        <label class="booking-type-option">
+                            <input type="radio" name="booking-type" value="walk-in">
+                            Walk-in
+                        </label>
+                    </div>
+
                     <label>Date & Time</label>
                     <button type="button" id="open-calendar-btn" class="date-btn" disabled>
                         Select a Course First
@@ -80,6 +92,7 @@
 
                     <!-- Hidden input to store the actual value -->
                     <input type="hidden" id="selected-datetime" name="selected-datetime">
+                    <input type="hidden" id="booking-type-value" name="booking-type-value" value="scheduled">
 
                     <div id="student-1-block">
 

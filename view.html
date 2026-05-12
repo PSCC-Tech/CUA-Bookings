@@ -254,85 +254,102 @@
                 <button id="edit-booking-btn" class="edit-booking-btn">✏️ Edit</button>
             </h2>
 
-            <div class="modal-details">
+            <div class="modal-details booking-detail-sections">
 
-                <p class="editable-field" data-field="mentor">
-                    <strong>Mentor:</strong>
-                    <span id="modal-mentor" class="field-value"></span>
-                </p>
-
-                <p class="editable-field date-time-field" data-field="dateTime">
-                    <strong>Date & Time:</strong>
-                    <span id="modal-dateTime" class="field-value"></span>
-                </p>
-
-                <div id="student-session-controls" class="student-session-controls hidden">
-                    <div class="student-control-group">
-                        <button type="button" id="prev-student-btn" class="student-cycle-btn" aria-label="Previous student">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span id="student-position" class="student-position">Student 1 of 1</span>
-                        <button type="button" id="next-student-btn" class="student-cycle-btn" aria-label="Next student">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                <section class="booking-detail-box general-info-box">
+                    <div class="detail-box-header">
+                        <h3>General Information</h3>
                     </div>
-                    <div class="student-control-actions">
-                        <button type="button" id="add-student-btn" class="add-student-btn hidden" aria-label="Add student">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Student</span>
-                        </button>
-                        <button type="button" id="delete-student-btn" class="student-delete-btn hidden" aria-label="Delete student">
-                            <i class="fas fa-trash"></i>
-                            <span>Remove</span>
-                        </button>
+
+                    <p class="editable-field" data-field="mentor">
+                        <strong>Mentor:</strong>
+                        <span id="modal-mentor" class="field-value"></span>
+                    </p>
+
+                    <p class="editable-field date-time-field" data-field="dateTime">
+                        <strong>Date and time:</strong>
+                        <span id="modal-dateTime" class="field-value"></span>
+                    </p>
+
+                    <p class="editable-field" data-field="location">
+                        <strong>Location:</strong>
+                        <span id="modal-location" class="field-value"></span>
+                    </p>
+
+                    <p class="editable-field" data-field="course">
+                        <strong>Course:</strong>
+                        <span id="modal-course" class="field-value"></span>
+                    </p>
+
+                    <p class="editable-field" data-field="topics">
+                        <strong>Topics:</strong>
+                        <span id="modal-topics" class="field-value"></span>
+                    </p>
+
+                    <p class="editable-field" data-field="professor">
+                        <strong>Professor:</strong>
+                        <span id="modal-professor" class="field-value"></span>
+                    </p>
+
+                    <p class="editable-field" data-field="madeBy">
+                        <strong>Made by:</strong>
+                        <span id="modal-madeBy" class="field-value"></span>
+                    </p>
+                </section>
+
+                <section class="booking-detail-box student-info-box">
+                    <div class="detail-box-header student-detail-header">
+                        <h3>Student Information</h3>
+
+                        <div id="student-session-controls" class="student-session-controls hidden">
+                            <div class="student-control-group">
+                                <button type="button" id="prev-student-btn" class="student-cycle-btn" aria-label="Previous student">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="student-position" class="student-position">Student 1 of 1</span>
+                                <button type="button" id="next-student-btn" class="student-cycle-btn" aria-label="Next student">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="student-control-actions">
+                                <button type="button" id="add-student-btn" class="add-student-btn hidden" aria-label="Add student">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Student</span>
+                                </button>
+                                <button type="button" id="delete-student-btn" class="student-delete-btn hidden" aria-label="Delete student">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Remove</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <p class="editable-field" data-field="name">
-                    <strong>Name:</strong>
-                    <span id="modal-name" class="field-value"></span>
-                </p>
+                    <p class="editable-field" data-field="studentId">
+                        <strong>Student ID:</strong>
+                        <span id="modal-studentId" class="field-value"></span>
+                    </p>
 
-                <p class="editable-field student-email-field" data-field="email">
-                    <strong>Email:</strong>
-                    <span id="modal-email" class="field-value"></span>
-                </p>
+                    <p class="editable-field" data-field="name">
+                        <strong>Name:</strong>
+                        <span id="modal-name" class="field-value"></span>
+                    </p>
 
-                <p class="editable-field" data-field="phone">
-                    <strong>Phone number:</strong>
-                    <span id="modal-phone" class="field-value"></span>
-                </p>
+                    <p class="editable-field student-email-field" data-field="email">
+                        <strong>Email:</strong>
+                        <span id="modal-email" class="field-value"></span>
+                    </p>
 
-                <p class="editable-field" data-field="location">
-                    <strong>Location:</strong>
-                    <span id="modal-location" class="field-value"></span>
-                </p>
+                    <p class="editable-field" data-field="phone">
+                        <strong>Phone number:</strong>
+                        <span id="modal-phone" class="field-value"></span>
+                    </p>
 
-                <p class="editable-field" data-field="sessionType">
-                    <strong>Grouped or Single:</strong>
-                    <span id="modal-sessionType" class="field-value"></span>
-                    <span id="group-size-badge" class="group-size-badge hidden">2</span>
-                </p>
-
-                <p class="editable-field" data-field="course">
-                    <strong>Course:</strong>
-                    <span id="modal-course" class="field-value"></span>
-                </p>
-
-                <p class="editable-field" data-field="topics">
-                    <strong>Topics:</strong>
-                    <span id="modal-topics" class="field-value"></span>
-                </p>
-
-                <p class="editable-field" data-field="professor">
-                    <strong>Professor:</strong>
-                    <span id="modal-professor" class="field-value"></span>
-                </p>
-
-                <p class="editable-field" data-field="madeBy">
-                    <strong>Made by:</strong>
-                    <span id="modal-madeBy" class="field-value"></span>
-                </p>
+                    <p class="editable-field" data-field="sessionType">
+                        <strong>Grouped or Single:</strong>
+                        <span id="modal-sessionType" class="field-value"></span>
+                        <span id="group-size-badge" class="group-size-badge hidden">2</span>
+                    </p>
+                </section>
 
             </div>
 

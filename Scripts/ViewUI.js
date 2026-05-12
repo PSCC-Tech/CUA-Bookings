@@ -359,7 +359,7 @@ const ViewUI = {
         return [
             card.dataset.name,
             card.querySelector(".student")?.textContent,
-            ...students.flatMap(student => [student.name, student.email, student.phone])
+            ...students.flatMap(student => [student.studentId, student.name, student.email, student.phone])
         ].join(" ").toLowerCase();
     },
 
@@ -485,7 +485,7 @@ const ViewUI = {
     },
 
     getEditableDisplayValue(field, span) {
-        if (field === "name" || field === "email" || field === "phone") {
+        if (field === "studentId" || field === "name" || field === "email" || field === "phone") {
             const student = this.getWorkingStudents()[this.currentStudentIndex] || this.createBlankStudent();
             return student[field] || "";
         }
@@ -656,7 +656,7 @@ const ViewUI = {
             const field = row.dataset.field;
             const input = this.getRowControl(row);
 
-            if (field === "name" || field === "email" || field === "phone") {
+            if (field === "studentId" || field === "name" || field === "email" || field === "phone") {
                 savedValues[field] = students[0][field] || "";
             } else if (field === "dateTime") {
                 savedValues.date = input?.dataset.date || this.activeCard?.dataset.date || "";
@@ -711,7 +711,7 @@ const ViewUI = {
     },
 
     getOriginalDisplayValue(field) {
-        if (field === "name" || field === "email" || field === "phone") {
+        if (field === "studentId" || field === "name" || field === "email" || field === "phone") {
             return this.originalStudents[0]?.[field] || "";
         }
 
@@ -752,6 +752,7 @@ const ViewUI = {
         if (!this.isEditMode) return;
 
         const student = this.editStudents[this.currentStudentIndex] || this.createBlankStudent();
+        student.studentId = this.getFieldControl("studentId")?.value || "";
         student.name = this.getFieldControl("name")?.value || "";
         student.email = this.getFieldControl("email")?.value || "";
         student.phone = this.getFieldControl("phone")?.value || "";
@@ -763,12 +764,14 @@ const ViewUI = {
         const student = students[this.currentStudentIndex] || this.createBlankStudent();
 
         if (this.isEditMode) {
+            this.setFieldControlValue("studentId", student.studentId);
             this.setFieldControlValue("name", student.name);
             this.setFieldControlValue("email", student.email);
             this.setFieldControlValue("phone", student.phone);
             return;
         }
 
+        this.setFieldText("studentId", student.studentId);
         this.setFieldText("name", student.name);
         this.setFieldText("email", student.email);
         this.setFieldText("phone", student.phone);
@@ -869,6 +872,7 @@ const ViewUI = {
 
         if (!students.length) {
             students = [this.sanitizeStudent({
+                studentId: card?.dataset.studentId,
                 name: card?.dataset.name,
                 email: card?.dataset.email,
                 phone: card?.dataset.phone
@@ -884,6 +888,7 @@ const ViewUI = {
 
     sanitizeStudent(student = {}) {
         return {
+            studentId: student.studentId || "",
             name: student.name || "",
             email: student.email || "",
             phone: student.phone || ""
@@ -891,7 +896,7 @@ const ViewUI = {
     },
 
     createBlankStudent() {
-        return { name: "", email: "", phone: "" };
+        return { studentId: "", name: "", email: "", phone: "" };
     },
 
     writeCardData(values, sessionType, students) {
@@ -900,6 +905,7 @@ const ViewUI = {
         this.activeCard.dataset.mentor = values.mentor;
         this.activeCard.dataset.date = values.date || this.activeCard.dataset.date;
         this.activeCard.dataset.time = values.time || this.activeCard.dataset.time;
+        this.activeCard.dataset.studentId = primaryStudent.studentId;
         this.activeCard.dataset.name = primaryStudent.name;
         this.activeCard.dataset.email = primaryStudent.email;
         this.activeCard.dataset.phone = primaryStudent.phone;
@@ -936,6 +942,7 @@ const ViewUI = {
 
         Object.assign(record, {
             mentor: values.mentor,
+            studentId: students[0]?.studentId || "",
             name: students[0]?.name || "",
             email: students[0]?.email || "",
             phone: students[0]?.phone || "",
@@ -1092,7 +1099,12 @@ const ViewUI = {
     addToActiveSessions(card) {
         this.activeSessionsSection.classList.remove("hidden");
 
-        const clone = card.cloneNode(true);
+        const id = String(card.dataset.id || "");
+        const existingActiveCard = this.getActiveSessionCard(id);
+        if (existingActiveCard) return;
+
+        const sourceCard = this.getPrimaryBookingCard(id) || card;
+        const clone = sourceCard.cloneNode(true);
         clone.classList.add("active-session-card");
         clone.dataset.active = "true";
 
@@ -1100,24 +1112,49 @@ const ViewUI = {
     },
 
     removeFromActiveSessions(id) {
-        const activeCard = this.activeSessionsContainer.querySelector(`[data-id="${id}"]`);
-        if (activeCard) activeCard.remove();
+        this.getActiveSessionCards(id).forEach(activeCard => activeCard.remove());
 
         if (this.activeSessionsContainer.children.length === 0) {
             this.activeSessionsSection.classList.add("hidden");
         }
     },
 
+    getBookingCardsById(id) {
+        return [...document.querySelectorAll(".booking-card")]
+            .filter(card => String(card.dataset.id || "") === String(id || ""));
+    },
+
+    getPrimaryBookingCard(id) {
+        return [...document.querySelectorAll(".booking-grid .booking-card")]
+            .find(card => String(card.dataset.id || "") === String(id || ""));
+    },
+
+    getActiveSessionCards(id) {
+        return [...this.activeSessionsContainer.querySelectorAll(".booking-card")]
+            .filter(card => String(card.dataset.id || "") === String(id || ""));
+    },
+
+    getActiveSessionCard(id) {
+        return this.getActiveSessionCards(id)[0] || null;
+    },
+
+    setBookingActiveState(id, isActive) {
+        this.getBookingCardsById(id).forEach(card => {
+            card.dataset.active = String(isActive);
+        });
+    },
+
     setupSessionHandlers() {
         this.startBtn.addEventListener("click", () => {
             const active = this.startBtn.dataset.active === "true";
+            const bookingId = this.activeCard.dataset.id;
 
             if (!active) {
                 this.startBtn.textContent = "Stop Session";
                 this.startBtn.dataset.active = "true";
                 this.startBtn.classList.add("stop-session-btn");
                 this.startBtn.classList.remove("start-session-btn");
-                this.activeCard.dataset.active = "true";
+                this.setBookingActiveState(bookingId, true);
                 this.addToActiveSessions(this.activeCard);
                 this.modal.style.display = "none";
             } else {
@@ -1125,8 +1162,8 @@ const ViewUI = {
                 this.startBtn.dataset.active = "false";
                 this.startBtn.classList.add("start-session-btn");
                 this.startBtn.classList.remove("stop-session-btn");
-                this.activeCard.dataset.active = "false";
-                this.removeFromActiveSessions(this.activeCard.dataset.id);
+                this.setBookingActiveState(bookingId, false);
+                this.removeFromActiveSessions(bookingId);
                 this.modal.style.display = "none";
             }
         });

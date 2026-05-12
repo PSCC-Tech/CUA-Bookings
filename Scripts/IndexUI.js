@@ -179,9 +179,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const courseNameInput = document.querySelector('input[placeholder="Course Name"]');
     const dateTimeButton = document.getElementById("open-calendar-btn");
     const selectedDateTimeInput = document.getElementById("selected-datetime");
+    const bookingTypeValue = document.getElementById("booking-type-value");
+    const bookingTypeInputs = document.querySelectorAll("input[name='booking-type']");
+    const bookingForm = document.querySelector(".form-container form");
 
     let selectedCategory = 'Show All';
     let selectedCourse = null;
+    let bookingType = "scheduled";
 
     function getCourseMentors(course) {
         if (course && window.MentorScheduleStore) {
@@ -224,6 +228,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateDateTimeButtonState() {
+        if (bookingType === "walk-in") {
+            dateTimeButton.disabled = true;
+            dateTimeButton.textContent = "Uses Current Date & Time";
+            dateTimeButton.classList.add("walk-in-mode");
+            dateTimeButton.classList.remove("has-selection");
+            return;
+        }
+
+        dateTimeButton.classList.remove("walk-in-mode");
+
         if (!selectedCourse) {
             dateTimeButton.disabled = true;
             dateTimeButton.textContent = "Select a Course First";
@@ -302,6 +316,88 @@ document.addEventListener("DOMContentLoaded", () => {
             course.id.toLowerCase() === query ||
             course.name.toLowerCase() === query
         ) || null;
+    }
+
+    function formatWalkInDateTime(date = new Date()) {
+        const dateString = date.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
+        const timeString = date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit"
+        });
+
+        return {
+            dateString,
+            timeString,
+            value: `${dateString} ${timeString}`
+        };
+    }
+
+    function stampWalkInDateTime() {
+        const now = formatWalkInDateTime();
+        selectedDateTimeInput.value = now.value;
+        dateTimeButton.textContent = `${now.dateString} - ${now.timeString}`;
+        dateTimeButton.classList.add("has-selection");
+        return now;
+    }
+
+    function setBookingType(type) {
+        bookingType = type === "walk-in" ? "walk-in" : "scheduled";
+        if (bookingTypeValue) {
+            bookingTypeValue.value = bookingType;
+        }
+
+        document.querySelectorAll(".booking-type-option").forEach(option => {
+            const input = option.querySelector("input");
+            option.classList.toggle("active", input?.value === bookingType);
+        });
+
+        clearSelectedDateTime();
+        updateDateTimeButtonState();
+    }
+
+    function ensureCourseSelected() {
+        if (selectedCourse) return true;
+
+        const matchingCourse = findExactCourse(courseCodeInput.value || "");
+        if (matchingCourse) {
+            selectCourse(matchingCourse);
+            return true;
+        }
+
+        return false;
+    }
+
+    function handleBookingSubmit(event) {
+        if (!ensureCourseSelected()) {
+            event.preventDefault();
+            alert("Please select a course before creating the booking.");
+            courseCodeInput.focus();
+            return;
+        }
+
+        if (!mentorSelect.value) {
+            event.preventDefault();
+            alert("Please select a mentor before creating the booking.");
+            mentorSelect.focus();
+            return;
+        }
+
+        if (bookingType === "walk-in") {
+            event.preventDefault();
+            const now = stampWalkInDateTime();
+            alert(`Walk-in booking ready for ${now.dateString} at ${now.timeString}.`);
+            return;
+        }
+
+        if (!selectedDateTimeInput.value) {
+            event.preventDefault();
+            alert("Please choose a date and time before creating the booking.");
+            dateTimeButton.focus();
+        }
     }
 
     // Open/close dropdown
@@ -399,10 +495,21 @@ document.addEventListener("DOMContentLoaded", () => {
         updateDateTimeButtonState();
     });
 
+    bookingTypeInputs.forEach(input => {
+        input.addEventListener("change", () => {
+            setBookingType(input.value);
+        });
+    });
+
+    if (bookingForm) {
+        bookingForm.addEventListener("submit", handleBookingSubmit);
+    }
+
     document.addEventListener("cua-calendar-before-open", prepareCalendarForOpen);
 
     // Initialize mentor list - start disabled
     updateMentorOptions(getCourseMentors(null), true);
+    setBookingType("scheduled");
     updateDateTimeButtonState();
 
 });
