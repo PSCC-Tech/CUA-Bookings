@@ -6,13 +6,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let originalData = {};
 
-    // Global mentor list (later will come from DB)
-    const allMentors = [
+    let allMentors = [
         { id: "1", name: "John Smith", categories: ["Math", "Computer Science"] },
         { id: "2", name: "John Doe", categories: ["Business", "Biology"] },
         { id: "3", name: "Jane Smith", categories: ["Math", "Biology"] },
         { id: "4", name: "Jane Doe", categories: ["Biology", "Math"] }
     ];
+
+    if (window.CUAApi) {
+        window.CUAApi.getMentors({}, true)
+            .then(mentors => {
+                allMentors = mentors.map(mentor => ({
+                    id: mentor.mentor_number || mentor.id,
+                    name: mentor.name,
+                    categories: mentor.categories || []
+                }));
+            })
+            .catch(error => console.warn("Could not load mentors for course details:", error));
+    }
 
     function enterEditMode() {
         // Always re-query current elements (they get replaced)

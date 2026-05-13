@@ -15,6 +15,58 @@ const MentorsUI = {
         this.updateSectionVisibility();
     },
 
+    async loadFromBackend() {
+        if (!window.CUAApi) return;
+
+        try {
+            const mentors = await window.CUAApi.getMentors({}, true);
+            this.renderMentorRows(mentors);
+        } catch (error) {
+            console.warn("Could not load mentors from the database:", error);
+            this.showLoadError(error.message || "Could not load mentors from the database.");
+        }
+    },
+
+    showLoadError(message) {
+        const tbody = document.querySelector(".mentor-table tbody");
+        if (!tbody) return;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4">${this.escapeHtml(message)}</td>
+            </tr>
+        `;
+    },
+
+    renderMentorRows(mentors) {
+        const tbody = document.querySelector(".mentor-table tbody");
+        if (!tbody) return;
+
+        tbody.innerHTML = mentors.map(mentor => {
+            const categories = (mentor.categories || []).join(",");
+            const detailsUrl = `mentors-details.html?mentor_id=${encodeURIComponent(mentor.mentor_id)}`;
+
+            return `
+                <tr data-mentor-id="${mentor.mentor_id}" data-name="${this.escapeHtml(mentor.name)}" data-categories="${this.escapeAttribute(categories)}">
+                    <td><input type="checkbox" class="mentor-select"></td>
+                    <td>${this.escapeHtml(mentor.mentor_number)}</td>
+                    <td class="mentor-name-link" onclick="window.location='${detailsUrl}'">${this.escapeHtml(mentor.name)}</td>
+                    <td>${this.escapeHtml(mentor.contact || mentor.email || mentor.phone || "")}</td>
+                </tr>
+            `;
+        }).join("");
+    },
+
+    escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
+    },
+
+    escapeAttribute(value) {
+        return this.escapeHtml(value).replace(/"/g, "&quot;");
+    },
+
     /* -----------------------------------------
        CACHE DOM ELEMENTS
     ----------------------------------------- */

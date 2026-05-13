@@ -36,7 +36,7 @@
                 <div class="account-header">
                     <div>
                         <p class="account-eyebrow">Administrator Account</p>
-                        <h1>CUA Administrator</h1>
+                        <h1 id="account-display-name">Loading...</h1>
                         <p class="account-summary">System access for bookings, courses, mentors, absences, and reports.</p>
                     </div>
 
@@ -61,27 +61,27 @@
                             <div class="field-grid">
                                 <label>
                                     Full name
-                                    <input type="text" name="fullName" value="Mariela Rodriguez" data-editable disabled>
+                                    <input type="text" name="fullName" value="" data-editable disabled>
                                 </label>
 
                                 <label>
                                     Administrative title
-                                    <input type="text" name="title" value="CUA Program Coordinator" data-editable disabled>
+                                    <input type="text" name="title" value="" data-editable disabled>
                                 </label>
 
                                 <label>
                                     Email
-                                    <input type="email" name="email" value="admin.cua@agu.inter.edu" data-editable disabled>
+                                    <input type="email" name="email" value="" data-editable disabled>
                                 </label>
 
                                 <label>
                                     Phone number
-                                    <input type="tel" name="phone" value="787-555-2100" data-editable disabled>
+                                    <input type="tel" name="phone" value="" data-editable disabled>
                                 </label>
 
                                 <label>
                                     Office
-                                    <input type="text" name="office" value="Library 2nd Floor" data-editable disabled>
+                                    <input type="text" name="office" value="" data-editable disabled>
                                 </label>
 
                                 <label>
@@ -111,27 +111,27 @@
                         <div class="detail-list">
                             <div>
                                 <span>Account ID</span>
-                                <strong>ADM-0001</strong>
+                                <strong id="account-id">Loading...</strong>
                             </div>
                             <div>
                                 <span>Role</span>
-                                <strong>System Administrator</strong>
+                                <strong id="account-role">Loading...</strong>
                             </div>
                             <div>
                                 <span>Access level</span>
-                                <strong>Full management</strong>
+                                <strong id="account-access-level">Loading...</strong>
                             </div>
                             <div>
                                 <span>Last login</span>
-                                <strong>May 11, 2026, 9:18 AM</strong>
+                                <strong id="account-last-login">Loading...</strong>
                             </div>
                             <div>
                                 <span>Password status</span>
-                                <strong>Updated recently</strong>
+                                <strong id="account-password-status">Loading...</strong>
                             </div>
                             <div>
                                 <span>Two-step verification</span>
-                                <strong>Enabled</strong>
+                                <strong id="account-two-step">Loading...</strong>
                             </div>
                         </div>
                     </section>
@@ -141,14 +141,7 @@
                             <h2>Permissions</h2>
                         </div>
 
-                        <div class="permission-list">
-                            <span>Bookings</span>
-                            <span>Mentors</span>
-                            <span>Courses</span>
-                            <span>Absences</span>
-                            <span>Reports</span>
-                            <span>User Access</span>
-                        </div>
+                        <div class="permission-list" id="permission-list"></div>
                     </section>
 
                     <section class="account-card">
@@ -158,16 +151,8 @@
 
                         <ol class="activity-list">
                             <li>
-                                <strong>Reviewed upcoming bookings</strong>
-                                <span>Today, 9:20 AM</span>
-                            </li>
-                            <li>
-                                <strong>Updated mentor availability</strong>
-                                <span>May 10, 2026, 3:45 PM</span>
-                            </li>
-                            <li>
-                                <strong>Added a course assignment</strong>
-                                <span>May 9, 2026, 11:12 AM</span>
+                                <strong>No recent activity recorded</strong>
+                                <span></span>
                             </li>
                         </ol>
                     </section>
@@ -180,6 +165,7 @@
         </main>
     </div>
 
+    <script src="Scripts/BackendAPI.js"></script>
     <script src="Scripts/AccountUI.js"></script>
 </body>
 

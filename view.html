@@ -74,112 +74,8 @@
             <div class="active-session-cards"></div>
         </div>
 
-        <div class="booking-grid" data-last-available="June 7, 2026">
-            <div class="booking-card"
-                 data-name="John Doe"
-                 data-email="john.doe@student.inter.edu"
-                 data-phone="787-555-0101"
-                 data-session-type="Single"
-                 data-course="MATH101 - Calculus I"
-                 data-category="Math"
-                 data-date="April 17, 2026"
-                 data-time="11:00 AM"
-                 data-mentor="Sarah Smith"
-                 data-location="CUA (Library 2nd Floor)"
-                 data-topics="Polynomials and factoring."
-                 data-professor="Dr. Rivera"
-                 data-made-by="Maria Ortiz">
-                <h3>10:00 AM</h3>
-                <p class="mentor"><strong>Mentor</strong> Sarah Smith</p>
-                <p class="student"><strong>Student</strong> John Doe</p>
-                <p class="course-summary"><strong>Course:</strong> MATH101 - Calculus I</p>
-                <p class="location-summary"><strong>Location:</strong> CUA (Library 2nd Floor)</p>
-            </div>
-
-            <div class="booking-card"
-                 data-name="Ana Torres"
-                 data-email="ana.torres@student.inter.edu"
-                 data-phone="787-555-0144"
-                 data-session-type="Group"
-                 data-course="ENGL210 - Essay Writing"
-                 data-category="English"
-                 data-date="April 14, 2026"
-                 data-time="12:00 PM"
-                 data-mentor="Sarah Smith"
-                 data-location="Online (Microsoft Teams)"
-                 data-topics="Essay structure."
-                 data-professor="Prof. Hernandez"
-                 data-made-by="Luis Santiago">
-                <h3>11:00 AM</h3>
-                <p class="mentor"><strong>Mentor</strong> Sarah Smith</p>
-                <p class="student"><strong>Student</strong> Ana Torres</p>
-                <p class="course-summary"><strong>Course:</strong> ENGL210 - Essay Writing</p>
-                <p class="location-summary"><strong>Location:</strong> Online (Microsoft Teams)</p>
-            </div>
-
-            <div class="booking-card"
-                 data-name="Carlos Vega"
-                 data-email="carlos.vega@student.inter.edu"
-                 data-phone="787-555-0188"
-                 data-session-type="Single"
-                 data-course="MATH101 - Calculus I"
-                 data-category="Math"
-                 data-date="April 27, 2026"
-                 data-time="1:00 PM"
-                 data-mentor="Sarah Smith"
-                 data-location="CUA (Library 2nd Floor)"
-                 data-topics="Factoring review."
-                 data-professor="Dr. Santiago"
-                 data-made-by="Maria Ortiz">
-                <h3>12:00 PM</h3>
-                <p class="mentor"><strong>Mentor</strong> Sarah Smith</p>
-                <p class="student"><strong>Student</strong> Carlos Vega</p>
-                <p class="course-summary"><strong>Course:</strong> MATH101 - Calculus I</p>
-                <p class="location-summary"><strong>Location:</strong> CUA (Library 2nd Floor)</p>
-            </div>
-
-            <div class="booking-card"
-                 data-name="Laura Ortiz"
-                 data-email="laura.ortiz@student.inter.edu"
-                 data-phone="787-555-0199"
-                 data-session-type="Single"
-                 data-course="COMP101 - Intro to Computer Science"
-                 data-category="Computer Science"
-                 data-date="April 14, 2026"
-                 data-time="2:00 PM"
-                 data-mentor="Sarah Smith"
-                 data-location="Online (Microsoft Teams)"
-                 data-topics="Intro to Python."
-                 data-professor="Prof. Martinez"
-                 data-made-by="Andrea Rivera">
-                <h3>1:00 PM</h3>
-                <p class="mentor"><strong>Mentor</strong> Sarah Smith</p>
-                <p class="student"><strong>Student</strong> Laura Ortiz</p>
-                <p class="course-summary"><strong>Course:</strong> COMP101 - Intro to Computer Science</p>
-                <p class="location-summary"><strong>Location:</strong> Online (Microsoft Teams)</p>
-            </div>
-
-            <div class="booking-card"
-                 data-name="Miguel Ramos"
-                 data-email="miguel.ramos@student.inter.edu"
-                 data-phone="787-555-0125"
-                 data-session-type="Group"
-                 data-course="CHEM110 - General Chemistry"
-                 data-category="Chemistry"
-                 data-date="April 17, 2026"
-                 data-time="10:00 AM"
-                 data-mentor="Sarah Smith"
-                 data-location="PC & Mac Lab (C234-C235)"
-                 data-topics="Balancing equations."
-                 data-professor="Dr. Navarro"
-                 data-made-by="Luis Santiago">
-                <h3>2:00 PM</h3>
-                <p class="mentor"><strong>Mentor</strong> Sarah Smith</p>
-                <p class="student"><strong>Student</strong> Miguel Ramos</p>
-                <p class="course-summary"><strong>Course:</strong> CHEM110 - General Chemistry</p>
-                <p class="location-summary"><strong>Location:</strong> PC & Mac Lab (C234-C235)</p>
-            </div>
-
+        <div class="booking-grid" data-last-available="">
+            <div class="no-bookings">Loading bookings...</div>
         </div>
 
         <div id="global-no-results" class="global-no-results hidden">
@@ -370,13 +266,14 @@
 
 </div>
 
+<script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/ViewData.js"></script>
 <script src="Scripts/Calendar.js"></script>
 <script src="Scripts/ViewUI.js"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        ViewData.init(); // contains logic to build the grouped card layout
+    document.addEventListener("DOMContentLoaded", async () => {
+        await ViewData.init(); // contains logic to build the grouped card layout
         ViewUI.init(); // contains all modal, edit, sessions, and calendar
     });
 </script>

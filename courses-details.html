@@ -45,33 +45,19 @@
 
         <h2>Course Information</h2>
         <ul class="info-list" id="course-info-list">
-            <li><strong>Code:</strong> <span id="course-code">MATH 101</span> </li>
-            <li><strong>Name:</strong> <span id="course-name">College Algebra</span> </li>
+            <li><strong>Code:</strong> <span id="course-code">Loading...</span> </li>
+            <li><strong>Name:</strong> <span id="course-name">Loading...</span> </li>
             <li><strong>Professors:</strong>
-                <ul id="professors-list">
-                    <li>Israel Acevedo</li>
-                    <li>James Lopez</li>
-                </ul>
+                <ul id="professors-list"></ul>
             </li>
         </ul>
 
         <h2>Topics Covered</h2>
-        <ul class="topics-list" id="topics-list">
-            <li>Algebraic Operations</li>
-            <li>Number System</li>
-            <li>Logarithmit Functions</li>
-        </ul>
+        <ul class="topics-list" id="topics-list"></ul>
 
         <h2>Description</h2>
         <div id="course-description-wrapper">
-            <p id="course-description">
-            College Algebra is
-            a foundational mathematics course focusing on advanced algebraic techniques, 
-            functional analysis, and modeling real-world problems. Key topics include linear, 
-            quadratic, polynomial, rational, exponential, and logarithmic functions, along with
-            systems of equations, inequalities, matrices, and sometimes conic sections or complex numbers, 
-            bridging high school algebra and pre-calculus
-            </p>
+            <p id="course-description">Loading...</p>
         </div>
 
                 <!-- Edit controls -->
@@ -90,9 +76,7 @@
     <section id="mentor-schedule">
 
             <div class="mentor-tabs">
-                <button class="mentor-tab" data-mentor="1">Mentor 1</button>
-                <button class="mentor-tab" data-mentor="2">Mentor 2</button>
-                <button class="mentor-tab" data-mentor="3">Mentor 3</button>
+                <button class="mentor-tab active">Loading mentors...</button>
             </div>
 
             <div class="mentor-layout">
@@ -175,6 +159,8 @@
                         <div data-category="Computer Science">Computer Science</div>
                         <div data-category="Biology">Biology</div>
                         <div data-category="Business">Business</div>
+                        <div data-category="Chemistry">Chemistry</div>
+                        <div data-category="English">English</div>
                         <div data-category="all">Show All</div>
                     </div>
                 </div>
@@ -189,6 +175,8 @@
     </div>
 
 
+<script src="Scripts/BackendAPI.js"></script>
+<script src="Scripts/CourseDetailsData.js"></script>
 <script src="Scripts/Calendar.js"></script>
 
 <script>

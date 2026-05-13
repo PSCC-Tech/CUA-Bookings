@@ -43,14 +43,16 @@
         <div class="right-group">
             <div class="dropdown-wrapper">
                 <button id="category-btn">Category</button>
-                <div id="category-dropdown" class="dropdown hidden">
-                    <div data-category="Math">Math</div>
-                    <div data-category="Computer Science">Computer Science</div>
-                    <div data-category="Biology">Biology</div>
-                    <div data-category="Business">Business</div>
-                    <div data-category="all">Show All</div>
+                    <div id="category-dropdown" class="dropdown hidden">
+                        <div data-category="Math">Math</div>
+                        <div data-category="Computer Science">Computer Science</div>
+                        <div data-category="Biology">Biology</div>
+                        <div data-category="Business">Business</div>
+                        <div data-category="Chemistry">Chemistry</div>
+                        <div data-category="English">English</div>
+                        <div data-category="all" class="selected">Show All</div>
+                    </div>
                 </div>
-            </div>
         
             <input type="text" id="mentor-search" class="booking-search" placeholder="Search mentors...">
         </div>
@@ -90,32 +92,7 @@
                     <th>Contact</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr data-name="John Smith" data-categories="Math,Computer Science">
-                    <td><input type="checkbox" class="mentor-select"></td>
-                    <td>A00000001</td>
-                    <td onclick="window.location='mentors-details.html'">John Smith</td>
-                    <td>josm0001@agu.inter.edu</td>
-                </tr>
-                <tr data-name="John Doe" data-categories="Business,Biology">
-                    <td><input type="checkbox" class="mentor-select"></td>
-                    <td>A00123456</td>
-                    <td onclick="window.location='mentors-details.html'">John Doe</td>
-                    <td>jodo3456@agu.inter.edu</td>
-                </tr>
-                <tr data-name="Jane Smith" data-categories="Math,Biology">
-                    <td><input type="checkbox" class="mentor-select"></td>
-                    <td>A00000003</td>
-                    <td onclick="window.location='mentors-details.html'">Jane Smith</td>
-                    <td>jasm0003@agu.inter.edu</td>
-                </tr>
-                <tr data-name="Jane Doe" data-categories="Biology,Math">
-                    <td><input type="checkbox" class="mentor-select"></td>
-                    <td>A00000004</td>
-                    <td onclick="window.location='mentors-details.html'">Jane Doe</td>
-                    <td>jado0004@agu.inter.edu</td>
-                </tr>
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 </div>
@@ -131,11 +108,13 @@
 
 </div>
 
+<script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/TableManager.js"></script>
 <script src="Scripts/MentorsUI.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    await MentorsUI.loadFromBackend();
     
     MentorsUI.init();
 

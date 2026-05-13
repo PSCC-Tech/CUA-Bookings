@@ -248,10 +248,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    let mentorCourses = [
+    let mentorCourses = window.CUAMentorCourses || [
         { id: 'MATH101', name: 'Calculus I' },
         { id: 'COMP201', name: 'Data Structures I' }
     ];
+
+    document.addEventListener("cua-mentor-courses-loaded", (event) => {
+        mentorCourses = event.detail.courses || [];
+        if (document.getElementById('courses-panel')?.style.display === 'block') {
+            renderMentorCourses();
+        }
+    });
 
     const courseAddButton = document.getElementById('add-course-btn');
     const saveCourseButton = document.getElementById('save-course-btn');

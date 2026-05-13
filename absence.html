@@ -45,11 +45,8 @@
 
                 <form>
                     <label>Mentor</label>
-                    <select id="category-select">
+                    <select id="mentor-select">
                         <option value="">Select a Mentor</option>
-                        <option value="mentor1">Jessica</option>
-                        <option value="mentor2">Matthew</option>
-                        <option value="mentor2">Daniel</option>
                     </select>
 
                     <label>Date</label>
@@ -97,6 +94,8 @@
 
     </div>
 
+<script src="Scripts/BackendAPI.js"></script>
+
 <script type="module">
     import ScheduleGenerator from "/Scripts/ScheduleGenerator.js";
 
@@ -118,6 +117,25 @@
 </script>
 
 <script>
+    async function loadMentorsForAbsence() {
+        const mentorSelect = document.getElementById("mentor-select");
+        if (!mentorSelect || !window.CUAApi) return;
+
+        try {
+            const mentors = await window.CUAApi.getMentors({}, true);
+            mentorSelect.innerHTML = `<option value="">Select a Mentor</option>`;
+            mentors.forEach(mentor => {
+                const option = document.createElement("option");
+                option.value = mentor.mentor_number;
+                option.textContent = mentor.name;
+                option.dataset.mentorName = mentor.name;
+                mentorSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.warn("Could not load mentors for absence form:", error);
+        }
+    }
+
         // Hide/show time selectors based on radio choice
         const radios = document.querySelectorAll("input[name='unavailable-type']");
         const timeSelectors = document.getElementById("time-selectors");
@@ -134,6 +152,39 @@
                 }
             });
         });
+
+        document.querySelector(".form-container form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const selectedOption = document.getElementById("mentor-select").selectedOptions[0];
+            const payload = {
+                mentor_number: selectedOption?.value || "",
+                mentor_name: selectedOption?.dataset.mentorName || "",
+                date: document.getElementById("absence-date").value,
+                unavailable_type: document.querySelector("input[name='unavailable-type']:checked")?.value || "full-day",
+                start_time: document.getElementById("start-time").value,
+                end_time: document.getElementById("end-time").value,
+                reason: document.querySelector("textarea").value.trim(),
+                made_by: document.querySelector(".form-container input[type='text']").value.trim()
+            };
+
+            if (!payload.mentor_number || !payload.date) {
+                alert("Please select a mentor and date.");
+                return;
+            }
+
+            try {
+                await window.CUAApi.createAbsence(payload);
+                await window.MentorScheduleStore?.loadFromApi?.(true);
+                alert("Absence saved successfully.");
+                event.target.reset();
+                timeSelectors.style.display = "none";
+            } catch (error) {
+                alert(error.message || "Could not save the absence.");
+            }
+        });
+
+        loadMentorsForAbsence();
 </script>
 </body>
 </html>

@@ -32,13 +32,22 @@ function setSelectedDateTime(dateString, timeString) {
     const hidden = document.getElementById("selected-datetime");
 
     hidden.value = `${dateString} ${timeString}`;
+    hidden.dataset.date = dateString;
+    hidden.dataset.time = timeString;
     btn.textContent = `${dateString} - ${timeString}`;
     btn.classList.add("has-selection");
 
     document.getElementById("calendar-modal").style.display = "none";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    if (window.Autocomplete) {
+        await window.Autocomplete.loadCourseData().catch(() => null);
+    }
+
+    if (window.MentorScheduleStore) {
+        await window.MentorScheduleStore.loadFromApi().catch(() => null);
+    }
 
     // -------------------------
     // GROUP COUNTER + STUDENTS
@@ -46,6 +55,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const groupSizeEl = document.getElementById("group-size");
     const extraStudentsContainer = document.getElementById("extra-students");
+
+    function fillStudentFields(student, fields) {
+        if (!student || !fields) return;
+
+        if (fields.id) fields.id.value = student.studentId || student.student_number || "";
+        if (fields.name) fields.name.value = student.name || student.full_name || "";
+        if (fields.email) fields.email.value = student.email || "";
+        if (fields.phone) fields.phone.value = student.phone || "";
+    }
+
+    async function fillExactStudentMatch(idInput, fields) {
+        const studentNumber = idInput?.value.trim();
+        if (!studentNumber || !window.CUAApi) return;
+
+        try {
+            const students = await window.CUAApi.searchStudents(studentNumber);
+            const exact = students.find(student =>
+                String(student.studentId || student.student_number || "").toLowerCase() === studentNumber.toLowerCase()
+            );
+
+            if (exact) {
+                fillStudentFields(exact, fields);
+            }
+        } catch (error) {
+            console.warn("Could not search students:", error);
+        }
+    }
+
+    function setupStudentIdAutocomplete(idInput, fields) {
+        if (!idInput || !window.Autocomplete || idInput.autocompleteData) return;
+
+        Autocomplete.init(idInput, "studentsByID", {
+            minChars: 1,
+            maxResults: 8,
+            debounceMs: 250,
+            noResultsText: "No matching students found",
+            onSelect: (student) => fillStudentFields(student, fields)
+        });
+
+        idInput.addEventListener("blur", () => {
+            fillExactStudentMatch(idInput, fields);
+        });
+    }
 
     function restoreStudent1() {
         const block = document.getElementById("student-1-block");
@@ -114,6 +166,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
             extraStudentsContainer.appendChild(row2);
+
+            setupStudentIdAutocomplete(row1.querySelector(`[name="student_${i}_id"]`), {
+                id: row1.querySelector(`[name="student_${i}_id"]`),
+                name: row1.querySelector(`[name="student_${i}_name"]`),
+                email: row2.querySelector(`[name="student_${i}_email"]`),
+                phone: row2.querySelector(`[name="student_${i}_phone"]`)
+            });
         }
     }
 
@@ -158,6 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const mentorsData = window.MentorScheduleStore
         ? window.MentorScheduleStore.listMentors().map(mentor => ({
             name: mentor.name,
+            mentorNumber: mentor.mentor_number || mentor.id || "",
             categories: mentor.categories
         }))
         : [
@@ -176,12 +236,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const categoryDropdown = document.getElementById("category-dropdown");
     const mentorSelect = document.getElementById("mentor-select");
     const courseCodeInput = document.getElementById("course-code");
-    const courseNameInput = document.querySelector('input[placeholder="Course Name"]');
+    const courseNameInput = document.getElementById("course-name") || document.querySelector('input[placeholder="Course Name"]');
     const dateTimeButton = document.getElementById("open-calendar-btn");
     const selectedDateTimeInput = document.getElementById("selected-datetime");
     const bookingTypeValue = document.getElementById("booking-type-value");
     const bookingTypeInputs = document.querySelectorAll("input[name='booking-type']");
     const bookingForm = document.querySelector(".form-container form");
+    const locationInput = document.getElementById("location-input");
+    const topicsInput = document.getElementById("topics-input");
+    const professorInput = document.getElementById("professor-input");
+    const madeByInput = document.getElementById("made-by-input");
 
     let selectedCategory = 'Show All';
     let selectedCourse = null;
@@ -192,6 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return window.MentorScheduleStore.getMentorsForCourse(course.id)
                 .map(mentor => ({
                     name: mentor.name,
+                    mentorNumber: mentor.mentor_number || mentor.id || "",
                     categories: mentor.categories
                 }));
         }
@@ -218,12 +283,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const option = document.createElement('option');
             option.value = mentor.name;
             option.textContent = mentor.name;
+            option.dataset.mentorNumber = mentor.mentorNumber || "";
             mentorSelect.appendChild(option);
         });
     }
 
     function clearSelectedDateTime() {
         selectedDateTimeInput.value = "";
+        selectedDateTimeInput.dataset.date = "";
+        selectedDateTimeInput.dataset.time = "";
         dateTimeButton.classList.remove("has-selection");
     }
 
@@ -339,6 +407,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function stampWalkInDateTime() {
         const now = formatWalkInDateTime();
         selectedDateTimeInput.value = now.value;
+        selectedDateTimeInput.dataset.date = now.dateString;
+        selectedDateTimeInput.dataset.time = now.timeString;
         dateTimeButton.textContent = `${now.dateString} - ${now.timeString}`;
         dateTimeButton.classList.add("has-selection");
         return now;
@@ -371,33 +441,157 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     }
 
-    function handleBookingSubmit(event) {
+    function toISODate(dateLabel = "") {
+        const cleaned = String(dateLabel).replace(/^[A-Za-z]+,\s*/, "").trim();
+        const parsed = new Date(cleaned);
+        if (Number.isNaN(parsed.getTime())) return "";
+
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, "0");
+        const day = String(parsed.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    function collectStudents() {
+        const students = [{
+            student_number: document.getElementById("student-id")?.value.trim() || "",
+            full_name: document.getElementById("student-name")?.value.trim() || "",
+            email: document.getElementById("student-email")?.value.trim() || "",
+            phone: document.getElementById("student-phone")?.value.trim() || ""
+        }];
+
+        const isGroup = document.querySelector("input[name='session-type']:checked")?.value === "group";
+        if (!isGroup) return students;
+
+        const size = parseInt(groupSizeEl.textContent, 10);
+        for (let i = 2; i <= size; i++) {
+            students.push({
+                student_number: document.querySelector(`[name="student_${i}_id"]`)?.value.trim() || "",
+                full_name: document.querySelector(`[name="student_${i}_name"]`)?.value.trim() || "",
+                email: document.querySelector(`[name="student_${i}_email"]`)?.value.trim() || "",
+                phone: document.querySelector(`[name="student_${i}_phone"]`)?.value.trim() || ""
+            });
+        }
+
+        return students;
+    }
+
+    function validateStudents(students) {
+        return students.every(student => student.student_number && student.full_name);
+    }
+
+    function buildBookingPayload() {
+        const selectedMentorOption = mentorSelect.options[mentorSelect.selectedIndex];
+        const dateLabel = selectedDateTimeInput.dataset.date || "";
+        const timeLabel = selectedDateTimeInput.dataset.time || "";
+
+        return {
+            booking_type: bookingType === "walk-in" ? "walk_in" : "scheduled",
+            course_code: selectedCourse.id,
+            mentor: mentorSelect.value,
+            mentor_number: selectedMentorOption?.dataset.mentorNumber || "",
+            location: locationInput?.value.trim() || "",
+            professor: professorInput?.value.trim() || "",
+            made_by: madeByInput?.value.trim() || "",
+            topics: topicsInput?.value.trim() || "",
+            date: toISODate(dateLabel),
+            time: timeLabel,
+            students: collectStudents()
+        };
+    }
+
+    async function loadLookups() {
+        if (!window.CUAApi) return;
+
+        try {
+            const lookups = await window.CUAApi.getLookups();
+            const locationList = document.getElementById("location");
+            if (locationList && Array.isArray(lookups.locations)) {
+                locationList.innerHTML = lookups.locations
+                    .map(location => `<option value="${location.name}">`)
+                    .join("");
+            }
+        } catch (error) {
+            console.warn("Could not load form lookups:", error);
+        }
+    }
+
+    async function handleBookingSubmit(event) {
+        event.preventDefault();
+
         if (!ensureCourseSelected()) {
-            event.preventDefault();
             alert("Please select a course before creating the booking.");
             courseCodeInput.focus();
             return;
         }
 
         if (!mentorSelect.value) {
-            event.preventDefault();
             alert("Please select a mentor before creating the booking.");
             mentorSelect.focus();
             return;
         }
 
         if (bookingType === "walk-in") {
-            event.preventDefault();
-            const now = stampWalkInDateTime();
-            alert(`Walk-in booking ready for ${now.dateString} at ${now.timeString}.`);
+            stampWalkInDateTime();
+        } else if (!selectedDateTimeInput.value) {
+            alert("Please choose a date and time before creating the booking.");
+            dateTimeButton.focus();
             return;
         }
 
-        if (!selectedDateTimeInput.value) {
-            event.preventDefault();
-            alert("Please choose a date and time before creating the booking.");
-            dateTimeButton.focus();
+        const payload = buildBookingPayload();
+
+        if (!payload.location) {
+            alert("Please enter a location.");
+            locationInput?.focus();
+            return;
         }
+
+        if (!validateStudents(payload.students)) {
+            alert("Please enter the student ID and name for every student.");
+            return;
+        }
+
+        try {
+            if (!window.CUAApi) throw new Error("Backend API is not loaded.");
+            const result = await window.CUAApi.createBooking(payload);
+            await window.MentorScheduleStore?.loadFromApi(true);
+            alert(getBookingSuccessMessage(result));
+            bookingForm.reset();
+            selectedCourse = null;
+            clearSelectedDateTime();
+            updateMentorOptions(getCourseMentors(null), true);
+            setBookingType("scheduled");
+            extraStudentsContainer.innerHTML = "";
+            restoreStudent1();
+        } catch (error) {
+            alert(error.message || "Could not create booking.");
+        }
+    }
+
+    function getBookingSuccessMessage(result) {
+        const notifications = result?.email_notifications;
+        if (!notifications) {
+            return "Booking created successfully.";
+        }
+
+        const sent = Array.isArray(notifications.sent) ? notifications.sent.length : 0;
+        const failed = Array.isArray(notifications.failed) ? notifications.failed.length : 0;
+        const skipped = Array.isArray(notifications.skipped) ? notifications.skipped : [];
+
+        if (failed > 0) {
+            return `Booking created successfully, but ${failed} email notification${failed === 1 ? "" : "s"} could not be sent. ${sent} sent. Check the mail configuration.`;
+        }
+
+        if (sent > 0) {
+            return `Booking created successfully. ${sent} email notification${sent === 1 ? "" : "s"} sent.`;
+        }
+
+        if (skipped.length > 0) {
+            return `Booking created successfully. Email notifications were not sent: ${skipped[0]}`;
+        }
+
+        return "Booking created successfully. No email notifications were sent.";
     }
 
     // Open/close dropdown
@@ -457,6 +651,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    setupStudentIdAutocomplete(document.getElementById("student-id"), {
+        id: document.getElementById("student-id"),
+        name: document.getElementById("student-name"),
+        email: document.getElementById("student-email"),
+        phone: document.getElementById("student-phone")
+    });
+
     courseCodeInput.addEventListener("input", () => {
         if (!courseCodeInput.value.trim()) {
             if (courseNameInput) {
@@ -511,5 +712,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMentorOptions(getCourseMentors(null), true);
     setBookingType("scheduled");
     updateDateTimeButtonState();
+    loadLookups();
 
 });

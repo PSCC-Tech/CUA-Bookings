@@ -88,6 +88,8 @@
                         <div data-category="Computer Science">Computer Science</div>
                         <div data-category="Biology">Biology</div>
                         <div data-category="Business">Business</div>
+                        <div data-category="Chemistry">Chemistry</div>
+                        <div data-category="English">English</div>
                         <div data-category="all">Show All</div>
                     </div>
                 </div>
@@ -150,24 +152,22 @@
 
     </div>
 
+<script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/TableManager.js"></script>
 <script src="Scripts/AddCoursesUI.js"></script>
 <script src="Scripts/Autocomplete.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     /* ============================
        MENTOR CHECKBOX COLUMNS
     ============================ */
     const mentorContainer = document.querySelector(".mentor-checkboxes");
 
-    const mentors = [
-        { name: "John Smith", categories: ["Math", "Computer Science"] },
-        { name: "John Doe", categories: ["Business", "Biology"] },
-        { name: "Jane Smith", categories: ["Math", "Biology"] },
-        { name: "Jane Doe", categories: ["Biology", "Math"] }
-    ];
+    const mentors = window.CUAApi
+        ? await window.CUAApi.getMentors({}, true)
+        : [];
 
     mentors.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             label.dataset.name = mentor.name;
             label.dataset.categories = mentor.categories.join(",");
             label.innerHTML = `
-                <input type="checkbox" value="${mentor.name}">
+                <input type="checkbox" value="${mentor.mentor_number || mentor.number || mentor.name}">
                 ${mentor.name}
             `;
             column.appendChild(label);
@@ -248,6 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Initialize autocomplete for course code
     if (courseCodeInput && Autocomplete) {
+        await Autocomplete.loadCourseData().catch(() => null);
         Autocomplete.init(courseCodeInput, 'courses', {
             minChars: 1,
             maxResults: 8,
@@ -294,6 +295,39 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput: document.getElementById("mentor-search"),
         selectAllCheckbox: document.getElementById("select-all-mentors"),
         deleteButton: null
+    });
+
+    document.querySelector(".course-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const selectedMentors = [...document.querySelectorAll(".mentor-checkboxes input[type='checkbox']:checked")]
+            .map(input => input.value);
+        const topics = [...document.querySelectorAll(".topics-list input")]
+            .map(input => input.value.trim())
+            .filter(Boolean);
+
+        const payload = {
+            course_code: document.getElementById("course-code").value.trim(),
+            course_name: document.getElementById("course-name").value.trim(),
+            professors: document.getElementById("course-professors").value.trim(),
+            mentor_numbers: selectedMentors,
+            topics,
+            description: document.getElementById("course-description").value.trim()
+        };
+
+        if (!payload.course_code || !payload.course_name) {
+            alert("Please enter a course code and course name.");
+            return;
+        }
+
+        try {
+            await window.CUAApi.createCourse(payload);
+            await Autocomplete.loadCourseData(true).catch(() => null);
+            alert("Course saved successfully.");
+            window.location = "courses.html";
+        } catch (error) {
+            alert(error.message || "Could not save the course.");
+        }
     });
 
 });

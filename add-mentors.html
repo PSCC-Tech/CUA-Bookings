@@ -329,6 +329,8 @@
                         <div data-category="Computer Science">Computer Science</div>
                         <div data-category="Biology">Biology</div>
                         <div data-category="Business">Business</div>
+                        <div data-category="Chemistry">Chemistry</div>
+                        <div data-category="English">English</div>
                         <div data-category="all">Show All</div>
                     </div>
                 </div>
@@ -356,20 +358,19 @@
 
     </div>
 
+<script src="Scripts/BackendAPI.js"></script>
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     /* ============================
        COURSE CHECKBOX COLUMNS
     ============================ */
     const courseContainer = document.querySelector(".courses-checkboxes");
 
-    const courses = [
-        { code: "COMP 101", name: "Introduction to Computer Science", categories: ["Computer Science"] },
-        { code: "MATH 101", name: "Calculus I", categories: ["Math"] },
-        { code: "BIO 101", name: "General Biology", categories: ["Biology"] },
-        { code: "BUS 101", name: "Introduction to Business", categories: ["Business"] }
-    ];
+    const courses = window.CUAApi
+        ? await window.CUAApi.getCourses(true)
+        : [];
 
     for (let i = 0; i < courses.length; i += 6) {
         const column = document.createElement("div");
@@ -377,12 +378,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         courses.slice(i, i + 6).forEach(course => {
             const label = document.createElement("label");
-            label.dataset.code = course.code;
+            label.dataset.code = course.code || course.id;
             label.dataset.name = course.name;
-            label.dataset.categories = course.categories.join(",");
+            label.dataset.categories = (course.categories || [course.category]).join(",");
             label.innerHTML = `
-                <input type="checkbox" value="${course.code}">
-                ${course.code} - ${course.name}
+                <input type="checkbox" value="${course.code || course.id}">
+                ${course.code || course.id} - ${course.name}
             `;
             column.appendChild(label);
         });
@@ -394,12 +395,16 @@ document.addEventListener("DOMContentLoaded", () => {
     setupSearchAndFilter();
 
     // Setup form submission
-    document.querySelector('.mentor-form').addEventListener('submit', function(e) {
+    document.querySelector('.mentor-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         if (validateForm()) {
-            // Handle form submission here
-            alert('Mentor added successfully!');
-            // You can add code to save data, redirect, etc.
+            try {
+                await window.CUAApi.createMentor(buildMentorPayload());
+                alert('Mentor added successfully!');
+                window.location = 'mentors.html';
+            } catch (error) {
+                alert(error.message || 'Could not save mentor.');
+            }
         }
     });
 });
@@ -456,6 +461,52 @@ function validateForm() {
     }
     
     return valid;
+}
+
+function parseTimeForApi(value) {
+    if (!value || value === '---') return '';
+
+    const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return '';
+
+    let hours = Number(match[1]);
+    const minutes = match[2];
+    const period = match[3].toUpperCase();
+
+    if (period === 'PM' && hours !== 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+
+    return `${String(hours).padStart(2, '0')}:${minutes}:00`;
+}
+
+function buildMentorPayload() {
+    const schedule = [];
+
+    document.querySelectorAll('.schedule > li').forEach((li, index) => {
+        const selects = [...li.querySelectorAll('select')];
+
+        for (let i = 0; i < selects.length; i += 2) {
+            const start = parseTimeForApi(selects[i]?.value || '');
+            const end = parseTimeForApi(selects[i + 1]?.value || '');
+
+            if (start && end) {
+                schedule.push({
+                    day_of_week: index + 1,
+                    start_time: start,
+                    end_time: end
+                });
+            }
+        }
+    });
+
+    return {
+        mentor_number: document.getElementById('mentor-id').value.trim(),
+        full_name: document.getElementById('mentor-name').value.trim(),
+        contact: document.getElementById('contact').value.trim(),
+        course_codes: [...document.querySelectorAll('.courses-checkboxes input[type="checkbox"]:checked')]
+            .map(input => input.value),
+        schedule
+    };
 }
 
 function setupSearchAndFilter() {

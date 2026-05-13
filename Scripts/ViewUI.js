@@ -18,6 +18,7 @@ const ViewUI = {
         this.setupFilterHandlers();
         this.setupSearchListener();
         this.setupCalendarCloseHandler();
+        this.hydrateActiveSessions();
         this.applyFilters();
     },
 
@@ -363,6 +364,12 @@ const ViewUI = {
         ].join(" ").toLowerCase();
     },
 
+    hydrateActiveSessions() {
+        document.querySelectorAll(".booking-grid .booking-card[data-active='true']").forEach(card => {
+            this.addToActiveSessions(card);
+        });
+    },
+
     getCardSearchText(card) {
         return [
             card.innerText,
@@ -637,7 +644,7 @@ const ViewUI = {
         this.updateStudentControls();
     },
 
-    saveInlineEdits() {
+    async saveInlineEdits() {
         this.saveCurrentStudentDraft();
 
         let sessionType = this.getCurrentSessionType();
@@ -651,6 +658,7 @@ const ViewUI = {
 
         const students = this.editStudents.map(student => this.sanitizeStudent(student));
         const savedValues = {};
+        const fieldUpdates = [];
 
         document.querySelectorAll(".editable-field").forEach(row => {
             const field = row.dataset.field;
@@ -668,10 +676,21 @@ const ViewUI = {
                 savedValues[field] = input?.value || "";
             }
 
+            fieldUpdates.push({ row, input, field, value: savedValues[field] });
+        });
+
+        try {
+            await this.persistInlineEdits(savedValues, students);
+        } catch (error) {
+            alert(error.message || "Could not save booking changes.");
+            return;
+        }
+
+        fieldUpdates.forEach(({ row, input, field, value }) => {
             const span = document.createElement("span");
             span.classList.add("field-value");
             span.id = `modal-${field}`;
-            span.textContent = savedValues[field];
+            span.textContent = value;
             this.replaceEditorWithSpan(row, input, span);
         });
 
@@ -686,6 +705,43 @@ const ViewUI = {
         delete this.activeCard.dataset.originalHtml;
         this.syncFilterOptionsFromCards();
         this.applyFilters();
+    },
+
+    async persistInlineEdits(values, students) {
+        if (!window.CUAApi || !this.activeCard?.dataset.id) return;
+
+        await window.CUAApi.updateBooking(this.activeCard.dataset.id, {
+            booking_type: this.activeCard.dataset.bookingType || "scheduled",
+            mentor: values.mentor,
+            course: values.course,
+            course_code: this.extractCourseCode(values.course),
+            location: values.location,
+            professor: values.professor,
+            made_by: values.madeBy,
+            date: values.date || this.activeCard.dataset.date,
+            time: values.time || this.activeCard.dataset.time,
+            topics: values.topics,
+            students: students.map(student => ({
+                student_number: student.studentId,
+                full_name: student.name,
+                email: student.email,
+                phone: student.phone
+            }))
+        });
+
+        await this.refreshBackendCaches();
+    },
+
+    async refreshBackendCaches() {
+        if (window.CUAApi) {
+            await window.CUAApi.getSchedule(true).catch(() => null);
+            if (window.MentorScheduleStore) {
+                await window.MentorScheduleStore.loadFromApi(true).catch(() => null);
+            }
+            if (window.CUACalendar) {
+                window.CUACalendar.refresh();
+            }
+        }
     },
 
     cancelInlineEdits() {
@@ -917,6 +973,7 @@ const ViewUI = {
         this.activeCard.dataset.topics = values.topics;
         this.activeCard.dataset.professor = values.professor;
         this.activeCard.dataset.madeBy = values.madeBy;
+        this.activeCard.dataset.courseCode = this.extractCourseCode(values.course);
 
         this.activeCard.querySelector("h3").textContent = this.activeCard.dataset.time;
         this.activeCard.querySelector(".mentor").innerHTML = `<strong>Mentor</strong> ${values.mentor}`;
@@ -1145,11 +1202,18 @@ const ViewUI = {
     },
 
     setupSessionHandlers() {
-        this.startBtn.addEventListener("click", () => {
+        this.startBtn.addEventListener("click", async () => {
             const active = this.startBtn.dataset.active === "true";
             const bookingId = this.activeCard.dataset.id;
 
             if (!active) {
+                try {
+                    if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "start");
+                } catch (error) {
+                    alert(error.message || "Could not start the session.");
+                    return;
+                }
+
                 this.startBtn.textContent = "Stop Session";
                 this.startBtn.dataset.active = "true";
                 this.startBtn.classList.add("stop-session-btn");
@@ -1158,18 +1222,45 @@ const ViewUI = {
                 this.addToActiveSessions(this.activeCard);
                 this.modal.style.display = "none";
             } else {
+                try {
+                    if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "stop");
+                } catch (error) {
+                    alert(error.message || "Could not stop the session.");
+                    return;
+                }
+
                 this.startBtn.textContent = "Start Session";
                 this.startBtn.dataset.active = "false";
                 this.startBtn.classList.add("start-session-btn");
                 this.startBtn.classList.remove("stop-session-btn");
                 this.setBookingActiveState(bookingId, false);
                 this.removeFromActiveSessions(bookingId);
+                this.getPrimaryBookingCard(bookingId)?.remove();
                 this.modal.style.display = "none";
+                this.syncFilterOptionsFromCards();
+                this.applyFilters();
             }
         });
 
-        this.cancelSessionBtn.addEventListener("click", () => {
-            alert("Session canceled (simulation)");
+        this.cancelSessionBtn.addEventListener("click", async () => {
+            const bookingId = this.activeCard?.dataset.id;
+            if (!bookingId) return;
+
+            const confirmed = confirm("Cancel this booking?");
+            if (!confirmed) return;
+
+            try {
+                if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "cancel");
+            } catch (error) {
+                alert(error.message || "Could not cancel the booking.");
+                return;
+            }
+
+            this.removeFromActiveSessions(bookingId);
+            this.getPrimaryBookingCard(bookingId)?.remove();
+            this.modal.style.display = "none";
+            this.syncFilterOptionsFromCards();
+            this.applyFilters();
         });
     }
 };

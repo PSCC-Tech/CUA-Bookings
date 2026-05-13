@@ -4,6 +4,9 @@
  */
 
 const Autocomplete = {
+    courseCache: null,
+    courseLoadPromise: null,
+
     /**
      * Configuration for data sources
      * This structure allows easy switching between static data and backend APIs
@@ -11,8 +14,9 @@ const Autocomplete = {
     dataSources: {
         // Search by course ID (displays: "ID - Name")
         courses: {
-            getData: function(query) {
-                return Autocomplete.getStaticCourseData().filter(course =>
+            getData: async function(query) {
+                const courses = await Autocomplete.loadCourseData();
+                return courses.filter(course =>
                     course.id.toLowerCase().includes(query.toLowerCase()) ||
                     course.name.toLowerCase().includes(query.toLowerCase())
                 );
@@ -24,8 +28,9 @@ const Autocomplete = {
 
         // Search by course ID specifically (for ID field)
         coursesByID: {
-            getData: function(query) {
-                return Autocomplete.getStaticCourseData().filter(course =>
+            getData: async function(query) {
+                const courses = await Autocomplete.loadCourseData();
+                return courses.filter(course =>
                     course.id.toLowerCase().includes(query.toLowerCase())
                 );
             },
@@ -36,8 +41,9 @@ const Autocomplete = {
 
         // Search by course name specifically (for Name field)
         coursesByName: {
-            getData: function(query) {
-                return Autocomplete.getStaticCourseData().filter(course =>
+            getData: async function(query) {
+                const courses = await Autocomplete.loadCourseData();
+                return courses.filter(course =>
                     course.name.toLowerCase().includes(query.toLowerCase()) ||
                     course.id.toLowerCase().includes(query.toLowerCase())
                 );
@@ -45,14 +51,62 @@ const Autocomplete = {
             formatDisplay: (item) => `${item.name} (${item.id})`,
             getId: (item) => item.id,
             getName: (item) => item.name
+        },
+
+        studentsByID: {
+            getData: async function(query) {
+                if (!window.CUAApi) return [];
+                return window.CUAApi.searchStudents(query);
+            },
+            formatDisplay: (item) => `${item.studentId} - ${item.name}`,
+            formatSecondary: (item) => item.email || item.phone || "Existing student",
+            getId: (item) => item.studentId,
+            getName: (item) => item.name,
+            noResultsText: "No matching students found"
         }
     },
 
     /**
-     * Static course data - Replace this function with backend call
-     * FUTURE: Remove this and call backend API instead
+     * Course data cache. Uses the PHP API when available and falls back to
+     * prototype data if the backend cannot be reached.
      */
+    async loadCourseData(force = false) {
+        if (!force && this.courseCache) return this.courseCache;
+        if (!force && this.courseLoadPromise) return this.courseLoadPromise;
+
+        this.courseLoadPromise = (async () => {
+            try {
+                if (!window.CUAApi) throw new Error("Backend API is not loaded.");
+                const courses = await window.CUAApi.getCourses(force);
+                this.courseCache = courses.map(course => ({
+                    id: course.id || course.code,
+                    code: course.code || course.id,
+                    name: course.name,
+                    category: course.category,
+                    courseId: course.course_id,
+                    professors: course.professors || [],
+                    mentors: course.mentors || [],
+                    topics: course.topics || [],
+                    description: course.description || ""
+                }));
+            } catch (error) {
+                console.warn("Using fallback course data:", error);
+                this.courseCache = this.getFallbackCourseData();
+            } finally {
+                this.courseLoadPromise = null;
+            }
+
+            return this.courseCache;
+        })();
+
+        return this.courseLoadPromise;
+    },
+
     getStaticCourseData() {
+        return this.courseCache || this.getFallbackCourseData();
+    },
+
+    getFallbackCourseData() {
         return [
             { id: 'MATH101', name: 'Calculus I', category: 'Math' },
             { id: 'MATH102', name: 'Calculus II', category: 'Math' },
@@ -131,11 +185,11 @@ const Autocomplete = {
     /**
      * Fetch suggestions and display them
      */
-    _fetchAndDisplaySuggestions(query, inputElement) {
+    async _fetchAndDisplaySuggestions(query, inputElement) {
         const data = inputElement.autocompleteData;
 
         try {
-            let results = data.dataSource.getData(query);
+            let results = await Promise.resolve(data.dataSource.getData(query));
             
             // Apply category filter if set
             if (data.config.categoryFilter && data.config.categoryFilter !== 'Show All' && data.config.categoryFilter !== 'all') {
@@ -168,7 +222,7 @@ const Autocomplete = {
         container.innerHTML = suggestions.map((item, index) => `
             <div class="autocomplete-item" data-index="${index}" role="option" tabindex="-1">
                 <div class="autocomplete-item-primary">${this._escape(data.dataSource.formatDisplay(item))}</div>
-                <div class="autocomplete-item-secondary">${this._escape(data.dataSource.getId(item))}</div>
+                <div class="autocomplete-item-secondary">${this._escape(data.dataSource.formatSecondary ? data.dataSource.formatSecondary(item) : data.dataSource.getId(item))}</div>
             </div>
         `).join('');
 
@@ -193,7 +247,7 @@ const Autocomplete = {
         const data = inputElement.autocompleteData;
         const container = data.suggestionsContainer;
 
-        container.innerHTML = '<div class="autocomplete-no-results">No courses found</div>';
+        container.innerHTML = `<div class="autocomplete-no-results">${this._escape(data.config.noResultsText || data.dataSource.noResultsText || "No results found")}</div>`;
         container.style.display = 'block';
     },
 
@@ -387,3 +441,7 @@ const Autocomplete = {
         }
     }
 };
+
+if (typeof window !== "undefined") {
+    window.Autocomplete = Autocomplete;
+}

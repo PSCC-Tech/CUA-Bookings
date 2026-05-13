@@ -1,5 +1,13 @@
 const CoursesUI = {
     selected: new Map(), // Stores selected courses for deletion
+    categorySections: [
+        { name: "Math", title: "Math Courses", icon: "fa-solid fa-square-root-variable" },
+        { name: "Computer Science", title: "Computer Science Courses", icon: "fa-solid fa-computer" },
+        { name: "Biology", title: "Biology Courses", icon: "fa-solid fa-dna" },
+        { name: "Business", title: "Business Courses", icon: "fa-solid fa-briefcase" },
+        { name: "Chemistry", title: "Chemistry Courses", icon: "fa-solid fa-flask" },
+        { name: "English", title: "English Courses", icon: "fa-solid fa-book" }
+    ],
 
     init() {
         document.querySelectorAll(".course-select").forEach(cb => cb.checked = false);
@@ -12,6 +20,134 @@ const CoursesUI = {
         this.setupTableManagerCallbacks();
         this.setupPaginationUI();
         this.setupPeopleDropdown();
+    },
+
+    async loadFromBackend() {
+        if (!window.CUAApi) return;
+
+        try {
+            const courses = await window.CUAApi.getCourses(true);
+            this.renderCourseTables(courses);
+        } catch (error) {
+            console.warn("Could not load courses from the database:", error);
+            this.showLoadError(error.message || "Could not load courses from the database.");
+        }
+    },
+
+    showLoadError(message) {
+        const root = document.getElementById("courses");
+        if (!root) return;
+
+        root.querySelectorAll(".course-table tbody").forEach(tbody => {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">${this.escapeHtml(message)}</td>
+                </tr>
+            `;
+        });
+    },
+
+    renderCourseTables(courses) {
+        const root = document.getElementById("courses");
+        if (!root) return;
+
+        this.ensureCourseSections(root);
+
+        const grouped = new Map(this.categorySections.map(category => [category.name, []]));
+        courses.forEach(course => {
+            if (!grouped.has(course.category)) return;
+            grouped.get(course.category).push(course);
+        });
+
+        this.categorySections.forEach(category => {
+            const section = root.querySelector(`.course-section[data-category="${category.name}"]`);
+            const tbody = section?.querySelector("tbody");
+            if (!tbody) return;
+
+            const rows = grouped.get(category.name) || [];
+            tbody.innerHTML = rows.map(course => this.createCourseRow(course)).join("");
+        });
+    },
+
+    ensureCourseSections(root) {
+        const existingSections = [...root.querySelectorAll(".course-section")];
+
+        existingSections.forEach(section => {
+            if (section.dataset.category) return;
+            const title = section.querySelector(".title-text")?.textContent || "";
+            const match = this.categorySections.find(category => title.includes(category.name));
+            if (match) section.dataset.category = match.name;
+        });
+
+        this.categorySections.forEach(category => {
+            if (root.querySelector(`.course-section[data-category="${category.name}"]`)) return;
+            root.appendChild(this.createCourseSection(category));
+        });
+    },
+
+    createCourseSection(category) {
+        const section = document.createElement("div");
+        section.className = "course-section";
+        section.dataset.category = category.name;
+        section.innerHTML = `
+            <div class="no-results hidden">No matching courses found.</div>
+            <div class="course-inner">
+                <h2><i class="${category.icon}"></i>
+                    <span class="title-text">${category.title}</span>
+                </h2>
+                <div class="pagination-controls">
+                    Show:
+                    <select class="rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                    courses per page
+                </div>
+                <table class="course-table">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Course ID</th>
+                            <th>Course Name</th>
+                            <th>Professors</th>
+                            <th>Mentors</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="pagination"></div>
+            </div>
+        `;
+        return section;
+    },
+
+    createCourseRow(course) {
+        const professors = (course.professors || []).join(", ");
+        const mentors = (course.mentors || []).join(", ");
+        const detailsUrl = `courses-details.html?course_id=${encodeURIComponent(course.course_id)}`;
+
+        return `
+            <tr data-course-id="${course.course_id}" data-name="${this.escapeHtml(course.name)}" data-category="${this.escapeHtml(course.category)}" data-mentor="${this.escapeHtml(mentors)}">
+                <td><input type="checkbox" class="course-select"></td>
+                <td>${this.escapeHtml(course.code || course.id)}</td>
+                <td class="course-name-link" onclick="window.location='${detailsUrl}'">${this.escapeHtml(course.name)}</td>
+                <td class="professor-cell" data-professors="${this.escapeAttribute(professors)}"></td>
+                <td class="mentor-cell" data-mentors="${this.escapeAttribute(mentors)}"></td>
+            </tr>
+        `;
+    },
+
+    escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
+    },
+
+    escapeAttribute(value) {
+        return this.escapeHtml(value).replace(/"/g, "&quot;");
     },
 
     /* -----------------------------------------
@@ -72,7 +208,7 @@ const CoursesUI = {
             TableManager.registerTable(tableId, table);
 
             // Rows-per-page selector
-            const selector = section.querySelector("#rows-per-page");
+            const selector = section.querySelector("#rows-per-page, .rows-per-page");
             const initialRows = selector ? parseInt(selector.value) : 10;
 
             if (selector) {
@@ -225,8 +361,10 @@ const CoursesUI = {
 
         const mentors = [...new Set(
             [...mentorCells]
-                .map(td => td.textContent.trim())
-                .filter(m => m.length > 0)   
+                .flatMap(td => (td.dataset.mentors || td.textContent || "")
+                    .split(",")
+                    .map(m => m.trim()))
+                .filter(m => m.length > 0)
         )].sort((a, b) => a.localeCompare(b));
 
         this.mentorDropdown.innerHTML =
@@ -498,8 +636,10 @@ const CoursesUI = {
         this.peopleDropdown.style.left = `${rect.left + window.scrollX}px`;
 
         this.peopleDropdown.classList.remove("hidden");
-        this.peopleDropdownSearch.value = "";
-        this.peopleDropdownSearch.focus();
+        if (this.peopleDropdownSearch) {
+            this.peopleDropdownSearch.value = "";
+            this.peopleDropdownSearch.focus();
+        }
     },
 
     closePeopleDropdown() {

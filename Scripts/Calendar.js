@@ -1,5 +1,5 @@
 const MentorScheduleStore = (() => {
-  const mentors = {
+  let mentors = {
     "John Smith": {
       id: "john-smith",
       name: "John Smith",
@@ -117,10 +117,18 @@ const MentorScheduleStore = (() => {
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  Object.values(mentors).forEach(mentor => {
-    aliases[normalizeKey(mentor.name)] = mentor.name;
-    aliases[normalizeKey(mentor.id)] = mentor.name;
-  });
+  let loadPromise = null;
+
+  function rebuildAliases() {
+    Object.keys(aliases).forEach(key => delete aliases[key]);
+    Object.values(mentors).forEach(mentor => {
+      aliases[normalizeKey(mentor.name)] = mentor.name;
+      aliases[normalizeKey(mentor.id)] = mentor.name;
+      aliases[normalizeKey(mentor.mentor_number)] = mentor.name;
+    });
+  }
+
+  rebuildAliases();
 
   function normalizeKey(value) {
     return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -130,35 +138,86 @@ const MentorScheduleStore = (() => {
     return Object.values(mentors);
   }
 
+  function setMentorsFromApi(apiMentors = []) {
+    const nextMentors = {};
+
+    apiMentors.forEach(mentor => {
+      if (!mentor || !mentor.name) return;
+      nextMentors[mentor.name] = {
+        id: mentor.mentor_number || mentor.id || normalizeKey(mentor.name),
+        mentorId: mentor.mentor_id,
+        mentor_number: mentor.mentor_number || mentor.id || "",
+        name: mentor.name,
+        categories: mentor.categories || [],
+        courseCodes: mentor.courseCodes || mentor.course_codes || [],
+        weeklyAvailability: mentor.weeklyAvailability || {},
+        bookings: mentor.bookings || [],
+        absences: mentor.absences || []
+      };
+    });
+
+    if (Object.keys(nextMentors).length) {
+      mentors = nextMentors;
+      rebuildAliases();
+    }
+  }
+
+  async function loadFromApi(force = false) {
+    if (!window.CUAApi) return listMentors();
+    if (!force && loadPromise) return loadPromise;
+
+    loadPromise = window.CUAApi.getSchedule(force)
+      .then(apiMentors => {
+        setMentorsFromApi(apiMentors);
+        return listMentors();
+      })
+      .catch(error => {
+        console.warn("Using fallback mentor schedule data:", error);
+        return listMentors();
+      })
+      .finally(() => {
+        loadPromise = null;
+      });
+
+    return loadPromise;
+  }
+
   function getMentor(value) {
     const key = normalizeKey(value);
     return mentors[aliases[key]] || null;
   }
 
   function getDefaultMentor() {
-    return mentors["John Smith"];
+    return mentors["John Smith"] || Object.values(mentors)[0] || null;
   }
 
   function getMentorsForCourse(courseCode) {
     const normalized = normalizeKey(courseCode);
+    const directMatches = listMentors().filter(mentor =>
+      (mentor.courseCodes || []).some(code => normalizeKey(code) === normalized)
+    );
+
+    if (directMatches.length) {
+      return directMatches;
+    }
 
     if (normalized.startsWith("math")) {
-      return [mentors["John Smith"], mentors["Jane Smith"], mentors["Dr. Wilson"]];
+      return listMentors().filter(mentor => mentor.categories.includes("Math"));
     }
 
     if (normalized.startsWith("comp")) {
-      return [mentors["Dr. Wilson"], mentors["John Smith"], mentors["Jane Smith"]];
+      return listMentors().filter(mentor => mentor.categories.includes("Computer Science"));
     }
 
     if (normalized.startsWith("bio")) {
-      return [mentors["John Doe"], mentors["Jane Doe"], mentors["Jane Smith"]];
+      return listMentors().filter(mentor => mentor.categories.includes("Biology"));
     }
 
     if (normalized.startsWith("bus")) {
-      return [mentors["John Doe"], mentors["Dr. Adams"]];
+      return listMentors().filter(mentor => mentor.categories.includes("Business"));
     }
 
-    return [mentors["John Smith"], mentors["John Doe"], mentors["Jane Smith"]];
+    return listMentors();
   }
 
   function getDateKey(date) {
@@ -280,6 +339,8 @@ const MentorScheduleStore = (() => {
     dayNames,
     monthNames,
     listMentors,
+    loadFromApi,
+    setMentorsFromApi,
     getMentor,
     getDefaultMentor,
     getMentorsForCourse,
@@ -309,6 +370,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!monthYearEl || !daysEl || !prevMonthBtn || !nextMonthBtn || !todayBtn || !eventDateEl || !eventListEl) {
     return;
   }
+
+  (async () => {
+  await MentorScheduleStore.loadFromApi();
 
   const state = {
     currentDate: new Date(),
@@ -683,4 +747,5 @@ document.addEventListener("DOMContentLoaded", () => {
     return typeof window.openConfirmation === "function" &&
       (Boolean(document.getElementById("confirm-selection")) || typeof window.viewEditDateCallback === "function");
   }
+  })();
 });

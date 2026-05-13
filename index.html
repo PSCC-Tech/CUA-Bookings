@@ -58,6 +58,8 @@
                             <div data-category="Computer Science">Computer Science</div>
                             <div data-category="Biology">Biology</div>
                             <div data-category="Business">Business</div>
+                            <div data-category="Chemistry">Chemistry</div>
+                            <div data-category="English">English</div>
                             <div data-category="all" class="selected">Show All</div>
                         </div>
                     </div>
@@ -66,7 +68,7 @@
                     </div>
                 </div>
 
-                <input type="text" placeholder="Course Name">
+                <input type="text" id="course-name" placeholder="Course Name">
 
                     <label>Mentor</label>
                     <select id="mentor-select" placeholder="Select mentor">
@@ -152,22 +154,17 @@
                     </div>
 
                     <label>Location</label>
-                    <input list="location" placeholder="Enter location">
-                    <datalist id="location">
-                        <option value="CUA (Library 2nd Floor)">
-                        <option value="Online (Microsoft Teams)">
-                        <option value="PC & Mac Lab (C234-C235)">
-                        <option value="Grad. Department Office (Old)">
-                    </datalist>
+                    <input list="location" id="location-input" placeholder="Enter location">
+                    <datalist id="location"></datalist>
 
                     <label>Topics to Discuss</label>
-                    <textarea rows="3" placeholder="Enter topics"></textarea>
+                    <textarea id="topics-input" rows="3" placeholder="Enter topics"></textarea>
 
                     <label>Professor</label>
-                    <input type="text" placeholder="Enter professor">
+                    <input type="text" id="professor-input" placeholder="Enter professor">
 
                     <label>Made by</label>
-                    <input type="text" placeholder="Enter name">
+                    <input type="text" id="made-by-input" placeholder="Enter name">
 
                     <button type="submit">Submit</button>
         </form>
@@ -262,6 +259,7 @@
 
 </div>
 
+<script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/Calendar.js"></script>
 <script src="Scripts/Autocomplete.js"></script>
 <script src="Scripts/IndexUI.js"></script>

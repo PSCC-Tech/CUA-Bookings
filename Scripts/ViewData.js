@@ -3,11 +3,24 @@ const ViewData = {
     bookingGrid: null,
     bookings: [],
 
-    init() {
+    async init() {
         this.bookingGrid = document.querySelector(".booking-grid");
 
-        // Prototype data for the current static UI. Replace with API data later.
-        this.bookings = [
+        this.bookings = await this.loadBookings();
+        this.render();
+        this.populateFilters();
+    },
+
+    async loadBookings() {
+        try {
+            if (!window.CUAApi) throw new Error("Backend API is not loaded.");
+            const bookings = await window.CUAApi.getBookings(true);
+            this.loadError = "";
+            return bookings;
+        } catch (error) {
+            console.warn("Using fallback booking data:", error);
+            this.loadError = error.message || "Could not load bookings from the database.";
+            return [
             {
                 id: 1,
                 date: "2026-04-14",
@@ -156,10 +169,8 @@ const ViewData = {
                 professor: "Dr. Navarro",
                 madeBy: "Luis Santiago"
             }
-        ];
-
-        this.render();
-        this.populateFilters();
+            ];
+        }
     },
 
     /* -----------------------------
@@ -167,6 +178,11 @@ const ViewData = {
     ----------------------------- */
     render(filteredList = null) {
         const data = filteredList || this.bookings;
+
+        if (this.loadError && !filteredList) {
+            this.bookingGrid.innerHTML = `<div class="no-bookings">${this.escapeHtml(this.loadError)}</div>`;
+            return;
+        }
 
         if (!data.length) {
             this.bookingGrid.innerHTML = `<div class="no-bookings">No upcoming bookings available.</div>`;
@@ -208,10 +224,17 @@ const ViewData = {
     },
 
     formatDateLabel(dateStr) {
-        const d = new Date(dateStr);
+        const [year, month, day] = String(dateStr).split("-").map(Number);
+        const d = year && month && day ? new Date(year, month - 1, day) : new Date(dateStr);
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
         return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    },
+
+    escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
     },
 
     /* -----------------------------
@@ -267,6 +290,10 @@ const ViewData = {
         card.dataset.topics = b.topics;
         card.dataset.professor = b.professor;
         card.dataset.madeBy = b.madeBy;
+        card.dataset.courseCode = b.courseCode || this.extractCourseCode(b.course);
+        card.dataset.mentorNumber = b.mentorNumber || "";
+        card.dataset.active = b.active ? "true" : "false";
+        card.dataset.bookingType = b.bookingType || "scheduled";
 
         card.innerHTML = `
             <h3>${b.time}</h3>
@@ -277,6 +304,10 @@ const ViewData = {
         `;
 
         return card;
+    },
+
+    extractCourseCode(courseValue = "") {
+        return String(courseValue).split("-")[0].trim().replace(/\s+/g, "");
     },
 
     getBookingStudents(booking) {
