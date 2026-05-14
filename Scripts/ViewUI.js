@@ -514,7 +514,9 @@ const ViewUI = {
     createEditorForField(field, value) {
         let input;
 
-        if (field === "dateTime") {
+        if (field === "mentor") {
+            input = this.createMentorEditor(value);
+        } else if (field === "dateTime") {
             input = this.createDateTimeEditor(value);
         } else if (field === "topics") {
             input = document.createElement("textarea");
@@ -549,6 +551,12 @@ const ViewUI = {
                 if (opt === value) option.selected = true;
                 input.appendChild(option);
             });
+        } else if (field === "course") {
+            input = document.createElement("input");
+            input.type = "text";
+            input.value = value;
+            input.addEventListener("change", () => this.refreshMentorEditorForCourse(input.value));
+            input.addEventListener("blur", () => this.refreshMentorEditorForCourse(input.value));
         } else {
             input = document.createElement("input");
             input.type = field === "email" ? "email" : field === "phone" ? "tel" : "text";
@@ -557,6 +565,101 @@ const ViewUI = {
 
         input.dataset.field = field;
         return input;
+    },
+
+    createMentorEditor(value) {
+        const select = document.createElement("select");
+        select.dataset.field = "mentor";
+        this.populateMentorSelect(select, value, this.activeCard?.dataset.course || "");
+
+        select.addEventListener("change", () => {
+            this.handleMentorEditorChange(select);
+        });
+
+        return select;
+    },
+
+    populateMentorSelect(select, selectedValue, courseValue) {
+        const mentors = this.getMentorsForCourseValue(courseValue);
+        select.innerHTML = "";
+
+        if (!mentors.length) {
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "No mentors available";
+            select.appendChild(option);
+            select.disabled = true;
+            return;
+        }
+
+        select.disabled = false;
+        mentors.forEach(mentor => {
+            const option = document.createElement("option");
+            option.value = mentor.name;
+            option.textContent = mentor.name;
+            option.dataset.mentorNumber = mentor.mentor_number || mentor.id || "";
+            option.selected = mentor.name === selectedValue;
+            select.appendChild(option);
+        });
+
+        if (selectedValue && ![...select.options].some(option => option.value === selectedValue)) {
+            select.value = mentors[0].name;
+        }
+    },
+
+    getMentorsForCourseValue(courseValue = "") {
+        if (!window.MentorScheduleStore) return [];
+
+        const courseCode = this.extractCourseCode(courseValue || this.activeCard?.dataset.course || "");
+        return courseCode
+            ? window.MentorScheduleStore.getMentorsForCourse(courseCode)
+            : window.MentorScheduleStore.listMentors();
+    },
+
+    refreshMentorEditorForCourse(courseValue) {
+        const mentorControl = this.getFieldControl("mentor");
+        if (!mentorControl || mentorControl.tagName !== "SELECT") return;
+
+        const previousValue = mentorControl.value;
+        this.populateMentorSelect(mentorControl, previousValue, courseValue);
+
+        // Course or mentor changes can invalidate the old slot, so force a fresh selection.
+        this.clearDateTimeEditor("Choose Date & Time");
+        this.syncCalendarForEditSelection();
+    },
+
+    handleMentorEditorChange() {
+        this.clearDateTimeEditor("Choose Date & Time");
+        this.syncCalendarForEditSelection();
+    },
+
+    syncCalendarForEditSelection() {
+        if (!window.CUACalendar) return;
+
+        const mentor = this.getFieldControl("mentor")?.value || "";
+        const course = this.getFieldControl("course")?.value || this.activeCard?.dataset.course || "";
+        const courseCode = this.extractCourseCode(course);
+
+        window.CUACalendar.setCourse(courseCode, mentor, Boolean(mentor));
+        if (mentor) {
+            window.CUACalendar.setMentor(mentor);
+        }
+    },
+
+    clearDateTimeEditor(label = "Choose Date & Time") {
+        const editor = document.querySelector(".date-time-editor");
+        const hidden = editor?.querySelector('[data-field-control="dateTime"]');
+        const text = editor?.querySelector(".date-time-button-text");
+
+        if (hidden) {
+            hidden.dataset.date = "";
+            hidden.dataset.time = "";
+            hidden.value = "";
+        }
+
+        if (text) {
+            text.textContent = label;
+        }
     },
 
     createDateTimeEditor(value) {
@@ -595,6 +698,12 @@ const ViewUI = {
 
         const mentor = this.getFieldControl("mentor")?.value || this.activeCard?.dataset.mentor || "";
         const course = this.getFieldControl("course")?.value || this.activeCard?.dataset.course || "";
+
+        if (!mentor) {
+            alert("Please select a mentor before choosing a date and time.");
+            this.getFieldControl("mentor")?.focus();
+            return;
+        }
 
         window.viewEditDateCallback = (dateStr, timeStr) => {
             this.setDateTimeEditorValue(editor, dateStr, timeStr);
@@ -667,8 +776,8 @@ const ViewUI = {
             if (field === "studentId" || field === "name" || field === "email" || field === "phone") {
                 savedValues[field] = students[0][field] || "";
             } else if (field === "dateTime") {
-                savedValues.date = input?.dataset.date || this.activeCard?.dataset.date || "";
-                savedValues.time = input?.dataset.time || this.activeCard?.dataset.time || "";
+                savedValues.date = input?.dataset.date || "";
+                savedValues.time = input?.dataset.time || "";
                 savedValues[field] = this.formatDateTimeDisplay(savedValues.date, savedValues.time);
             } else if (field === "sessionType") {
                 savedValues[field] = this.getSessionTypeDisplay(sessionType, students);
@@ -678,6 +787,20 @@ const ViewUI = {
 
             fieldUpdates.push({ row, input, field, value: savedValues[field] });
         });
+
+        const mentorControl = this.getFieldControl("mentor");
+        savedValues.mentorNumber = mentorControl?.selectedOptions?.[0]?.dataset.mentorNumber || this.activeCard?.dataset.mentorNumber || "";
+
+        if (!savedValues.mentor) {
+            alert("Please select a mentor.");
+            this.getFieldControl("mentor")?.focus();
+            return;
+        }
+
+        if (!savedValues.date || !savedValues.time) {
+            alert("Please choose a valid date and time for the selected mentor.");
+            return;
+        }
 
         try {
             await this.persistInlineEdits(savedValues, students);
@@ -713,6 +836,7 @@ const ViewUI = {
         await window.CUAApi.updateBooking(this.activeCard.dataset.id, {
             booking_type: this.activeCard.dataset.bookingType || "scheduled",
             mentor: values.mentor,
+            mentor_number: values.mentorNumber,
             course: values.course,
             course_code: this.extractCourseCode(values.course),
             location: values.location,
@@ -959,6 +1083,7 @@ const ViewUI = {
         const primaryStudent = students[0] || this.createBlankStudent();
 
         this.activeCard.dataset.mentor = values.mentor;
+        this.activeCard.dataset.mentorNumber = values.mentorNumber || this.activeCard.dataset.mentorNumber || "";
         this.activeCard.dataset.date = values.date || this.activeCard.dataset.date;
         this.activeCard.dataset.time = values.time || this.activeCard.dataset.time;
         this.activeCard.dataset.studentId = primaryStudent.studentId;
@@ -999,6 +1124,7 @@ const ViewUI = {
 
         Object.assign(record, {
             mentor: values.mentor,
+            mentorNumber: values.mentorNumber || record.mentorNumber || "",
             studentId: students[0]?.studentId || "",
             name: students[0]?.name || "",
             email: students[0]?.email || "",

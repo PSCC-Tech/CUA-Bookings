@@ -70,6 +70,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let originalData = {};
 
+    function escapeAttribute(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML.replace(/"/g, "&quot;");
+    }
+
+    function readScheduleList(scheduleList) {
+        return [...scheduleList.querySelectorAll("li")].map((li, index) => {
+            const day = li.querySelector("strong")?.textContent.trim() || `Day ${index + 1}:`;
+            const shifts = [...li.querySelectorAll(".schedule-shift")]
+                // Unavailable rows do not have start/end spans, so skip them instead of crashing edit mode.
+                .map(shift => ({
+                    start: shift.querySelector(".schedule-start")?.textContent.trim() || "",
+                    end: shift.querySelector(".schedule-end")?.textContent.trim() || "",
+                }))
+                .filter(shift => shift.start && shift.end);
+
+            return { day, shifts };
+        });
+    }
+
+    function renderScheduleItems(scheduleItems) {
+        return scheduleItems.map(item => {
+            const shiftHtml = item.shifts.length
+                ? item.shifts.map(shift => `<div class="schedule-shift"><span class="schedule-start">${shift.start}</span> - <span class="schedule-end">${shift.end}</span></div>`).join("")
+                : `<div class="schedule-shift unavailable">Unavailable</div>`;
+
+            return `<li><strong>${item.day}</strong>${shiftHtml}</li>`;
+        }).join("");
+    }
+
     function showEditUI() {
         editControls.classList.add("editing");
         editActions.style.display = "flex";
@@ -94,34 +125,13 @@ document.addEventListener("DOMContentLoaded", () => {
             id: idSpan.textContent,
             name: nameSpan.textContent,
             contact: contactSpan.textContent,
-            scheduleList: [...scheduleList.querySelectorAll("li")].map(li => {
-                const savedShifts = [...li.querySelectorAll(".schedule-shift")];
-                if (savedShifts.length > 0) {
-                    return {
-                        day: li.querySelector("strong").textContent.trim(),
-                        shifts: savedShifts.map(shift => ({
-                            start: shift.querySelector(".schedule-start").textContent.trim(),
-                            end: shift.querySelector(".schedule-end").textContent.trim(),
-                        })),
-                    };
-                }
-
-                const startSpan = li.querySelector(".schedule-start");
-                const endSpan = li.querySelector(".schedule-end");
-                return {
-                    day: li.querySelector("strong").textContent.trim(),
-                    shifts: startSpan && endSpan ? [{
-                        start: startSpan.textContent.trim(),
-                        end: endSpan.textContent.trim(),
-                    }] : [],
-                };
-            }),
+            scheduleList: readScheduleList(scheduleList),
         };
 
         // Replace id + name with inputs
-        idSpan.outerHTML = `<input id="edit-id" value="${originalData.id}">`;
-        nameSpan.outerHTML = `<input id="edit-name" value="${originalData.name}">`;
-        contactSpan.outerHTML = `<input id="edit-contact" value="${originalData.contact}">`;
+        idSpan.outerHTML = `<input id="edit-id" value="${escapeAttribute(originalData.id)}">`;
+        nameSpan.outerHTML = `<input id="edit-name" value="${escapeAttribute(originalData.name)}">`;
+        contactSpan.outerHTML = `<input id="edit-contact" value="${escapeAttribute(originalData.contact)}">`;
 
         // Replace schedule with editable list
         scheduleList.innerHTML = originalData.scheduleList
@@ -152,24 +162,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     }))
                     .map(item => ({
                         day: item.day,
-                        shifts: item.shifts.filter(shift => shift.start.length > 0 && shift.end.length > 0),
+                        shifts: item.shifts.filter(shift => shift.start !== "---" && shift.end !== "---"),
                     }));
 
                 document.getElementById("edit-id").outerHTML = `<span id="mentor-id">${newID}</span>`;
                 document.getElementById("edit-name").outerHTML = `<span id="mentor-name">${newName}</span>`;
                 document.getElementById("edit-contact").outerHTML = `<span id="mentor-contact">${newContact}</span>`;
 
-                scheduleList.innerHTML = newSchedule
-                    .map(item => `<li><strong>${item.day}</strong>${item.shifts.map(shift => `<div class="schedule-shift"><span class="schedule-start">${shift.start}</span> - <span class="schedule-end">${shift.end}</span></div>`).join("")}</li>`)
-                    .join("");
+                scheduleList.innerHTML = renderScheduleItems(newSchedule);
             } else {
                 document.getElementById("edit-id").outerHTML = `<span id="mentor-id">${originalData.id}</span>`;
                 document.getElementById("edit-name").outerHTML = `<span id="mentor-name">${originalData.name}</span>`;
                 document.getElementById("edit-contact").outerHTML = `<span id="mentor-contact">${originalData.contact}</span>`;
 
-                scheduleList.innerHTML = originalData.scheduleList
-                    .map(item => `<li><strong>${item.day}</strong>${item.shifts.map(shift => `<div class="schedule-shift"><span class="schedule-start">${shift.start}</span> - <span class="schedule-end">${shift.end}</span></div>`).join("")}</li>`)
-                    .join("");
+                scheduleList.innerHTML = renderScheduleItems(originalData.scheduleList);
             }
         } finally {
             editControls.classList.remove("editing");

@@ -356,6 +356,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (courseCodeInput.autocompleteData && window.Autocomplete) {
             window.Autocomplete.setCategory(courseCodeInput, selectedCategory);
         }
+        if (courseNameInput?.autocompleteData && window.Autocomplete) {
+            window.Autocomplete.setCategory(courseNameInput, selectedCategory);
+        }
 
         updateMentorOptions(getCourseMentors(course), false);
         updateDateTimeButtonState();
@@ -635,6 +638,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (courseCodeInput && courseCodeInput.autocompleteData && Autocomplete) {
                 Autocomplete.setCategory(courseCodeInput, selectedCategory);
             }
+            if (courseNameInput && courseNameInput.autocompleteData && Autocomplete) {
+                Autocomplete.setCategory(courseNameInput, selectedCategory);
+            }
         });
     });
 
@@ -647,6 +653,20 @@ document.addEventListener("DOMContentLoaded", async () => {
             categoryFilter: selectedCategory,
             onSelect: (suggestion) => {
                 selectCourse(suggestion);
+            }
+        });
+    }
+
+    // Reuse the course autocomplete data source for name-based course selection.
+    if (courseNameInput && Autocomplete) {
+        Autocomplete.init(courseNameInput, 'coursesByName', {
+            minChars: 1,
+            maxResults: 8,
+            debounceMs: 300,
+            categoryFilter: selectedCategory,
+            onSelect: (suggestion) => {
+                selectCourse(suggestion);
+                courseNameInput.value = suggestion.name;
             }
         });
     }
@@ -676,6 +696,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (selectedCourse || !courseCodeInput.value.trim()) return;
 
         const matchingCourse = findExactCourse(courseCodeInput.value);
+        if (matchingCourse) {
+            selectCourse(matchingCourse);
+        }
+    });
+
+    courseNameInput?.addEventListener("input", () => {
+        if (!courseNameInput.value.trim()) {
+            courseCodeInput.value = "";
+            clearSelectedCourse();
+            return;
+        }
+
+        if (selectedCourse && courseNameInput.value.trim() !== selectedCourse.name) {
+            clearSelectedCourse();
+        }
+    });
+
+    courseNameInput?.addEventListener("blur", () => {
+        if (selectedCourse || !courseNameInput.value.trim()) return;
+
+        const matchingCourse = findExactCourse(courseNameInput.value);
         if (matchingCourse) {
             selectCourse(matchingCourse);
         }
