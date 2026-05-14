@@ -4,6 +4,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const editControls = document.querySelector(".edit-controls");
     const editActions = document.querySelector(".edit-actions");
 
+    if (!editBtn || !editControls || !editActions) return;
+
+    let mentorDetailsReady = Boolean(window.CUACurrentMentor);
+    editBtn.disabled = !mentorDetailsReady;
+    editBtn.classList.toggle("is-disabled", !mentorDetailsReady);
+
+    document.addEventListener("cua-mentor-details-loaded", () => {
+        mentorDetailsReady = true;
+        editBtn.disabled = false;
+        editBtn.classList.remove("is-disabled");
+    });
+
     const scheduleStartOptions = [
         "---",
         "8:00 AM",
@@ -69,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let originalData = {};
+    let isEditing = false;
 
     function escapeAttribute(value) {
         const div = document.createElement("div");
@@ -101,27 +114,120 @@ document.addEventListener("DOMContentLoaded", () => {
         }).join("");
     }
 
+    function parseTimeForApi(value) {
+        if (!value || value === "---") return "";
+
+        const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (!match) return "";
+
+        let hours = Number(match[1]);
+        const minutes = match[2];
+        const period = match[3].toUpperCase();
+
+        if (period === "PM" && hours !== 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+
+        return `${String(hours).padStart(2, "0")}:${minutes}:00`;
+    }
+
+    function getEditedSchedule(scheduleList) {
+        return [...scheduleList.querySelectorAll("li")]
+            .map((li, idx) => ({
+                day: originalData.scheduleList[idx]?.day || `Day ${idx + 1}:`,
+                dayOfWeek: idx + 1,
+                shifts: [...li.querySelectorAll(".shift-row")]
+                    .map(row => ({
+                        start: row.querySelector(".schedule-start-select")?.value.trim() || "",
+                        end: row.querySelector(".schedule-end-select")?.value.trim() || "",
+                    }))
+                    .filter(shift => shift.start !== "---" && shift.end !== "---"),
+            }));
+    }
+
+    function getSchedulePayload(scheduleItems) {
+        return scheduleItems.flatMap(item =>
+            item.shifts
+                .map(shift => ({
+                    day_of_week: item.dayOfWeek,
+                    start_time: parseTimeForApi(shift.start),
+                    end_time: parseTimeForApi(shift.end),
+                }))
+                .filter(shift => shift.start_time && shift.end_time)
+        );
+    }
+
+    function replaceInputWithSpan(inputId, spanId, value) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        const span = document.createElement("span");
+        span.id = spanId;
+        span.textContent = value || "";
+        input.replaceWith(span);
+    }
+
+    async function persistMentorEdits({ newID, newName, newContact, schedulePayload }) {
+        if (!window.CUAApi?.updateMentor) return;
+
+        const identifier = originalData.mentorDbId || originalData.id;
+        const currentMentor = window.CUACurrentMentor || {};
+        const contactIsEmail = newContact.includes("@");
+        const email = contactIsEmail ? newContact : (currentMentor.email || "");
+        const phone = contactIsEmail ? (currentMentor.phone || "") : newContact;
+
+        await window.CUAApi.updateMentor(identifier, {
+            mentor_id: originalData.mentorDbId,
+            current_mentor_number: originalData.id,
+            mentor_number: newID,
+            full_name: newName,
+            contact: newContact,
+            email,
+            phone,
+            schedule: schedulePayload
+        });
+
+        window.CUACurrentMentor = {
+            ...(window.CUACurrentMentor || {}),
+            mentor_id: originalData.mentorDbId,
+            mentor_number: newID,
+            name: newName,
+            full_name: newName,
+            contact: newContact,
+            email,
+            phone
+        };
+    }
+
     function showEditUI() {
+        isEditing = true;
         editControls.classList.add("editing");
         editActions.style.display = "flex";
         editBtn.style.display = "none";
     }
 
     function hideEditUI() {
+        isEditing = false;
         editControls.classList.remove("editing");
         editActions.style.display = "none";
         editBtn.style.display = "inline-block";
     }
 
     function enterEditMode() {
+        if (isEditing) return;
+        if (!mentorDetailsReady) return;
+
         // Always re-query current elements (they get replaced)
         const idSpan = document.getElementById("mentor-id");
         const nameSpan = document.getElementById("mentor-name");
         const contactSpan = document.getElementById("mentor-contact");
         const scheduleList = document.getElementById("schedule-list");
 
+        if (!idSpan || !nameSpan || !contactSpan || !scheduleList) return;
+        if ([idSpan, nameSpan, contactSpan].some(span => span.textContent.trim() === "Loading...")) return;
+
         // Save original data
         originalData = {
+            mentorDbId: window.CUACurrentMentor?.mentor_id || window.CUACurrentMentor?.id || "",
             id: idSpan.textContent,
             name: nameSpan.textContent,
             contact: contactSpan.textContent,
@@ -143,45 +249,42 @@ document.addEventListener("DOMContentLoaded", () => {
         attachDynamicButtons();
     }
 
-    function exitEditMode(save) {
+    async function exitEditMode(save) {
         const scheduleList = document.getElementById("schedule-list");
 
         try {
             if (save) {
-                const newID = document.getElementById("edit-id").value;
-                const newName = document.getElementById("edit-name").value;
-                const newContact = document.getElementById("edit-contact").value;
+                const newID = document.getElementById("edit-id").value.trim();
+                const newName = document.getElementById("edit-name").value.trim();
+                const newContact = document.getElementById("edit-contact").value.trim();
+                const newSchedule = getEditedSchedule(scheduleList);
+                const schedulePayload = getSchedulePayload(newSchedule);
 
-                const newSchedule = [...scheduleList.querySelectorAll("li")]
-                    .map((li, idx) => ({
-                        day: originalData.scheduleList[idx]?.day || `Day ${idx + 1}:`,
-                        shifts: [...li.querySelectorAll(".shift-row")].map(row => ({
-                            start: row.querySelector(".schedule-start-select").value.trim(),
-                            end: row.querySelector(".schedule-end-select").value.trim(),
-                        })),
-                    }))
-                    .map(item => ({
-                        day: item.day,
-                        shifts: item.shifts.filter(shift => shift.start !== "---" && shift.end !== "---"),
-                    }));
+                if (!newID || !newName || !newContact) {
+                    alert("Mentor number, name, and contact are required.");
+                    return;
+                }
 
-                document.getElementById("edit-id").outerHTML = `<span id="mentor-id">${newID}</span>`;
-                document.getElementById("edit-name").outerHTML = `<span id="mentor-name">${newName}</span>`;
-                document.getElementById("edit-contact").outerHTML = `<span id="mentor-contact">${newContact}</span>`;
+                await persistMentorEdits({ newID, newName, newContact, schedulePayload });
+
+                replaceInputWithSpan("edit-id", "mentor-id", newID);
+                replaceInputWithSpan("edit-name", "mentor-name", newName);
+                replaceInputWithSpan("edit-contact", "mentor-contact", newContact);
 
                 scheduleList.innerHTML = renderScheduleItems(newSchedule);
             } else {
-                document.getElementById("edit-id").outerHTML = `<span id="mentor-id">${originalData.id}</span>`;
-                document.getElementById("edit-name").outerHTML = `<span id="mentor-name">${originalData.name}</span>`;
-                document.getElementById("edit-contact").outerHTML = `<span id="mentor-contact">${originalData.contact}</span>`;
+                replaceInputWithSpan("edit-id", "mentor-id", originalData.id);
+                replaceInputWithSpan("edit-name", "mentor-name", originalData.name);
+                replaceInputWithSpan("edit-contact", "mentor-contact", originalData.contact);
 
                 scheduleList.innerHTML = renderScheduleItems(originalData.scheduleList);
             }
-        } finally {
-            editControls.classList.remove("editing");
-            editActions.style.display = "none";
-            editBtn.style.display = "inline-block";
+        } catch (error) {
+            alert(error.message || "Could not save mentor changes.");
+            return;
         }
+
+        hideEditUI();
     }
 
     function attachDynamicButtons() {
@@ -217,13 +320,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     editBtn.addEventListener("click", enterEditMode);
-    document.querySelector(".confirm-btn").addEventListener("click", () => {
-        hideEditUI();
-        exitEditMode(true);
+    document.querySelector(".confirm-btn").addEventListener("click", async () => {
+        await exitEditMode(true);
     });
-    document.querySelector(".cancel-btn").addEventListener("click", () => {
-        hideEditUI();
-        exitEditMode(false);
+    document.querySelector(".cancel-btn").addEventListener("click", async () => {
+        await exitEditMode(false);
     });
 
     // Tab switching functionality

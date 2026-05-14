@@ -660,6 +660,20 @@ mark {
     height: 34px;
 }
 
+.booking-modal-content .mentor-edit-select {
+    border-color: #2a4d69;
+    background-color: #f8fafc;
+    color: #1f3a52;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.booking-modal-content .mentor-edit-select:focus {
+    border-color: #1f6feb;
+    box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.14);
+    outline: none;
+}
+
 .booking-modal-content .editable-field textarea {
     min-height: 72px;
     max-height: 104px;

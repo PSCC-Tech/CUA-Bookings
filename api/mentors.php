@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-require_method(['GET', 'POST']);
+require_method(['GET', 'POST', 'PUT']);
 
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -137,6 +137,107 @@ if ($method === 'GET') {
 }
 
 $data = input_json();
+
+if ($method === 'PUT') {
+    $mentorId = read_id();
+    $currentMentorNumber = trim((string)($_GET['mentor_number'] ?? $data['current_mentor_number'] ?? $data['original_mentor_number'] ?? ''));
+
+    if (!$mentorId && $currentMentorNumber !== '') {
+        $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? LIMIT 1');
+        $stmt->execute([$currentMentorNumber]);
+        $mentorId = (int)$stmt->fetchColumn();
+    }
+
+    if (!$mentorId) {
+        $mentorId = isset($data['mentor_id']) ? (int)$data['mentor_id'] : 0;
+    }
+
+    if (!$mentorId) {
+        fail('Mentor ID is required.', 400);
+    }
+
+    $mentorNumber = trim((string)($data['mentor_number'] ?? $data['mentor_id_number'] ?? ''));
+    $fullName = trim((string)($data['full_name'] ?? $data['name'] ?? ''));
+    $contact = trim((string)($data['contact'] ?? ''));
+    $email = trim((string)($data['email'] ?? ''));
+    $phone = trim((string)($data['phone'] ?? ''));
+    $courseCodesProvided = array_key_exists('course_codes', $data);
+    $courseCodes = is_array($data['course_codes'] ?? null)
+        ? array_values(array_filter(array_map('trim', $data['course_codes'])))
+        : [];
+    $scheduleProvided = array_key_exists('schedule', $data);
+    $schedule = is_array($data['schedule'] ?? null) ? $data['schedule'] : [];
+
+    if ($contact !== '' && $email === '' && $phone === '') {
+        if (filter_var($contact, FILTER_VALIDATE_EMAIL)) {
+            $email = $contact;
+        } else {
+            $phone = $contact;
+        }
+    }
+
+    if ($mentorNumber === '' || $fullName === '') {
+        fail('Mentor number and mentor name are required.');
+    }
+
+    $pdo->beginTransaction();
+
+    try {
+        $duplicate = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? AND mentor_id <> ? LIMIT 1');
+        $duplicate->execute([$mentorNumber, $mentorId]);
+        if ($duplicate->fetchColumn()) {
+            throw new RuntimeException('Another mentor already uses that mentor number.');
+        }
+
+        $update = $pdo->prepare('
+            UPDATE mentors
+            SET mentor_number = ?,
+                full_name = ?,
+                email = ?,
+                phone = ?,
+                is_active = 1
+            WHERE mentor_id = ?
+        ');
+        $update->execute([$mentorNumber, $fullName, $email ?: null, $phone ?: null, $mentorId]);
+
+        if ($courseCodesProvided) {
+            $pdo->prepare('DELETE FROM mentor_courses WHERE mentor_id = ?')->execute([$mentorId]);
+            $userId = find_or_create_user($pdo, (string)($data['made_by'] ?? 'Front Desk Staff'));
+            $assign = $pdo->prepare('INSERT IGNORE INTO mentor_courses (mentor_id, course_id, assigned_by_user_id) VALUES (?, ?, ?)');
+
+            foreach ($courseCodes as $courseCode) {
+                $courseId = resolve_course_id($pdo, $courseCode);
+                $assign->execute([$mentorId, $courseId, $userId]);
+            }
+        }
+
+        if ($scheduleProvided) {
+            $pdo->prepare('DELETE FROM mentor_weekly_availability WHERE mentor_id = ?')->execute([$mentorId]);
+            $availabilityInsert = $pdo->prepare('
+                INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from)
+                VALUES (?, ?, ?, ?, CURDATE())
+            ');
+
+            foreach ($schedule as $block) {
+                $day = (int)($block['day_of_week'] ?? 0);
+                $start = trim((string)($block['start_time'] ?? ''));
+                $end = trim((string)($block['end_time'] ?? ''));
+
+                if ($day < 1 || $day > 7 || $start === '' || $end === '') {
+                    continue;
+                }
+
+                $availabilityInsert->execute([$mentorId, $day, $start, $end]);
+            }
+        }
+
+        $pdo->commit();
+        ok(['mentor_id' => $mentorId, 'mentor_number' => $mentorNumber]);
+    } catch (Throwable $error) {
+        $pdo->rollBack();
+        fail($error->getMessage(), 400);
+    }
+}
 
 $mentorNumber = trim((string)($data['mentor_number'] ?? $data['mentor_id'] ?? ''));
 $fullName = trim((string)($data['full_name'] ?? $data['name'] ?? ''));

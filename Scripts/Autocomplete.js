@@ -50,7 +50,8 @@ const Autocomplete = {
             },
             formatDisplay: (item) => `${item.name} (${item.id})`,
             getId: (item) => item.id,
-            getName: (item) => item.name
+            getName: (item) => item.name,
+            getInputValue: (item) => item.name
         },
 
         studentsByID: {
@@ -235,6 +236,7 @@ const Autocomplete = {
                 this._selectSuggestion(index, inputElement);
             });
             item.addEventListener('mouseenter', () => {
+                const index = parseInt(item.dataset.index);
                 this._highlightItem(index, inputElement);
             });
         });
@@ -335,8 +337,10 @@ const Autocomplete = {
 
         if (!suggestion) return;
 
-        // Update input field with ID
-        inputElement.value = data.dataSource.getId(suggestion);
+        // Different fields can choose what selected text should remain visible.
+        inputElement.value = data.dataSource.getInputValue
+            ? data.dataSource.getInputValue(suggestion)
+            : data.dataSource.getId(suggestion);
 
         // Clear suggestions
         this._clearSuggestions(inputElement);

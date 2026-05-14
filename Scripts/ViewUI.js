@@ -129,10 +129,13 @@ const ViewUI = {
     },
 
     setupInlineEditHandlers() {
-        this.editBtn.addEventListener("click", () => {
+        this.editBtn.addEventListener("click", async () => {
             if (this.editBtn.disabled) {
                 alert("Cannot edit booking while session is active. Stop the session first.");
                 return;
+            }
+            if (window.MentorScheduleStore) {
+                await window.MentorScheduleStore.loadFromApi().catch(() => null);
             }
             this.enableEditMode();
         });
@@ -569,7 +572,10 @@ const ViewUI = {
 
     createMentorEditor(value) {
         const select = document.createElement("select");
+        select.className = "mentor-edit-select";
         select.dataset.field = "mentor";
+        select.setAttribute("aria-label", "Mentor");
+        select.title = "Select a mentor for this booking";
         this.populateMentorSelect(select, value, this.activeCard?.dataset.course || "");
 
         select.addEventListener("change", () => {

@@ -44,7 +44,7 @@ const MentorsUI = {
 
         tbody.innerHTML = mentors.map(mentor => {
             const categories = (mentor.categories || []).join(",");
-            const detailsUrl = `mentors-details.html?mentor_id=${encodeURIComponent(mentor.mentor_id)}`;
+            const detailsUrl = `mentors-details.html?mentor_id=${encodeURIComponent(mentor.mentor_id)}&v=20260514-5`;
 
             return `
                 <tr data-mentor-id="${mentor.mentor_id}" data-name="${this.escapeHtml(mentor.name)}" data-categories="${this.escapeAttribute(categories)}">

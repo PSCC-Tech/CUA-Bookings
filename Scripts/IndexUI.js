@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function setupStudentIdAutocomplete(idInput, fields) {
         if (!idInput || !window.Autocomplete || idInput.autocompleteData) return;
 
-        Autocomplete.init(idInput, "studentsByID", {
+        window.Autocomplete.init(idInput, "studentsByID", {
             minChars: 1,
             maxResults: 8,
             debounceMs: 250,
@@ -353,16 +353,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             setSelectedOption(categoryOption);
         }
 
-        if (courseCodeInput.autocompleteData && window.Autocomplete) {
-            window.Autocomplete.setCategory(courseCodeInput, selectedCategory);
-        }
-        if (courseNameInput?.autocompleteData && window.Autocomplete) {
-            window.Autocomplete.setCategory(courseNameInput, selectedCategory);
-        }
+        updateAutocompleteCategory(courseCodeInput, selectedCategory, false);
+        updateAutocompleteCategory(courseNameInput, selectedCategory, false);
 
         updateMentorOptions(getCourseMentors(course), false);
         updateDateTimeButtonState();
         syncCalendarCourse(false);
+    }
+
+    function updateAutocompleteCategory(input, category, refresh = true) {
+        if (!input?.autocompleteData || !window.Autocomplete) return;
+
+        input.autocompleteData.config.categoryFilter = category;
+        if (refresh) {
+            window.Autocomplete.setCategory(input, category);
+        } else {
+            window.Autocomplete._clearSuggestions(input);
+        }
     }
 
     function clearSelectedCourse() {
@@ -635,18 +642,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             clearSelectedCourse();
 
             // Update autocomplete filter
-            if (courseCodeInput && courseCodeInput.autocompleteData && Autocomplete) {
-                Autocomplete.setCategory(courseCodeInput, selectedCategory);
-            }
-            if (courseNameInput && courseNameInput.autocompleteData && Autocomplete) {
-                Autocomplete.setCategory(courseNameInput, selectedCategory);
-            }
+            updateAutocompleteCategory(courseCodeInput, selectedCategory, false);
+            updateAutocompleteCategory(courseNameInput, selectedCategory, false);
         });
     });
 
     // Initialize autocomplete for course code
-    if (courseCodeInput && Autocomplete) {
-        Autocomplete.init(courseCodeInput, 'courses', {
+    if (courseCodeInput && window.Autocomplete) {
+        window.Autocomplete.init(courseCodeInput, 'courses', {
             minChars: 1,
             maxResults: 8,
             debounceMs: 300,
@@ -658,8 +661,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Reuse the course autocomplete data source for name-based course selection.
-    if (courseNameInput && Autocomplete) {
-        Autocomplete.init(courseNameInput, 'coursesByName', {
+    if (courseNameInput && window.Autocomplete) {
+        window.Autocomplete.init(courseNameInput, 'coursesByName', {
             minChars: 1,
             maxResults: 8,
             debounceMs: 300,

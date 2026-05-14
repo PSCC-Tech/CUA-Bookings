@@ -493,7 +493,7 @@ function send_booking_email_notifications(PDO $pdo, int $bookingId): array
     ];
 
     if (!$summary['enabled']) {
-        $summary['skipped'][] = 'Email notifications are disabled in api/mail_config.php.';
+        $summary['skipped'][] = (string)($config['disabled_reason'] ?? 'Email notifications are disabled in api/mail_config.php.');
         return $summary;
     }
 

@@ -18,12 +18,16 @@ const MentorDetailsData = {
 
             this.renderMentor(mentor);
             this.publishCourses(mentor.courses || []);
+            document.dispatchEvent(new CustomEvent("cua-mentor-details-loaded", {
+                detail: { mentor }
+            }));
         } catch (error) {
             console.warn("Could not load mentor details:", error);
         }
     },
 
     renderMentor(mentor) {
+        window.CUACurrentMentor = mentor;
         this.setText("mentor-id", mentor.mentor_number);
         this.setText("mentor-name", mentor.name);
         this.setText("mentor-contact", mentor.contact || mentor.email || mentor.phone || "");

@@ -57,6 +57,21 @@ input, select, textarea {
     border-radius: 5px;
 }
 
+.form-container .autocomplete-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.form-container .autocomplete-input-wrapper > input {
+    width: 100%;
+    min-height: 36px;
+    box-sizing: border-box;
+}
+
+.form-container form > .autocomplete-input-wrapper {
+    margin-top: 5px;
+}
+
 select {
     background: white;
 }

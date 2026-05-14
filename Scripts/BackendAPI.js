@@ -137,6 +137,25 @@ const CUAApi = {
         return data;
     },
 
+    async updateMentor(identifier, payload) {
+        const params = new URLSearchParams();
+        const id = String(identifier || "").trim();
+
+        if (/^\d+$/.test(id)) {
+            params.set("id", id);
+        } else if (id) {
+            params.set("mentor_number", id);
+        }
+
+        const data = await this.request(`mentors.php${params.toString() ? `?${params}` : ""}`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+        });
+        this.cache.mentors = null;
+        this.cache.schedule = null;
+        return data;
+    },
+
     async createAbsence(payload) {
         const data = await this.request("absences.php", {
             method: "POST",
