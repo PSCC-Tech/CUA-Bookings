@@ -8,15 +8,15 @@ return [
     // has already been configured on this computer.
     'transport' => 'smtp',
 
-    'from_email' => 'your-sender-email@example.com',
+    'from_email' => 'tutoriacua@aguadilla.inter.edu',
     'from_name' => 'CUA Bookings',
-    'reply_to' => 'your-admin-email@example.com',
+    'reply_to' => 'tutoriacua@aguadilla.inter.edu',
 
     'smtp' => [
-        'host' => 'smtp.example.com',
+        'host' => 'smtp.office365.com',
         'port' => 587,
-        'username' => 'your-sender-email@example.com',
-        'password' => 'your-smtp-password-or-app-password',
+        'username' => 'tutoriacua@aguadilla.inter.edu',
+        'password' => 'replace-with-the-mailbox-password-or-app-password',
         'encryption' => 'tls', // tls, ssl, or none
         'timeout' => 20,
     ],

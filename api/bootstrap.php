@@ -194,15 +194,20 @@ function make_local_email(string $name, string $domain = 'cua.local'): string
 
 function find_or_create_user(PDO $pdo, ?string $fullName): int
 {
+    $currentUser = current_user($pdo);
+    if ($currentUser) {
+        return (int)$currentUser['user_id'];
+    }
+
     $name = trim((string)$fullName);
     if ($name === '') {
-        $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = 'frontdesk@cua.local' LIMIT 1");
+        $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = 'staffcua@aguadilla.inter.edu' LIMIT 1");
         $stmt->execute();
         $id = $stmt->fetchColumn();
         if ($id) {
             return (int)$id;
         }
-        $name = 'Front Desk Staff';
+        $name = 'Staff CUA';
     }
 
     $stmt = $pdo->prepare('SELECT user_id FROM users WHERE full_name = ? LIMIT 1');

@@ -396,8 +396,9 @@ INSERT INTO roles (role_name, description) VALUES
 ('Staff', 'Can create and manage daily bookings.');
 
 INSERT INTO users (role_id, full_name, email, password_hash) VALUES
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'CUA Administrator', 'admin@cua.local', '$2y$10$eHZt4l4grnH3AkGzBg9zmuLR.qAYSajDjuV7wqYVCxbCSuTCd5gua'),
-((SELECT role_id FROM roles WHERE role_name = 'Staff'), 'Front Desk Staff', 'frontdesk@cua.local', '$2y$10$1fYowzjNc.DfFo0ISzZriOMt5y5DzoNTIyWujoiI81whyG8RbPlBa');
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'E Perez', 'eperez@aguadilla.inter.edu', '$2y$10$eHZt4l4grnH3AkGzBg9zmuLR.qAYSajDjuV7wqYVCxbCSuTCd5gua'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Tutoria CUA', 'tutoriacua@aguadilla.inter.edu', '$2y$10$eHZt4l4grnH3AkGzBg9zmuLR.qAYSajDjuV7wqYVCxbCSuTCd5gua'),
+((SELECT role_id FROM roles WHERE role_name = 'Staff'), 'Staff CUA', 'staffcua@aguadilla.inter.edu', '$2y$10$1fYowzjNc.DfFo0ISzZriOMt5y5DzoNTIyWujoiI81whyG8RbPlBa');
 
 INSERT INTO admin_profiles (
   user_id,
@@ -408,13 +409,24 @@ INSERT INTO admin_profiles (
   last_login_at,
   password_status,
   two_step_verification
-) VALUES (
-  (SELECT user_id FROM users WHERE email = 'admin@cua.local'),
+) VALUES
+(
+  (SELECT user_id FROM users WHERE email = 'eperez@aguadilla.inter.edu'),
   'CUA Program Coordinator',
   '787-555-2100',
   'Library 2nd Floor',
   'Email',
   '2026-05-11 09:18:00',
+  'Updated recently',
+  1
+),
+(
+  (SELECT user_id FROM users WHERE email = 'tutoriacua@aguadilla.inter.edu'),
+  'CUA Program Coordinator',
+  '787-555-2100',
+  'Library 2nd Floor',
+  'Email',
+  NULL,
   'Updated recently',
   1
 );
@@ -518,7 +530,7 @@ JOIN v_courses_with_categories c ON (
   OR (m.mentor_number = 'M1005' AND c.course_code IN ('ENGL210', 'COMP101'))
   OR (m.mentor_number = 'M1006' AND c.course_code IN ('CHEM110', 'MATH101'))
 )
-JOIN users u ON u.email = 'admin@cua.local';
+JOIN users u ON u.email = 'eperez@aguadilla.inter.edu';
 
 INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from)
 SELECT mentor_id, 1, '09:00:00', '12:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1001'
@@ -536,11 +548,11 @@ UNION ALL SELECT mentor_id, 3, '12:00:00', '15:00:00', '2026-01-01' FROM mentors
 
 INSERT INTO mentor_schedule_exceptions (mentor_id, exception_date, start_time, end_time, is_full_day, exception_type, reason, created_by_user_id)
 SELECT m.mentor_id, '2026-05-20', '12:00:00', '15:00:00', 0, 'unavailable', 'Approved absence', u.user_id
-FROM mentors m JOIN users u ON u.email = 'admin@cua.local'
+FROM mentors m JOIN users u ON u.email = 'eperez@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1001'
 UNION ALL
 SELECT m.mentor_id, '2026-05-22', NULL, NULL, 1, 'unavailable', 'Full day absence', u.user_id
-FROM mentors m JOIN users u ON u.email = 'admin@cua.local'
+FROM mentors m JOIN users u ON u.email = 'eperez@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1002';
 
 INSERT INTO students (student_number, full_name, email, phone) VALUES
@@ -570,7 +582,7 @@ FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'MATH101'
 JOIN professors p ON p.full_name = 'Dr. Elaine Parker'
 JOIN locations l ON l.location_name = 'CUA (Library 2nd Floor)'
-JOIN users u ON u.email = 'frontdesk@cua.local'
+JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1001'
 UNION ALL
 SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
@@ -580,7 +592,7 @@ FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'COMP201'
 JOIN professors p ON p.full_name = 'Prof. Luis Medina'
 JOIN locations l ON l.location_name = 'Online (Microsoft Teams)'
-JOIN users u ON u.email = 'frontdesk@cua.local'
+JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1002'
 UNION ALL
 SELECT 'scheduled', 'active', m.mentor_id, c.course_id, p.professor_id, l.location_id,
@@ -590,7 +602,7 @@ FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'BIO215'
 JOIN professors p ON p.full_name = 'Dr. Carla Rivera'
 JOIN locations l ON l.location_name = 'PC & Mac Lab (C234-C235)'
-JOIN users u ON u.email = 'frontdesk@cua.local'
+JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1003'
 UNION ALL
 SELECT 'walk_in', 'completed', m.mentor_id, c.course_id, p.professor_id, l.location_id,
@@ -600,7 +612,7 @@ FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'BUS101'
 JOIN professors p ON p.full_name = 'Prof. Martin Blake'
 JOIN locations l ON l.location_name = 'CUA (Library 2nd Floor)'
-JOIN users u ON u.email = 'frontdesk@cua.local'
+JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1004'
 UNION ALL
 SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
@@ -610,7 +622,7 @@ FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'ENGL210'
 JOIN professors p ON p.full_name = 'Dr. Helen Moore'
 JOIN locations l ON l.location_name = 'Grad. Department Office (Old)'
-JOIN users u ON u.email = 'frontdesk@cua.local'
+JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1005';
 
 INSERT INTO booking_students (booking_id, student_id, student_order, is_primary)
@@ -654,17 +666,17 @@ INSERT INTO mentorship_sessions (booking_id, session_status, started_at, ended_a
 SELECT b.booking_id, 'active', '2026-05-13 13:00:00', NULL, u.user_id, NULL
 FROM bookings b
 JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN users u ON u.email = 'frontdesk@cua.local'
+JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE bd.course_code = 'BIO215' AND b.start_at = '2026-05-13 13:00:00'
 UNION ALL
 SELECT b.booking_id, 'completed', '2026-05-13 10:15:00', '2026-05-13 10:45:00', u.user_id, u.user_id
 FROM bookings b
 JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN users u ON u.email = 'frontdesk@cua.local'
+JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE bd.course_code = 'BUS101' AND b.start_at = '2026-05-13 10:15:00';
 
 INSERT INTO booking_online_meetings (booking_id, provider, external_event_id, join_url, organizer_email)
-SELECT b.booking_id, 'teams', 'dummy-teams-event-comp201-20260514', 'https://teams.microsoft.com/l/meetup-join/dummy-comp201', 'frontdesk@cua.local'
+SELECT b.booking_id, 'teams', 'dummy-teams-event-comp201-20260514', 'https://teams.microsoft.com/l/meetup-join/dummy-comp201', 'staffcua@aguadilla.inter.edu'
 FROM bookings b
 JOIN v_booking_details bd ON bd.booking_id = b.booking_id
 WHERE bd.course_code = 'COMP201' AND b.start_at = '2026-05-14 14:30:00';

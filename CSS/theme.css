@@ -14,6 +14,7 @@
     --inter-danger: #b43b35;
     --inter-success: #287d3c;
     --inter-shadow: rgba(23, 63, 53, 0.08);
+    --brand-logo: url("../Images/MentoriasLogo.png");
 
     --primary: var(--inter-green);
     --secondary: var(--inter-gold);
@@ -52,23 +53,37 @@ input[type="radio"] {
 }
 
 .sidebar .logo {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 0 0 18px;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    margin: 0 0 26px;
     color: white;
-    font-size: 1.25rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.08;
     letter-spacing: 0;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
 }
 
 .sidebar .logo::before {
     content: "";
     display: block;
-    width: 76px;
-    height: 76px;
-    border-radius: 8px;
-    background: white url("../Images/InterAguadillaLogo.jpg") center / cover no-repeat;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+    width: min(168px, 100%);
+    height: 150px;
+    background: var(--brand-logo) center / contain no-repeat;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+}
+
+.sidebar .logo::after {
+    content: "Centro Universitario de Aprendizaje";
+    color: var(--inter-yellow-soft);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    text-shadow: none;
 }
 
 .nav-links li,
@@ -76,7 +91,23 @@ input[type="radio"] {
     color: white;
 }
 
-.nav-links li:hover,
+.nav-links {
+    display: grid;
+    gap: 12px;
+}
+
+.nav-links li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 12px 16px !important;
+    font-size: 1.08rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.nav-links li:not(.active):hover,
 .logout,
 .logout:hover {
     background: rgba(255, 255, 255, 0.12) !important;
@@ -90,12 +121,26 @@ input[type="radio"] {
 }
 
 .top-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: #e8edde !important;
     color: var(--inter-ink);
+    min-height: 38px;
+    padding: 10px 22px !important;
+    font-size: 1.02rem;
+    font-weight: 700;
+    text-align: center;
 }
 
-.top-option:hover {
+.top-option:not(.active):hover {
     background: var(--inter-yellow-soft) !important;
+}
+
+.nav-links .active:hover,
+.top-option.active:hover {
+    background: var(--inter-yellow) !important;
+    color: var(--inter-ink) !important;
 }
 
 .content,
@@ -187,7 +232,7 @@ input[type="radio"] {
 
 .login-brand {
     position: relative;
-    padding-top: 86px;
+    padding-top: 136px;
 }
 
 .login-brand::before {
@@ -195,11 +240,10 @@ input[type="radio"] {
     position: absolute;
     top: 0;
     left: 0;
-    width: 66px;
-    height: 66px;
-    border-radius: 8px;
-    background: white url("../Images/InterAguadillaLogo.jpg") center / cover no-repeat;
-    box-shadow: 0 8px 22px var(--inter-shadow);
+    width: 118px;
+    height: 118px;
+    background: var(--brand-logo) center / contain no-repeat;
+    filter: drop-shadow(0 8px 14px var(--inter-shadow));
 }
 
 .login-brand h1 {
@@ -217,6 +261,8 @@ button,
 .filter-btn,
 .form-container button[type="submit"],
 .date-btn,
+#group-decrease,
+#group-increase,
 .edit-btn,
 .save-btn,
 .confirm-btn,
@@ -230,6 +276,16 @@ button,
 .select-date-btn,
 .edit-booking-btn,
 .new-course-form button,
+.primary-btn,
+#mentor-btn,
+#student-btn,
+#category-btn,
+#hour-btn,
+#modal-category-btn,
+#confirm-add-mentors,
+#add-prof,
+.add-mentor-btn,
+.add-schedule-day,
 #confirm-yes,
 #save-course-btn,
 #add-topic,
@@ -241,6 +297,8 @@ button,
 .booking-header button,
 .form-container button[type="submit"],
 .date-btn,
+#group-decrease,
+#group-increase,
 .edit-btn,
 .save-btn,
 .confirm-btn,
@@ -254,6 +312,16 @@ button,
 .select-date-btn,
 .edit-booking-btn,
 .new-course-form button:not(#cancel-course-btn),
+.primary-btn,
+#mentor-btn,
+#student-btn,
+#category-btn,
+#hour-btn,
+#modal-category-btn,
+#confirm-add-mentors,
+#add-prof,
+.add-mentor-btn,
+.add-schedule-day,
 #confirm-yes,
 .filter-btn,
 #save-course-btn,
@@ -269,6 +337,8 @@ button,
 .booking-header button:hover,
 .form-container button[type="submit"]:hover,
 .date-btn:hover:not(:disabled),
+#group-decrease:hover,
+#group-increase:hover,
 .edit-btn:hover,
 .save-btn:hover,
 .confirm-btn:hover,
@@ -282,6 +352,16 @@ button,
 .select-date-btn:hover,
 .edit-booking-btn:hover,
 .new-course-form button:not(#cancel-course-btn):hover,
+.primary-btn:hover,
+#mentor-btn:hover,
+#student-btn:hover,
+#category-btn:hover,
+#hour-btn:hover,
+#modal-category-btn:hover,
+#confirm-add-mentors:hover,
+#add-prof:hover,
+.add-mentor-btn:hover,
+.add-schedule-day:hover,
 #confirm-yes:hover,
 .filter-btn:hover,
 #save-course-btn:hover,
@@ -297,6 +377,9 @@ button,
 #cancel-course-btn,
 #confirm-no,
 .back-btn,
+.secondary-btn,
+#close-mentor-modal,
+.close-modal,
 .tab,
 .mentor-tab,
 .add-topic-btn,
@@ -314,6 +397,9 @@ button,
 #cancel-course-btn:hover,
 #confirm-no:hover,
 .back-btn:hover,
+.secondary-btn:hover,
+#close-mentor-modal:hover,
+.close-modal:hover,
 .tab:hover,
 .mentor-tab:hover,
 .add-topic-btn:hover,
@@ -331,7 +417,10 @@ button,
 .remove-delete-item,
 .remove-course-btn,
 .remove-shift-btn,
-.student-delete-btn {
+.student-delete-btn,
+.remove-prof,
+.remove-schedule,
+.danger-btn {
     background: var(--inter-danger) !important;
     color: white !important;
 }
@@ -343,7 +432,10 @@ button,
 .remove-delete-item:hover,
 .remove-course-btn:hover,
 .remove-shift-btn:hover,
-.student-delete-btn:hover {
+.student-delete-btn:hover,
+.remove-prof:hover,
+.remove-schedule:hover,
+.danger-btn:hover {
     background: #96312d !important;
     color: white !important;
 }
@@ -394,6 +486,16 @@ button,
 .course-table th,
 .mentor-table th {
     color: white !important;
+}
+
+button:disabled,
+button.is-disabled,
+.date-btn:disabled,
+.student-cycle-btn:disabled {
+    background: #e7ece2 !important;
+    border-color: var(--inter-border) !important;
+    color: #7b8780 !important;
+    box-shadow: none !important;
 }
 
 input:focus,
@@ -496,11 +598,47 @@ textarea:focus,
 }
 
 .permission-item,
-.booking-type-option.active,
 .date-btn.has-selection {
     background: var(--inter-yellow-soft) !important;
     color: var(--inter-ink) !important;
     border-color: var(--inter-yellow) !important;
+}
+
+.booking-type-option,
+.booking-type-option.active,
+.booking-type-option:hover {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: var(--inter-ink) !important;
+}
+
+.group-counter {
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.group-counter button {
+    width: 34px !important;
+    height: 34px !important;
+    min-height: 34px;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid var(--inter-green) !important;
+    font-size: 1.05rem !important;
+    font-weight: 800;
+}
+
+.group-counter span {
+    width: 34px !important;
+    height: 34px !important;
+    border: 1px solid var(--inter-border);
+    border-radius: 6px;
+    background: #f3f7ee;
+    color: var(--inter-ink);
+    font-size: 0.98rem !important;
+    font-weight: 800;
+    line-height: 1 !important;
 }
 
 .login-form button,
@@ -567,29 +705,41 @@ mark {
     }
 
     .sidebar .logo {
-        flex-direction: row;
+        grid-template-columns: 76px minmax(0, 1fr);
+        justify-items: start;
         align-items: center;
+        column-gap: 12px;
+        row-gap: 2px;
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1.28rem;
+        text-align: left;
     }
 
     .sidebar .logo::before {
-        width: 54px;
-        height: 54px;
-        flex: 0 0 auto;
+        grid-row: 1 / span 2;
+        width: 76px;
+        height: 76px;
+    }
+
+    .sidebar .logo::after {
+        font-size: 0.6rem;
     }
 
     .nav-links {
         display: flex;
+        flex-wrap: wrap;
         gap: 8px;
+        justify-content: center;
         margin: 8px 0 0;
-        overflow-x: auto;
+        overflow: visible;
         padding-bottom: 4px;
     }
 
     .nav-links li {
-        flex: 0 0 auto;
+        flex: 1 1 calc(50% - 8px);
         margin: 0;
+        min-height: 44px;
+        max-width: 180px;
         white-space: nowrap;
     }
 
