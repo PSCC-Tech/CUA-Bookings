@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CUA Bookings</title>
     <!--<link rel="stylesheet" href="styles.css">-->
-    <link rel="stylesheet" href="CSS/base.css?v=20260514-5">
+    <link rel="stylesheet" href="CSS/base.css?v=20260518-1">
     <link rel="stylesheet" href="CSS/index.css?v=20260514-5">
+    <link rel="stylesheet" href="CSS/theme.css?v=20260518-1">
 </head>
 <body>
 
@@ -36,7 +37,7 @@
                 <span class="top-option" onclick="window.location='index.html'">Create</span>
                 <span class="top-option active">Absence</span>
                 <span class="top-option" onclick="window.location='view.html?v=20260514-5'">Upcoming</span>
-                <span class="top-option">Data</span>
+                <span class="top-option" onclick="window.location='data.html'">Data</span>
             </div>
 
             <!-- FORM SECTION -->
@@ -95,6 +96,8 @@
     </div>
 
 <script src="Scripts/BackendAPI.js?v=20260514-5"></script>
+<script src="Scripts/Auth.js?v=20260518-1"></script>
+<script src="Scripts/Logout.js?v=20260518-1"></script>
 
 <script type="module">
     import ScheduleGenerator from "/Scripts/ScheduleGenerator.js";

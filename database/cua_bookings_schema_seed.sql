@@ -396,8 +396,8 @@ INSERT INTO roles (role_name, description) VALUES
 ('Staff', 'Can create and manage daily bookings.');
 
 INSERT INTO users (role_id, full_name, email, password_hash) VALUES
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'CUA Administrator', 'admin@cua.local', NULL),
-((SELECT role_id FROM roles WHERE role_name = 'Staff'), 'Front Desk Staff', 'frontdesk@cua.local', NULL);
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'CUA Administrator', 'admin@cua.local', '$2y$10$eHZt4l4grnH3AkGzBg9zmuLR.qAYSajDjuV7wqYVCxbCSuTCd5gua'),
+((SELECT role_id FROM roles WHERE role_name = 'Staff'), 'Front Desk Staff', 'frontdesk@cua.local', '$2y$10$1fYowzjNc.DfFo0ISzZriOMt5y5DzoNTIyWujoiI81whyG8RbPlBa');
 
 INSERT INTO admin_profiles (
   user_id,

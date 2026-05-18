@@ -235,6 +235,18 @@ const MentorScheduleStore = (() => {
     return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
   }
 
+  function startOfDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function isPastDate(date) {
+    return startOfDay(date) < startOfDay(new Date());
+  }
+
+  function isToday(date) {
+    return startOfDay(date).getTime() === startOfDay(new Date()).getTime();
+  }
+
   function getWeeklyAvailability(mentor, date) {
     const dayName = dayNames[date.getDay()];
     return mentor.weeklyAvailability[dayName] || [];
@@ -272,6 +284,10 @@ const MentorScheduleStore = (() => {
     return `${hours12}:${String(mins).padStart(2, "0")} ${period}`;
   }
 
+  function minutesSinceMidnight(date) {
+    return date.getHours() * 60 + date.getMinutes();
+  }
+
   function generateSlots(ranges) {
     const slots = [];
 
@@ -306,6 +322,10 @@ const MentorScheduleStore = (() => {
   }
 
   function getAvailableSlots(mentor, date) {
+    if (isPastDate(date)) {
+      return [];
+    }
+
     const key = getDateKey(date);
     const absences = getAbsencesForDate(mentor, key);
 
@@ -315,8 +335,14 @@ const MentorScheduleStore = (() => {
 
     const bookings = getBookingsForDate(mentor, key);
     const slots = generateSlots(getWeeklyAvailability(mentor, date));
+    const nowMinutes = minutesSinceMidnight(new Date());
 
     return slots.filter(slot => {
+      const slotStart = parseTime(slot.start);
+      if (isToday(date) && slotStart !== null && slotStart <= nowMinutes) {
+        return false;
+      }
+
       const overlapsBooking = bookings.some(booking =>
         timeBlocksOverlap(slot.start, slot.end, booking.start, booking.end)
       );
@@ -347,6 +373,8 @@ const MentorScheduleStore = (() => {
     getDateKey,
     parseDateKey,
     formatDateLabel,
+    isPastDate,
+    isToday,
     getWeeklyAvailability,
     getBookingsForDate,
     getAbsencesForDate,
@@ -634,6 +662,10 @@ document.addEventListener("DOMContentLoaded", () => {
       dayClass += " today";
     }
 
+    if (MentorScheduleStore.isPastDate(date)) {
+      dayClass += " is-past";
+    }
+
     if (state.selectedDate && date.toDateString() === state.selectedDate.toDateString()) {
       dayClass += " selected";
     }
@@ -664,6 +696,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showSchedule(dateStr) {
     const dateObj = MentorScheduleStore.parseDateKey(dateStr);
+    const isPastDate = MentorScheduleStore.isPastDate(dateObj);
     const availability = MentorScheduleStore.getWeeklyAvailability(state.activeMentor, dateObj);
     const availableSlots = MentorScheduleStore.getAvailableSlots(state.activeMentor, dateObj);
     const bookings = MentorScheduleStore.getBookingsForDate(state.activeMentor, dateStr);
@@ -673,6 +706,14 @@ document.addEventListener("DOMContentLoaded", () => {
     eventListEl.innerHTML = "";
 
     addScheduleSummary(availability);
+
+    if (isPastDate) {
+      addEventItem({
+        type: "past",
+        time: "Passed",
+        text: "This date has already passed and cannot be booked."
+      });
+    }
 
     absences.forEach(absence => {
       addEventItem({
@@ -700,7 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    if (!availability.length && !bookings.length && !absences.length) {
+    if (!availability.length && !bookings.length && !absences.length && !isPastDate) {
       eventListEl.innerHTML = `<div class="no-events">${state.activeMentor.name} is not scheduled on this day.</div>`;
     }
   }

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data - CUA Bookings</title>
+    <link rel="stylesheet" href="CSS/base.css?v=20260518-1">
+    <link rel="stylesheet" href="CSS/data.css?v=20260518-2">
+    <link rel="stylesheet" href="CSS/theme.css?v=20260518-1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <h2 class="logo">CUA Bookings</h2>
+
+            <ul class="nav-links">
+                <li class="active">Bookings</li>
+                <li onclick="window.location='courses.html'">Courses</li>
+                <li onclick="window.location='mentors.html?v=20260514-5'">Mentors</li>
+                <li onclick="window.location='account.html'">Account</li>
+            </ul>
+
+            <div class="logout">
+                <span>Logout</span>
+            </div>
+        </nav>
+
+        <main class="content data-content">
+            <div class="top-menu">
+                <span class="top-option" onclick="window.location='index.html'">Create</span>
+                <span class="top-option" onclick="window.location='absence.html'">Absence</span>
+                <span class="top-option" onclick="window.location='view.html?v=20260514-5'">Upcoming</span>
+                <span class="top-option active">Data</span>
+            </div>
+
+            <section class="data-shell">
+                <header class="data-header">
+                    <div>
+                        <h1>Data</h1>
+                        <p id="data-summary">Loading...</p>
+                    </div>
+
+                    <div class="data-actions">
+                        <button type="button" id="refresh-data-btn" class="secondary-action" title="Refresh data">
+                            <i class="fas fa-rotate-right"></i>
+                            <span>Refresh</span>
+                        </button>
+                        <button type="button" id="download-csv-btn" class="primary-action" title="Download CSV">
+                            <i class="fas fa-file-csv"></i>
+                            <span>CSV</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div class="report-tabs" role="tablist" aria-label="Data report type">
+                    <button type="button" class="report-tab active" data-report="bookings">Bookings</button>
+                    <button type="button" class="report-tab" data-report="mentors">Mentors</button>
+                    <button type="button" class="report-tab" data-report="courses">Courses</button>
+                    <button type="button" class="report-tab" data-report="students">Students</button>
+                    <button type="button" class="report-tab" data-report="absences">Absences</button>
+                </div>
+
+                <form id="data-filter-form" class="data-filters">
+                    <label data-filter="date_from">
+                        From
+                        <input type="date" name="date_from">
+                    </label>
+
+                    <label data-filter="date_to">
+                        To
+                        <input type="date" name="date_to">
+                    </label>
+
+                    <label data-filter="status">
+                        Status
+                        <select name="status">
+                            <option value="">All statuses</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="no_show">No show</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="booking_type">
+                        Type
+                        <select name="booking_type">
+                            <option value="">All types</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="walk_in">Walk-in</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="category">
+                        Category
+                        <select name="category" id="data-category-filter">
+                            <option value="">All categories</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="mentor">
+                        Mentor
+                        <select name="mentor" id="data-mentor-filter">
+                            <option value="">All mentors</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="course">
+                        Course
+                        <select name="course" id="data-course-filter">
+                            <option value="">All courses</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="student">
+                        Student
+                        <input type="search" name="student" placeholder="ID, name, or email">
+                    </label>
+
+                    <label data-filter="professor">
+                        Professor
+                        <select name="professor" id="data-professor-filter">
+                            <option value="">All professors</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="location">
+                        Location
+                        <select name="location" id="data-location-filter">
+                            <option value="">All locations</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="made_by">
+                        Made By
+                        <select name="made_by" id="data-user-filter">
+                            <option value="">Anyone</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="active">
+                        Active
+                        <select name="active">
+                            <option value="">All</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </label>
+
+                    <label data-filter="q" class="wide-filter">
+                        Search
+                        <input type="search" name="q" placeholder="Search current report">
+                    </label>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="primary-action">
+                            <i class="fas fa-filter"></i>
+                            <span>Apply</span>
+                        </button>
+                        <button type="button" id="reset-filters-btn" class="secondary-action">
+                            <i class="fas fa-eraser"></i>
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="data-table-toolbar">
+                    <strong id="data-report-title">Bookings</strong>
+                    <span id="data-result-count">0 rows</span>
+                </div>
+
+                <div class="data-table-wrap">
+                    <table class="data-table">
+                        <thead id="data-table-head"></thead>
+                        <tbody id="data-table-body">
+                            <tr>
+                                <td>Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="Scripts/BackendAPI.js?v=20260514-5"></script>
+    <script src="Scripts/Auth.js?v=20260518-1"></script>
+    <script src="Scripts/Logout.js?v=20260518-1"></script>
+    <script src="Scripts/DataUI.js?v=20260518-1"></script>
+</body>
+</html>

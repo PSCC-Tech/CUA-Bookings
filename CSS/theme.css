@@ -1,0 +1,698 @@
+:root {
+    --inter-green: #007a5e;
+    --inter-green-dark: #005f46;
+    --inter-green-deep: #004b38;
+    --inter-yellow: #fed141;
+    --inter-yellow-soft: #fff4bf;
+    --inter-gold: #807340;
+    --inter-gold-light: #b8aa67;
+    --inter-ink: #173f35;
+    --inter-surface: #ffffff;
+    --inter-page: #f5f7f2;
+    --inter-border: #dfe6dc;
+    --inter-muted: #5f6d67;
+    --inter-danger: #b43b35;
+    --inter-success: #287d3c;
+    --inter-shadow: rgba(23, 63, 53, 0.08);
+
+    --primary: var(--inter-green);
+    --secondary: var(--inter-gold);
+    --accent: var(--inter-yellow);
+    --accent-light: var(--inter-yellow);
+    --today: var(--inter-yellow);
+    --selected: var(--inter-green);
+    --event-panel-bg: #f7f9f3;
+    --dark: var(--inter-ink);
+    --text: var(--inter-muted);
+}
+
+body {
+    background: var(--inter-page) !important;
+    color: var(--inter-ink);
+    font-family: Helvetica, Arial, sans-serif !important;
+}
+
+::selection {
+    background: var(--inter-yellow);
+    color: var(--inter-ink);
+}
+
+a {
+    color: var(--inter-green);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--inter-green);
+}
+
+.sidebar {
+    background: linear-gradient(180deg, var(--inter-green-deep) 0%, var(--inter-green) 100%) !important;
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.12);
+}
+
+.sidebar .logo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 0 18px;
+    color: white;
+    font-size: 1.25rem;
+    letter-spacing: 0;
+}
+
+.sidebar .logo::before {
+    content: "";
+    display: block;
+    width: 76px;
+    height: 76px;
+    border-radius: 8px;
+    background: white url("../Images/InterAguadillaLogo.jpg") center / cover no-repeat;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+.nav-links li,
+.logout {
+    color: white;
+}
+
+.nav-links li:hover,
+.logout,
+.logout:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.nav-links .active,
+.top-option.active {
+    background: var(--inter-yellow) !important;
+    color: var(--inter-ink) !important;
+    font-weight: 700;
+}
+
+.top-option {
+    background: #e8edde !important;
+    color: var(--inter-ink);
+}
+
+.top-option:hover {
+    background: var(--inter-yellow-soft) !important;
+}
+
+.content,
+.data-content {
+    background: var(--inter-page) !important;
+}
+
+.booking-header,
+.account-header,
+.account-card,
+.form-container,
+.course-inner,
+.mentor-inner,
+.add-course,
+.add-mentor,
+#course-info,
+#mentor-info,
+.calendar-container,
+.schedule-container,
+.courses-panel,
+.data-header,
+.data-filters,
+.data-table-toolbar,
+.data-table-wrap,
+.login-shell,
+.calendar,
+.event-panel,
+.booking-card,
+.course-table,
+.mentor-table,
+.booking-detail-box,
+.modal-content,
+.people-dropdown,
+.autocomplete-suggestions {
+    border-color: var(--inter-border) !important;
+    box-shadow: 0 8px 22px var(--inter-shadow) !important;
+}
+
+.booking-header h2,
+.course-section h2,
+.course-section h2 i,
+.mentor-section h2,
+.mentor-section h2 i,
+.data-header h1,
+.account-header h1,
+.form-container h2,
+.booking-date-label,
+.course-header h1,
+#course-info h2,
+#mentor-info h2,
+.add-course .form-title,
+.add-mentor .form-title,
+.data-table-toolbar strong,
+.booking-detail-box h3,
+.calendar-modal-header h3,
+#confirm-selection h3 {
+    color: var(--inter-ink) !important;
+}
+
+.account-eyebrow,
+.calendar-modal-kicker,
+.course-name-link,
+.mentor-name-link,
+.booking-card h3,
+.event-date,
+.event-time,
+.account-meta strong,
+.courses-header h3,
+.course-code,
+.event-icon,
+.event-indicator,
+.no-results-text {
+    color: var(--inter-green) !important;
+}
+
+.data-header p,
+.data-table-toolbar span,
+.hint,
+.no-courses,
+.no-events,
+.booking-modal-content .editable-field strong,
+.booking-modal-content .field-value,
+.student-position,
+.booking-modal-content .student-position,
+.calendar-modal-status,
+#confirm-text {
+    color: var(--inter-muted) !important;
+}
+
+.login-brand {
+    position: relative;
+    padding-top: 86px;
+}
+
+.login-brand::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 66px;
+    height: 66px;
+    border-radius: 8px;
+    background: white url("../Images/InterAguadillaLogo.jpg") center / cover no-repeat;
+    box-shadow: 0 8px 22px var(--inter-shadow);
+}
+
+.login-brand h1 {
+    color: var(--inter-ink) !important;
+}
+
+.login-brand p {
+    color: var(--inter-muted) !important;
+}
+
+button,
+.primary-action,
+.secondary-action,
+.booking-header button,
+.filter-btn,
+.form-container button[type="submit"],
+.date-btn,
+.edit-btn,
+.save-btn,
+.confirm-btn,
+.start-session-btn,
+.stop-session-btn,
+.today-btn,
+.submit-btn,
+.book-btn,
+.course-action-btn,
+.add-shift-btn,
+.select-date-btn,
+.edit-booking-btn,
+.new-course-form button,
+#confirm-yes,
+#save-course-btn,
+#add-topic,
+#add-topic-btn {
+    border-radius: 6px;
+}
+
+.primary-action,
+.booking-header button,
+.form-container button[type="submit"],
+.date-btn,
+.edit-btn,
+.save-btn,
+.confirm-btn,
+.start-session-btn,
+.stop-session-btn,
+.today-btn,
+.submit-btn,
+.book-btn,
+.course-action-btn,
+.add-shift-btn,
+.select-date-btn,
+.edit-booking-btn,
+.new-course-form button:not(#cancel-course-btn),
+#confirm-yes,
+.filter-btn,
+#save-course-btn,
+#add-topic,
+#add-topic-btn,
+.pagination button.active-page {
+    background: var(--inter-green) !important;
+    border-color: var(--inter-green) !important;
+    color: white !important;
+}
+
+.primary-action:hover,
+.booking-header button:hover,
+.form-container button[type="submit"]:hover,
+.date-btn:hover:not(:disabled),
+.edit-btn:hover,
+.save-btn:hover,
+.confirm-btn:hover,
+.start-session-btn:hover,
+.stop-session-btn:hover,
+.today-btn:hover,
+.submit-btn:hover,
+.book-btn:hover,
+.course-action-btn:hover,
+.add-shift-btn:hover,
+.select-date-btn:hover,
+.edit-booking-btn:hover,
+.new-course-form button:not(#cancel-course-btn):hover,
+#confirm-yes:hover,
+.filter-btn:hover,
+#save-course-btn:hover,
+#add-topic:hover,
+#add-topic-btn:hover {
+    background: var(--inter-green-dark) !important;
+    border-color: var(--inter-green-dark) !important;
+}
+
+.secondary-action,
+.cancel-btn,
+#cancel-delete-btn,
+#cancel-course-btn,
+#confirm-no,
+.back-btn,
+.tab,
+.mentor-tab,
+.add-topic-btn,
+.student-cycle-btn,
+.add-student-btn,
+.date-time-select-btn {
+    background: #eef3e8 !important;
+    color: var(--inter-ink) !important;
+    border-color: var(--inter-border) !important;
+}
+
+.secondary-action:hover,
+.cancel-btn:hover,
+#cancel-delete-btn:hover,
+#cancel-course-btn:hover,
+#confirm-no:hover,
+.back-btn:hover,
+.tab:hover,
+.mentor-tab:hover,
+.add-topic-btn:hover,
+.student-cycle-btn:not(:disabled):hover,
+.add-student-btn:hover,
+.date-time-select-btn:hover {
+    background: var(--inter-yellow-soft) !important;
+    border-color: var(--inter-yellow) !important;
+}
+
+.cancel-session-btn,
+.delete-student-btn,
+#confirm-delete-btn,
+.remove-topic,
+.remove-delete-item,
+.remove-course-btn,
+.remove-shift-btn,
+.student-delete-btn {
+    background: var(--inter-danger) !important;
+    color: white !important;
+}
+
+.cancel-session-btn:hover,
+.delete-student-btn:hover,
+#confirm-delete-btn:hover,
+.remove-topic:hover,
+.remove-delete-item:hover,
+.remove-course-btn:hover,
+.remove-shift-btn:hover,
+.student-delete-btn:hover {
+    background: #96312d !important;
+    color: white !important;
+}
+
+.course-table thead,
+.mentor-table thead,
+.data-table thead,
+#delete-table thead {
+    background: var(--inter-green) !important;
+    color: white !important;
+}
+
+.course-table tbody tr:hover,
+.mentor-table tbody tr:hover,
+.data-table tbody tr:hover {
+    background: var(--inter-yellow-soft) !important;
+}
+
+.course-table tbody tr:nth-child(even),
+.mentor-table tbody tr:nth-child(even),
+.data-table tbody tr:nth-child(even) {
+    background: #f8faf4 !important;
+}
+
+.report-tabs {
+    background: #e9efe4 !important;
+}
+
+.report-tab {
+    color: var(--inter-ink) !important;
+}
+
+.report-tab.active {
+    background: var(--inter-yellow) !important;
+    color: var(--inter-ink) !important;
+}
+
+.tab.active,
+.mentor-tab.active,
+.modal-calendar .mentor-tab.active {
+    background: var(--inter-yellow) !important;
+    color: var(--inter-ink) !important;
+    border-color: var(--inter-yellow) !important;
+    box-shadow: 0 5px 14px rgba(128, 115, 64, 0.16) !important;
+}
+
+.data-table th,
+.course-table th,
+.mentor-table th {
+    color: white !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.booking-search:focus,
+.mentor-edit-select:focus {
+    border-color: var(--inter-green) !important;
+    box-shadow: 0 0 0 3px rgba(0, 122, 94, 0.14) !important;
+    outline: none !important;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select,
+.topics-list li input,
+.schedule li select,
+.data-filters input,
+.data-filters select,
+.editable-field input,
+.editable-field select,
+.editable-field textarea,
+.booking-search {
+    border-color: var(--inter-border) !important;
+    background: #fbfcf8 !important;
+    color: var(--inter-ink) !important;
+}
+
+.dropdown div.selected {
+    background: var(--inter-yellow-soft) !important;
+}
+
+.dropdown div.selected::after {
+    color: var(--inter-green) !important;
+}
+
+.calendar-header,
+.select-date-option {
+    background: linear-gradient(135deg, var(--inter-green) 0%, var(--inter-green-dark) 100%) !important;
+}
+
+.calendar-header::before {
+    display: none !important;
+}
+
+.weekdays,
+.day:hover,
+.schedule-summary,
+.calendar-modal-status,
+.confirm-icon,
+.new-course-form,
+.mentor-checkboxes,
+.courses-checkboxes,
+.booking-detail-box,
+.detail-box-header,
+.course-item,
+.event-item,
+.permission-item {
+    background: #f3f7ee !important;
+}
+
+.day.today {
+    background: var(--inter-yellow) !important;
+    color: var(--inter-ink) !important;
+}
+
+.day.selected {
+    background: var(--inter-green) !important;
+    color: white !important;
+}
+
+.day.has-events::after,
+.event-color.available {
+    background: var(--inter-yellow) !important;
+}
+
+.day.has-bookings::before,
+.event-color.booked {
+    background: var(--inter-green) !important;
+}
+
+.event-item.available-slot {
+    border-left-color: var(--inter-yellow) !important;
+}
+
+.event-item.booked-slot {
+    border-left-color: var(--inter-green) !important;
+}
+
+.event-item.selectable-slot:hover,
+.autocomplete-item:hover,
+.autocomplete-item.highlighted,
+.people-dropdown li:hover {
+    background: var(--inter-yellow-soft) !important;
+}
+
+.status-dot,
+.account-status .status-dot {
+    background: var(--inter-green) !important;
+}
+
+.permission-item,
+.booking-type-option.active,
+.date-btn.has-selection {
+    background: var(--inter-yellow-soft) !important;
+    color: var(--inter-ink) !important;
+    border-color: var(--inter-yellow) !important;
+}
+
+.login-form button,
+.account-save,
+.account-edit,
+.profile-actions .save-profile-btn {
+    background: var(--inter-green) !important;
+    color: white !important;
+}
+
+.login-form button:hover,
+.account-save:hover,
+.account-edit:hover,
+.profile-actions .save-profile-btn:hover {
+    background: var(--inter-green-dark) !important;
+}
+
+.active-session-card,
+.booking-card[data-active="true"] {
+    border-left-color: var(--inter-green) !important;
+}
+
+.active-session-card::after,
+.booking-card[data-active="true"]::after {
+    background: var(--inter-yellow) !important;
+    box-shadow: 0 0 0 0 rgba(254, 209, 65, 0.45) !important;
+}
+
+mark {
+    background: var(--inter-yellow-soft) !important;
+    color: var(--inter-ink) !important;
+}
+
+.logout-notice {
+    background: var(--inter-green-deep) !important;
+    color: white !important;
+}
+
+.footer {
+    background: #dde7d7 !important;
+    color: var(--inter-green-deep) !important;
+}
+
+@media (max-width: 820px) {
+    body {
+        display: block !important;
+        min-width: 0;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .sidebar {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 14px !important;
+        gap: 12px;
+        justify-content: flex-start !important;
+    }
+
+    .sidebar .logo {
+        flex-direction: row;
+        align-items: center;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .sidebar .logo::before {
+        width: 54px;
+        height: 54px;
+        flex: 0 0 auto;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 8px;
+        margin: 8px 0 0;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .nav-links li {
+        flex: 0 0 auto;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .logout {
+        margin-top: 4px;
+    }
+
+    .content {
+        min-width: 0;
+        overflow: visible !important;
+    }
+
+    .top-menu {
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 0 0 16px;
+        padding: 14px;
+    }
+
+    .top-option {
+        flex: 1 1 calc(50% - 10px);
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .form-container,
+    .add-course,
+    .add-mentor {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 14px 24px !important;
+        padding: 20px !important;
+    }
+
+    .data-shell {
+        width: 100%;
+        padding: 0 14px 24px !important;
+    }
+
+    .data-header,
+    .data-table-toolbar,
+    .booking-header {
+        align-items: stretch !important;
+        flex-direction: column !important;
+    }
+
+    .data-actions,
+    .filter-actions,
+    .left-group,
+    .right-group {
+        align-items: stretch !important;
+        width: 100%;
+    }
+
+    .primary-action,
+    .secondary-action,
+    .booking-header button,
+    .booking-search {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .report-tabs {
+        width: 100% !important;
+    }
+
+    .report-tab {
+        flex: 1 1 120px;
+    }
+
+    .data-filters {
+        grid-template-columns: 1fr !important;
+    }
+
+    .wide-filter {
+        grid-column: auto !important;
+    }
+
+    .course-inner,
+    .mentor-inner {
+        width: 100% !important;
+    }
+
+    #courses,
+    #mentors {
+        margin: 24px auto !important;
+        padding: 0 14px !important;
+    }
+
+    .course-layout,
+    .mentor-layout,
+    .modal-calendar .mentor-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 14px !important;
+    }
+
+    #course-info,
+    #mentor-info,
+    .calendar-container,
+    .schedule-container,
+    .event-panel {
+        max-width: none !important;
+        width: 100% !important;
+    }
+}

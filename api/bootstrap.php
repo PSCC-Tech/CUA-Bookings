@@ -67,6 +67,80 @@ function require_method(array $allowed): void
     }
 }
 
+function auth_session_start(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
+
+    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    session_name('CUA_BOOKINGS_SESSION');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
+
+function auth_user_payload(array $row): array
+{
+    return [
+        'user_id' => (int)$row['user_id'],
+        'fullName' => $row['full_name'],
+        'full_name' => $row['full_name'],
+        'email' => $row['email'],
+        'role' => $row['role_name'],
+    ];
+}
+
+function current_user(?PDO $pdo = null): ?array
+{
+    auth_session_start();
+
+    $userId = (int)($_SESSION['user_id'] ?? 0);
+    if ($userId <= 0) {
+        return null;
+    }
+
+    $pdo = $pdo ?: db();
+    $stmt = $pdo->prepare('
+        SELECT u.user_id, u.full_name, u.email, r.role_name
+        FROM users u
+        JOIN roles r ON r.role_id = u.role_id
+        WHERE u.user_id = ? AND u.status = "active"
+        LIMIT 1
+    ');
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        $_SESSION = [];
+        return null;
+    }
+
+    return auth_user_payload($user);
+}
+
+function auth_endpoint_is_public(): bool
+{
+    $scriptName = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
+    return in_array($scriptName, ['auth.php', 'logout.php'], true);
+}
+
+function require_authenticated_user(): array
+{
+    $user = current_user();
+    if (!$user) {
+        fail('Authentication required.', 401, ['redirect' => 'login.html']);
+    }
+
+    return $user;
+}
+
 function normalize_course_code(string $value): string
 {
     return strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($value)) ?? '');
@@ -275,4 +349,8 @@ function read_id(): ?int
     }
 
     return null;
+}
+
+if (PHP_SAPI !== 'cli' && !auth_endpoint_is_public()) {
+    require_authenticated_user();
 }

@@ -192,10 +192,15 @@ if (!mentor_teaches_course($pdo, $mentorId, $courseId)) {
     fail('Selected mentor does not teach the selected course.');
 }
 
+$startAt = parse_start_at($data, $isWalkIn && $method === 'POST');
+
+if (!$isWalkIn && strtotime($startAt) <= time()) {
+    fail('Scheduled bookings must use a future date and time.');
+}
+
 $professorId = find_or_create_professor($pdo, (string)($data['professor_name'] ?? $data['professor'] ?? ''));
 $locationId = find_or_create_location($pdo, (string)($data['location_name'] ?? $data['location'] ?? ''));
 $madeById = find_or_create_user($pdo, (string)($data['made_by'] ?? $data['madeBy'] ?? 'Front Desk Staff'));
-$startAt = parse_start_at($data, $isWalkIn && $method === 'POST');
 $durationMinutes = max(15, min(180, (int)($data['duration_minutes'] ?? 30)));
 $endAt = date('Y-m-d H:i:s', strtotime($startAt . " +$durationMinutes minutes"));
 $students = is_array($data['students'] ?? null) ? $data['students'] : [];

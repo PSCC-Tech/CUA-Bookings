@@ -7,6 +7,10 @@ body {
     flex-direction: column;
 }
 
+html.auth-pending body {
+    visibility: hidden;
+}
+
 .container {
     display: flex;
     height: 100vh;
@@ -57,6 +61,23 @@ body {
 
 .logout:hover {
     background: #4c4cff;
+}
+
+.logout.is-logging-out {
+    cursor: wait;
+    opacity: 0.75;
+}
+
+.logout-notice {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000;
+    background: #1e1e2f;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 /* TOP MENU */

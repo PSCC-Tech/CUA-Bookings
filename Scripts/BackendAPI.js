@@ -9,12 +9,24 @@ const CUAApi = {
         account: null
     },
 
+    buildLoginRedirect() {
+        const page = window.location.pathname.split("/").pop() || "index.html";
+        const returnTo = `${page}${window.location.search}${window.location.hash}`;
+        return `login.html?return_to=${encodeURIComponent(returnTo)}`;
+    },
+
+    redirectToLogin() {
+        if (window.location.pathname.endsWith("/login.html")) return;
+        window.location.href = this.buildLoginRedirect();
+    },
+
     async request(endpoint, options = {}) {
         if (window.location.protocol === "file:") {
             throw new Error("Open this project through XAMPP/Apache: http://localhost/CUA-Bookings/index.html. PHP APIs cannot run from a file path.");
         }
 
         const response = await fetch(`${this.basePath}${endpoint}`, {
+            credentials: "same-origin",
             headers: {
                 "Accept": "application/json",
                 ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -33,6 +45,10 @@ const CUAApi = {
         }
 
         if (!response.ok || payload.ok === false) {
+            if (response.status === 401) {
+                this.redirectToLogin();
+            }
+
             throw new Error(payload.error || `Request failed: ${endpoint}`);
         }
 

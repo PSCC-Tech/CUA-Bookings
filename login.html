@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - CUA Bookings</title>
+    <link rel="stylesheet" href="CSS/base.css?v=20260518-1">
+    <link rel="stylesheet" href="CSS/login.css?v=20260518-1">
+    <link rel="stylesheet" href="CSS/theme.css?v=20260518-1">
+</head>
+<body>
+    <main class="login-shell">
+        <div class="login-brand">
+            <h1>CUA Bookings</h1>
+            <p>Sign in to manage bookings, mentors, courses, and absences.</p>
+        </div>
+
+        <p id="login-message" class="login-message" hidden></p>
+
+        <form id="login-form" class="login-form">
+            <label>
+                Email
+                <input type="email" name="email" autocomplete="username" required autofocus>
+            </label>
+
+            <label>
+                Password
+                <input type="password" name="password" autocomplete="current-password" required>
+            </label>
+
+            <button type="submit">Sign in</button>
+        </form>
+    </main>
+
+    <script src="Scripts/Login.js?v=20260518-1"></script>
+</body>
+</html>
