@@ -355,10 +355,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    let mentorCourses = window.CUAMentorCourses || [
-        { id: 'MATH101', name: 'Calculus I' },
-        { id: 'COMP201', name: 'Data Structures I' }
-    ];
+    let mentorCourses = window.CUAMentorCourses || [];
 
     document.addEventListener("cua-mentor-courses-loaded", (event) => {
         mentorCourses = event.detail.courses || [];
@@ -391,27 +388,62 @@ document.addEventListener("DOMContentLoaded", () => {
         attachCourseRemoveListeners();
     }
 
+    async function persistMentorCourses(nextCourses) {
+        if (!window.CUAApi?.updateMentor) {
+            throw new Error("Backend API is not loaded.");
+        }
+
+        const currentMentor = window.CUACurrentMentor || {};
+        const identifier = currentMentor.mentor_id || currentMentor.id || currentMentor.mentor_number;
+        const contact = currentMentor.contact || currentMentor.email || currentMentor.phone || "";
+
+        await window.CUAApi.updateMentor(identifier, {
+            mentor_id: currentMentor.mentor_id || currentMentor.id,
+            current_mentor_number: currentMentor.mentor_number || currentMentor.number,
+            mentor_number: currentMentor.mentor_number || currentMentor.number,
+            full_name: currentMentor.full_name || currentMentor.name,
+            contact,
+            email: currentMentor.email || (contact.includes("@") ? contact : ""),
+            phone: currentMentor.phone || (contact.includes("@") ? "" : contact),
+            course_codes: nextCourses.map(course => course.id)
+        });
+
+        window.CUAMentorCourses = nextCourses.map(course => ({ ...course }));
+        document.dispatchEvent(new CustomEvent("cua-mentor-courses-loaded", {
+            detail: { courses: window.CUAMentorCourses }
+        }));
+        await window.MentorScheduleStore?.loadFromApi?.(true).catch(() => null);
+    }
+
     function attachCourseRemoveListeners() {
         document.querySelectorAll('.remove-course-btn').forEach(button => {
-            button.onclick = () => {
+            button.onclick = async () => {
                 const courseItem = button.closest('.course-item');
                 const courseId = courseItem?.dataset.courseId;
                 const courseName = courseItem?.querySelector('.course-item-text')?.textContent?.trim() || courseId;
                 if (!courseId) return;
 
-                const confirmed = confirm(`Delete course ${courseName}? This cannot be undone.`);
+                const confirmed = confirm(`Remove ${courseName} from this mentor?`);
                 if (!confirmed) return;
 
+                const previousCourses = mentorCourses.map(course => ({ ...course }));
                 mentorCourses = mentorCourses.filter(course => course.id !== courseId);
-                renderMentorCourses();
+
+                try {
+                    await persistMentorCourses(mentorCourses);
+                    renderMentorCourses();
+                } catch (error) {
+                    mentorCourses = previousCourses;
+                    alert(error.message || 'Could not update mentor courses.');
+                    renderMentorCourses();
+                }
             };
         });
     }
 
     /**
-     * Initialize autocomplete for both course ID and course name fields
-     * FUTURE: When backend is ready, update Autocomplete.js dataSources.coursesByID/coursesByName
-     * to call API endpoint instead of getStaticCourseData()
+     * Initialize autocomplete for both course ID and course name fields.
+     * Course suggestions come from the PHP-backed Autocomplete course cache.
      */
     function initializeAutocomplete() {
         // Initialize Course ID field autocomplete
@@ -476,7 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function saveNewCourse() {
+    async function saveNewCourse() {
         const id = newCourseId.value.trim();
         const name = newCourseName.value.trim();
 
@@ -491,9 +523,18 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const previousCourses = mentorCourses.map(course => ({ ...course }));
         mentorCourses.push({ id, name});
-        renderMentorCourses();
-        closeNewCourseForm();
+
+        try {
+            await persistMentorCourses(mentorCourses);
+            renderMentorCourses();
+            closeNewCourseForm();
+        } catch (error) {
+            mentorCourses = previousCourses;
+            alert(error.message || 'Could not update mentor courses.');
+            renderMentorCourses();
+        }
     }
 
     courseAddButton.addEventListener('click', openNewCourseForm);

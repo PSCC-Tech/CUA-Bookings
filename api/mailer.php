@@ -84,6 +84,38 @@ function booking_mail_normalize_body(string $body): string
     return preg_replace('/^\./m', '..', $body) ?? $body;
 }
 
+function booking_mail_prepare_inline_images(array $message): array
+{
+    $images = is_array($message['inline_images'] ?? null) ? $message['inline_images'] : [];
+    $prepared = [];
+
+    foreach ($images as $image) {
+        if (!is_array($image)) {
+            continue;
+        }
+
+        $path = (string)($image['path'] ?? '');
+        $contentId = booking_mail_clean_header((string)($image['content_id'] ?? ''));
+        if ($path === '' || $contentId === '' || !is_file($path) || !is_readable($path)) {
+            continue;
+        }
+
+        $content = file_get_contents($path);
+        if ($content === false) {
+            continue;
+        }
+
+        $prepared[] = [
+            'content' => $content,
+            'content_id' => $contentId,
+            'filename' => booking_mail_clean_header((string)($image['filename'] ?? basename($path))),
+            'mime_type' => booking_mail_clean_header((string)($image['mime_type'] ?? 'application/octet-stream')),
+        ];
+    }
+
+    return $prepared;
+}
+
 function booking_mail_send(array $message, array $config): array
 {
     $toEmail = trim((string)($message['to_email'] ?? ''));
@@ -134,7 +166,13 @@ function booking_mail_build_mime_message(array $message, array $config, bool $in
     $subject = (string)($message['subject'] ?? 'CUA Booking Details');
     $textBody = (string)($message['text'] ?? '');
     $htmlBody = (string)($message['html'] ?? '');
-    $boundary = 'cua-booking-' . bin2hex(random_bytes(12));
+    $inlineImages = booking_mail_prepare_inline_images($message);
+    $alternativeBoundary = 'cua-booking-alt-' . bin2hex(random_bytes(12));
+    $relatedBoundary = 'cua-booking-related-' . bin2hex(random_bytes(12));
+    $topBoundary = $inlineImages ? $relatedBoundary : $alternativeBoundary;
+    $contentType = $inlineImages
+        ? 'multipart/related; boundary="' . $topBoundary . '"'
+        : 'multipart/alternative; boundary="' . $topBoundary . '"';
 
     if (!booking_mail_is_valid_email($fromEmail)) {
         throw new RuntimeException('Mail sender address is not configured.');
@@ -144,7 +182,7 @@ function booking_mail_build_mime_message(array $message, array $config, bool $in
         'From: ' . booking_mail_format_address($fromEmail, $fromName),
         'Subject: ' . booking_mail_encode_subject($subject),
         'MIME-Version: 1.0',
-        'Content-Type: multipart/alternative; boundary="' . $boundary . '"',
+        'Content-Type: ' . $contentType,
         'X-Mailer: CUA Bookings PHP Mailer',
     ];
 
@@ -157,17 +195,39 @@ function booking_mail_build_mime_message(array $message, array $config, bool $in
     }
 
     $body = [];
-    $body[] = '--' . $boundary;
+
+    if ($inlineImages) {
+        $body[] = '--' . $relatedBoundary;
+        $body[] = 'Content-Type: multipart/alternative; boundary="' . $alternativeBoundary . '"';
+        $body[] = '';
+    }
+
+    $body[] = '--' . $alternativeBoundary;
     $body[] = 'Content-Type: text/plain; charset=UTF-8';
     $body[] = 'Content-Transfer-Encoding: 8bit';
     $body[] = '';
     $body[] = $textBody;
-    $body[] = '--' . $boundary;
+    $body[] = '--' . $alternativeBoundary;
     $body[] = 'Content-Type: text/html; charset=UTF-8';
     $body[] = 'Content-Transfer-Encoding: 8bit';
     $body[] = '';
     $body[] = $htmlBody;
-    $body[] = '--' . $boundary . '--';
+    $body[] = '--' . $alternativeBoundary . '--';
+
+    foreach ($inlineImages as $image) {
+        $body[] = '--' . $relatedBoundary;
+        $body[] = 'Content-Type: ' . $image['mime_type'] . '; name="' . $image['filename'] . '"';
+        $body[] = 'Content-Transfer-Encoding: base64';
+        $body[] = 'Content-ID: <' . $image['content_id'] . '>';
+        $body[] = 'Content-Disposition: inline; filename="' . $image['filename'] . '"';
+        $body[] = '';
+        $body[] = rtrim(chunk_split(base64_encode($image['content']), 76, "\r\n"));
+    }
+
+    if ($inlineImages) {
+        $body[] = '--' . $relatedBoundary . '--';
+    }
+
     $body[] = '';
 
     return implode("\r\n", $headers) . "\r\n\r\n" . implode("\r\n", $body);
@@ -380,8 +440,71 @@ function booking_notification_format_datetime(array $booking): array
 
     return [
         'date' => $start ? date('l, F j, Y', $start) : (string)$booking['start_at'],
+        'subject_date' => $start ? date('F j, Y', $start) : (string)$booking['start_at'],
         'time' => $start ? date('g:i A', $start) : (string)$booking['start_at'],
         'end_time' => $end ? date('g:i A', $end) : '',
+    ];
+}
+
+function booking_notification_role_key(array $recipient): string
+{
+    $role = strtolower((string)($recipient['role'] ?? ''));
+
+    if (strpos($role, 'mentor') !== false) {
+        return 'mentor';
+    }
+    if (strpos($role, 'administrator') !== false) {
+        return 'administrator';
+    }
+    if (strpos($role, 'student') !== false) {
+        return 'student';
+    }
+
+    return 'recipient';
+}
+
+function booking_notification_role_copy(string $roleKey): array
+{
+    if ($roleKey === 'student') {
+        return [
+            'headline' => 'Your mentorship session has been scheduled',
+            'preheader' => 'Your CUA mentorship session details are ready for review.',
+            'paragraphs' => [
+                'Your mentorship session has been scheduled through the Centro Universitario de Aprendizaje.',
+                'Please review the session details below and arrive on time. If you need to request a change, contact the CUA staff as soon as possible.',
+            ],
+        ];
+    }
+
+    if ($roleKey === 'mentor') {
+        return [
+            'headline' => 'A mentorship session has been assigned to you',
+            'preheader' => 'A CUA mentorship session has been assigned for your review.',
+            'paragraphs' => [
+                'A mentorship session has been assigned to you through CUA Bookings.',
+                'Please review the session details below and prepare for the scheduled time. Student information is included for coordination purposes.',
+            ],
+        ];
+    }
+
+    if ($roleKey === 'administrator') {
+        return [
+            'headline' => 'A new mentorship booking has been created',
+            'preheader' => 'A new CUA mentorship booking is available for administrative review.',
+            'paragraphs' => [
+                'A new mentorship booking has been created in CUA Bookings.',
+                'Please review the session details below for administrative follow-up and coordination.',
+            ],
+        ];
+    }
+
+    return [
+        'headline' => 'Mentorship booking details',
+        'preheader' => 'CUA mentorship booking details are available for review.',
+        'paragraphs' => [
+            'A mentorship booking has been created through the Centro Universitario de Aprendizaje.',
+            'Please review the session details below.',
+        ],
     ];
 }
 
@@ -389,11 +512,30 @@ function booking_notification_build_message(array $details, array $recipient): a
 {
     $booking = $details['booking'];
     $dateTime = booking_notification_format_datetime($booking);
+    $roleKey = booking_notification_role_key($recipient);
+    $copy = booking_notification_role_copy($roleKey);
+    $recipientName = trim((string)($recipient['name'] ?? ''));
+    $greetingName = $recipientName !== '' ? $recipientName : 'recipient';
     $course = trim((string)$booking['course_code'] . ' - ' . (string)$booking['course_name']);
     $sessionType = count($details['students']) > 1 ? 'Grouped (' . count($details['students']) . ' students)' : 'Single';
     $timeLine = $dateTime['end_time'] !== ''
         ? $dateTime['time'] . ' - ' . $dateTime['end_time']
         : $dateTime['time'];
+    $logoPath = dirname(__DIR__) . '/Images/MentoriasLogo.png';
+    $logoContentId = 'cua-mentorias-logo';
+    $inlineImages = [];
+    $logoHtml = '';
+
+    if (is_file($logoPath) && is_readable($logoPath)) {
+        $inlineImages[] = [
+            'path' => $logoPath,
+            'content_id' => $logoContentId,
+            'filename' => 'MentoriasLogo.png',
+            'mime_type' => 'image/png',
+        ];
+        $logoHtml = '<img src="cid:' . $logoContentId . '" width="112" alt="Mentorias CUA" '
+            . 'style="display:block;width:112px;max-width:112px;height:auto;margin:0 auto 14px;">';
+    }
 
     $studentLines = array_map(static function (array $student): string {
         $parts = [
@@ -413,17 +555,14 @@ function booking_notification_build_message(array $details, array $recipient): a
     }, $details['students']);
 
     $subject = sprintf(
-        'CUA Booking #%s: %s on %s at %s',
-        $booking['booking_id'],
+        'CUA Mentorship: %s | %s at %s',
         $booking['course_code'],
-        $dateTime['date'],
+        $dateTime['subject_date'],
         $dateTime['time']
     );
 
     $rows = [
-        'Booking ID' => '#' . $booking['booking_id'],
         'Type' => $booking['booking_type'] === 'walk_in' ? 'Walk-in' : 'Scheduled',
-        'Status' => ucfirst((string)$booking['booking_status']),
         'Mentor' => (string)$booking['mentor_name'],
         'Date' => $dateTime['date'],
         'Time' => $timeLine,
@@ -431,12 +570,13 @@ function booking_notification_build_message(array $details, array $recipient): a
         'Course' => $course,
         'Topics' => (string)($booking['topics_notes'] ?? ''),
         'Professor' => (string)($booking['professor_name'] ?? ''),
-        'Made by' => (string)$booking['made_by_name'],
+        'Created by' => (string)$booking['made_by_name'],
         'Session' => $sessionType,
     ];
 
-    $text = "Hello " . ($recipient['name'] ?: 'there') . ",\n\n";
-    $text .= "A mentorship booking has been created with these details:\n\n";
+    $text = 'Dear ' . $greetingName . ",\n\n";
+    $text .= implode("\n\n", $copy['paragraphs']) . "\n\n";
+    $text .= "Session details:\n\n";
     foreach ($rows as $label => $value) {
         $text .= $label . ': ' . ($value !== '' ? $value : 'N/A') . "\n";
     }
@@ -444,32 +584,76 @@ function booking_notification_build_message(array $details, array $recipient): a
     foreach ($studentLines as $line) {
         $text .= '- ' . $line . "\n";
     }
-    $text .= "\nThis is an automated message from the CUA Bookings system.";
+    $text .= "\nCentro Universitario de Aprendizaje\n";
+    $text .= "Universidad Interamericana de Puerto Rico, Recinto de Aguadilla\n\n";
+    $text .= "This is an automated message from CUA Bookings. For changes to this booking, please contact CUA staff.";
 
     $htmlRows = '';
     foreach ($rows as $label => $value) {
-        $htmlRows .= '<tr><th align="left" style="padding:8px;border:1px solid #d9dee7;background:#f6f8fb;">'
+        $htmlRows .= '<tr><th align="left" style="width:34%;padding:12px 14px;border-bottom:1px solid #dfe6dc;'
+            . 'background:#f5f7f2;color:#173f35;font-size:14px;line-height:1.4;">'
             . htmlspecialchars($label, ENT_QUOTES, 'UTF-8')
-            . '</th><td style="padding:8px;border:1px solid #d9dee7;">'
+            . '</th><td style="padding:12px 14px;border-bottom:1px solid #dfe6dc;color:#173f35;'
+            . 'font-size:14px;line-height:1.4;">'
             . htmlspecialchars($value !== '' ? $value : 'N/A', ENT_QUOTES, 'UTF-8')
             . '</td></tr>';
     }
 
     $htmlStudents = '';
     foreach ($studentLines as $line) {
-        $htmlStudents .= '<li>' . htmlspecialchars($line, ENT_QUOTES, 'UTF-8') . '</li>';
+        $htmlStudents .= '<li style="margin:0 0 8px;line-height:1.5;">'
+            . htmlspecialchars($line, ENT_QUOTES, 'UTF-8')
+            . '</li>';
     }
 
-    $html = '<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1f2937;">'
-        . '<p>Hello ' . htmlspecialchars($recipient['name'] ?: 'there', ENT_QUOTES, 'UTF-8') . ',</p>'
-        . '<p>A mentorship booking has been created with these details:</p>'
-        . '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:100%;max-width:720px;">'
+    $htmlParagraphs = '';
+    foreach ($copy['paragraphs'] as $paragraph) {
+        $htmlParagraphs .= '<p style="margin:0 0 14px;color:#173f35;font-size:15px;line-height:1.6;">'
+            . htmlspecialchars($paragraph, ENT_QUOTES, 'UTF-8')
+            . '</p>';
+    }
+
+    $html = '<!doctype html><html><body style="margin:0;padding:0;background:#f5f7f2;'
+        . 'font-family:Arial,Helvetica,sans-serif;color:#173f35;">'
+        . '<span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;'
+        . 'overflow:hidden;mso-hide:all;">'
+        . htmlspecialchars($copy['preheader'], ENT_QUOTES, 'UTF-8')
+        . '</span>'
+        . '<table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;'
+        . 'background:#f5f7f2;margin:0;padding:0;"><tr><td align="center" style="padding:24px 12px;">'
+        . '<table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;'
+        . 'width:100%;max-width:720px;background:#ffffff;border:1px solid #dfe6dc;">'
+        . '<tr><td style="background:#004b38;padding:26px 24px;text-align:center;">'
+        . $logoHtml
+        . '<div style="color:#fed141;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">'
+        . 'Centro Universitario de Aprendizaje</div>'
+        . '<h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;line-height:1.3;font-weight:700;">'
+        . htmlspecialchars($copy['headline'], ENT_QUOTES, 'UTF-8')
+        . '</h1></td></tr>'
+        . '<tr><td style="padding:28px 24px 8px;">'
+        . '<p style="margin:0 0 14px;color:#173f35;font-size:16px;line-height:1.6;">Dear '
+        . htmlspecialchars($greetingName, ENT_QUOTES, 'UTF-8')
+        . ',</p>'
+        . $htmlParagraphs
+        . '</td></tr>'
+        . '<tr><td style="padding:8px 24px 24px;">'
+        . '<h2 style="margin:0 0 12px;color:#007a5e;font-size:18px;line-height:1.3;">Session Details</h2>'
+        . '<table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;'
+        . 'width:100%;border:1px solid #dfe6dc;">'
         . $htmlRows
         . '</table>'
-        . '<h3 style="margin-top:20px;">Students</h3>'
-        . '<ul>' . $htmlStudents . '</ul>'
-        . '<p style="color:#5f6b7a;">This is an automated message from the CUA Bookings system.</p>'
-        . '</body></html>';
+        . '<h2 style="margin:24px 0 10px;color:#007a5e;font-size:18px;line-height:1.3;">Students</h2>'
+        . '<ul style="margin:0;padding-left:20px;color:#173f35;font-size:14px;">' . $htmlStudents . '</ul>'
+        . '</td></tr>'
+        . '<tr><td style="background:#f5f7f2;border-top:4px solid #fed141;padding:20px 24px;">'
+        . '<p style="margin:0 0 6px;color:#173f35;font-size:14px;font-weight:700;line-height:1.5;">'
+        . 'Centro Universitario de Aprendizaje</p>'
+        . '<p style="margin:0 0 12px;color:#5f6d67;font-size:13px;line-height:1.5;">'
+        . 'Universidad Interamericana de Puerto Rico, Recinto de Aguadilla</p>'
+        . '<p style="margin:0;color:#5f6d67;font-size:12px;line-height:1.5;">'
+        . 'This is an automated message from CUA Bookings. For changes to this booking, please contact CUA staff.'
+        . '</p></td></tr>'
+        . '</table></td></tr></table></body></html>';
 
     return [
         'to_email' => $recipient['email'],
@@ -477,6 +661,7 @@ function booking_notification_build_message(array $details, array $recipient): a
         'subject' => $subject,
         'text' => $text,
         'html' => $html,
+        'inline_images' => $inlineImages,
     ];
 }
 

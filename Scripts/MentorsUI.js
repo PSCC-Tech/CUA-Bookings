@@ -137,12 +137,13 @@ const MentorsUI = {
             const checkbox = row.querySelector(".mentor-select");
 
             checkbox.addEventListener("change", () => {
-                const mentorId = row.children[1].innerText.trim();
+                const mentorId = row.dataset.mentorId || row.children[1].innerText.trim();
+                const mentorNumber = row.children[1].innerText.trim();
                 const mentorName = row.children[2].innerText.trim();
                 const contact = row.children[3].innerText.trim();
 
                 if (checkbox.checked) {
-                    this.addToDeletePanel(mentorId, mentorName, contact, row);
+                    this.addToDeletePanel(mentorId, mentorNumber, mentorName, contact, row);
                 } else {
                     this.removeFromDeletePanel(mentorId);
                 }
@@ -153,16 +154,16 @@ const MentorsUI = {
     /* -----------------------------------------
        ADD COURSE TO DELETE PANEL
     ----------------------------------------- */
-    addToDeletePanel(id, name, contact, row) {
+    addToDeletePanel(id, number, name, contact, row) {
         if (this.selected.has(id)) return;
 
-        this.selected.set(id, { id, name, contact, row });
+        this.selected.set(id, { id, number, name, contact, row });
 
         const tr = document.createElement("tr");
         tr.dataset.id = id;
 
         tr.innerHTML = `
-            <td>${id}</td>
+            <td>${number}</td>
             <td>${name}</td>
             <td>${contact}</td>
             <td><button class="remove-delete-item">×</button></td>
@@ -195,9 +196,24 @@ const MentorsUI = {
        DELETE PANEL BUTTON 
     ----------------------------------------- */
     setupDeletePanelListeners() {
-        this.confirmDeleteBtn.addEventListener("click", () => {
-            alert("Delete action triggered for selected mentors.");
-            // Later: send delete request to backend
+        this.confirmDeleteBtn.addEventListener("click", async () => {
+            if (!this.selected.size) return;
+            if (!window.CUAApi?.deleteMentors) {
+                alert("Backend API is not loaded.");
+                return;
+            }
+
+            const names = [...this.selected.values()].map(item => item.number).join(", ");
+            const confirmed = confirm(`Delete selected mentor${this.selected.size === 1 ? "" : "s"}: ${names}?`);
+            if (!confirmed) return;
+
+            try {
+                await window.CUAApi.deleteMentors([...this.selected.keys()]);
+                alert("Selected mentor records were deleted.");
+                window.location.reload();
+            } catch (error) {
+                alert(error.message || "Could not delete selected mentors.");
+            }
         });
 
         document.getElementById("cancel-delete-btn").addEventListener("click", () => {

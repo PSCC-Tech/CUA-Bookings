@@ -7,9 +7,12 @@
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css?v=20260518-1">
     <link rel="stylesheet" href="CSS/index.css?v=20260514-5">
+    <link rel="stylesheet" href="CSS/calendar.css?v=20260518-1">
     <link rel="stylesheet" href="CSS/theme.css?v=20260518-4">
+    <link rel="stylesheet" href="CSS/absence.css?v=20260519-1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="absence-page">
 
     <div class="container">
 
@@ -66,16 +69,32 @@
                 </label>
             </div>
 
-            <div id="time-selectors">
-                <label>From</label>
-                <select id="start-time">
-                    <option value="">Select a time</option>
-                </select>
+            <div id="time-selectors" class="absence-time-card">
+                <div class="absence-time-card-header">
+                    <div>
+                        <span class="absence-time-kicker">Specific time</span>
+                        <strong>Date and time range</strong>
+                    </div>
+                    <button type="button" id="open-absence-calendar-btn" class="date-btn absence-calendar-btn" disabled>
+                        Select a Mentor First
+                    </button>
+                </div>
 
-                <label>To</label>
-                <select id="end-time">
-                    <option value="">Select a time</option>
-                </select>
+                <div class="absence-time-grid">
+                    <label>
+                        From
+                        <select id="start-time">
+                            <option value="">Select a time</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        To
+                        <select id="end-time">
+                            <option value="">Select a time</option>
+                        </select>
+                    </label>
+                </div>
             </div>
 
                     <label>Reason for Absence</label>
@@ -95,12 +114,87 @@
 
     </div>
 
+    <div id="calendar-modal" class="modal">
+        <div class="modal-content">
+            <button type="button" class="close-modal" id="close-calendar" aria-label="Close calendar">&times;</button>
+
+            <div class="calendar-modal-header">
+                <div>
+                    <span class="calendar-modal-kicker">Mentor Absence</span>
+                    <h3>Choose Absence Date &amp; Time</h3>
+                </div>
+            </div>
+
+            <div class="absence-modal-context">
+                <span>Selected mentor</span>
+                <strong id="absence-modal-mentor">Choose a mentor</strong>
+            </div>
+
+            <div id="confirm-selection" class="modal hidden">
+                <div class="modal-content small">
+                    <div class="confirm-icon"><i class="fas fa-calendar-check"></i></div>
+                    <h3>Confirm this absence?</h3>
+                    <p id="confirm-text"></p>
+                    <div class="confirm-actions">
+                        <button type="button" id="confirm-yes">Confirm</button>
+                        <button type="button" id="confirm-no">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calendar-ui-container" class="modal-calendar">
+                <div class="mentor-layout">
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <div class="nav-buttons">
+                                <button type="button" class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                                <button type="button" class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="month-year" id="month-year">Loading...</div>
+                        </div>
+
+                        <div class="weekdays">
+                            <div class="weekday">Sun</div>
+                            <div class="weekday">Mon</div>
+                            <div class="weekday">Tue</div>
+                            <div class="weekday">Wed</div>
+                            <div class="weekday">Thu</div>
+                            <div class="weekday">Fri</div>
+                            <div class="weekday">Sat</div>
+                        </div>
+
+                        <div class="days" id="days"></div>
+
+                        <div class="calendar-footer">
+                            <button type="button" class="today-btn" id="today-btn"><i class="fas fa-calendar-day"></i> Today</button>
+                            <div class="event-indicator">
+                                <i class="fas fa-circle" style="color: var(--accent); font-size: 0.6rem;"></i>
+                                <span>Mentor schedule</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-panel" id="event-panel">
+                        <div class="event-header">
+                            <div class="event-date" id="event-date">Select a date</div>
+                            <i class="fas fa-calendar-alt event-icon"></i>
+                        </div>
+                        <div class="event-list" id="event-list">
+                            <div class="no-events">Select a mentor and date to view available times.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script src="Scripts/BackendAPI.js?v=20260514-5"></script>
 <script src="Scripts/Auth.js?v=20260518-1"></script>
 <script src="Scripts/Logout.js?v=20260518-1"></script>
+<script src="Scripts/Calendar.js?v=20260519-1"></script>
 
 <script type="module">
-    import ScheduleGenerator from "/Scripts/ScheduleGenerator.js";
+    import ScheduleGenerator from "./Scripts/ScheduleGenerator.js";
 
     function populateTimeDropdowns(times) {
         const startSelect = document.getElementById("start-time");
@@ -120,8 +214,150 @@
 </script>
 
 <script>
+    function normalizeTimeLabel(value = "") {
+        return String(value).trim().replace(/^0(\d:)/, "$1");
+    }
+
+    function minutesFromTimeLabel(value = "") {
+        const match = normalizeTimeLabel(value).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (!match) return null;
+
+        let hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        const period = match[3].toUpperCase();
+
+        if (period === "PM" && hours !== 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+
+        return hours * 60 + minutes;
+    }
+
+    function setTimeSelectValue(select, value) {
+        if (!select || !value) return;
+
+        const normalizedValue = normalizeTimeLabel(value);
+        let option = [...select.options].find(item => normalizeTimeLabel(item.value) === normalizedValue);
+
+        if (!option) {
+            option = new Option(value, value);
+            select.appendChild(option);
+        }
+
+        select.value = option.value;
+    }
+
+    function formatDateForButton(dateKey) {
+        if (!dateKey) return "";
+
+        const date = new Date(`${dateKey}T00:00:00`);
+        return Number.isNaN(date.getTime())
+            ? dateKey
+            : date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    }
+
+    function getAbsenceControls() {
+        return {
+            form: document.querySelector(".form-container form"),
+            mentorSelect: document.getElementById("mentor-select"),
+            dateInput: document.getElementById("absence-date"),
+            timeSelectors: document.getElementById("time-selectors"),
+            startSelect: document.getElementById("start-time"),
+            endSelect: document.getElementById("end-time"),
+            calendarButton: document.getElementById("open-absence-calendar-btn"),
+            calendarModal: document.getElementById("calendar-modal"),
+            confirmModal: document.getElementById("confirm-selection"),
+            confirmText: document.getElementById("confirm-text"),
+            confirmYes: document.getElementById("confirm-yes"),
+            confirmNo: document.getElementById("confirm-no"),
+            closeCalendar: document.getElementById("close-calendar"),
+            modalMentorName: document.getElementById("absence-modal-mentor")
+        };
+    }
+
+    function getSelectedMentorName() {
+        const { mentorSelect } = getAbsenceControls();
+        return mentorSelect?.selectedOptions?.[0]?.dataset.mentorName ||
+            mentorSelect?.selectedOptions?.[0]?.textContent.trim() ||
+            "";
+    }
+
+    function updateModalMentorContext() {
+        const { modalMentorName } = getAbsenceControls();
+        if (!modalMentorName) return;
+
+        modalMentorName.textContent = getSelectedMentorName() || "Choose a mentor";
+    }
+
+    function updateCalendarButtonState() {
+        const { mentorSelect, dateInput, startSelect, endSelect, calendarButton } = getAbsenceControls();
+        if (!calendarButton || !mentorSelect) return;
+
+        updateModalMentorContext();
+
+        const hasMentor = Boolean(mentorSelect.value);
+        calendarButton.disabled = !hasMentor;
+
+        if (!hasMentor) {
+            calendarButton.textContent = "Select a Mentor First";
+            calendarButton.classList.remove("has-selection");
+            return;
+        }
+
+        if (dateInput.value && startSelect.value && endSelect.value) {
+            calendarButton.textContent = `${formatDateForButton(dateInput.value)} - ${normalizeTimeLabel(startSelect.value)} to ${normalizeTimeLabel(endSelect.value)}`;
+            calendarButton.classList.add("has-selection");
+            return;
+        }
+
+        calendarButton.textContent = "Choose Date & Time";
+        calendarButton.classList.remove("has-selection");
+    }
+
+    function closeCalendarModal() {
+        const { calendarModal, confirmModal } = getAbsenceControls();
+        if (confirmModal) confirmModal.classList.add("hidden");
+        if (calendarModal) calendarModal.style.display = "none";
+    }
+
+    function openAbsenceCalendar() {
+        const { mentorSelect, calendarModal } = getAbsenceControls();
+        if (!mentorSelect?.value) {
+            updateCalendarButtonState();
+            mentorSelect?.focus();
+            return;
+        }
+
+        updateModalMentorContext();
+        window.CUACalendar?.setMentor?.(mentorSelect.value);
+        window.CUACalendar?.refresh?.();
+
+        if (calendarModal) {
+            calendarModal.style.display = "flex";
+        }
+    }
+
+    window.CUAHandleCalendarSlot = ({ dateKey, dateLabel, slot, mentor }) => {
+        const { dateInput, startSelect, endSelect, confirmModal, confirmText, confirmYes, confirmNo } = getAbsenceControls();
+        if (!dateInput || !startSelect || !endSelect || !confirmModal || !confirmText || !confirmYes || !confirmNo) return;
+
+        confirmText.textContent = `Mark ${mentor?.name || "this mentor"} unavailable on ${dateLabel} from ${slot.start} to ${slot.end}?`;
+        confirmModal.classList.remove("hidden");
+
+        confirmYes.onclick = () => {
+            dateInput.value = dateKey;
+            setTimeSelectValue(startSelect, slot.start);
+            setTimeSelectValue(endSelect, slot.end);
+            updateCalendarButtonState();
+            closeCalendarModal();
+        };
+
+        confirmNo.onclick = () => {
+            confirmModal.classList.add("hidden");
+        };
+    };
+
     async function loadMentorsForAbsence() {
-        const mentorSelect = document.getElementById("mentor-select");
+        const { mentorSelect } = getAbsenceControls();
         if (!mentorSelect || !window.CUAApi) return;
 
         try {
@@ -136,37 +372,59 @@
             });
         } catch (error) {
             console.warn("Could not load mentors for absence form:", error);
+        } finally {
+            updateCalendarButtonState();
         }
     }
 
-        // Hide/show time selectors based on radio choice
+    document.addEventListener("DOMContentLoaded", () => {
+        const { form, mentorSelect, dateInput, timeSelectors, startSelect, endSelect, calendarButton, calendarModal, closeCalendar } = getAbsenceControls();
         const radios = document.querySelectorAll("input[name='unavailable-type']");
-        const timeSelectors = document.getElementById("time-selectors");
 
-        // Whole day is default → keep time selectors hidden
         timeSelectors.style.display = "none";
+        updateCalendarButtonState();
 
         radios.forEach(radio => {
             radio.addEventListener("change", () => {
-                if (radio.value === "specific-time") {
-                    timeSelectors.style.display = "block";
-                } else {
-                    timeSelectors.style.display = "none";
+                const isSpecificTime = radio.value === "specific-time" && radio.checked;
+                timeSelectors.style.display = isSpecificTime ? "block" : "none";
+                updateCalendarButtonState();
+
+                if (isSpecificTime) {
+                    openAbsenceCalendar();
                 }
             });
         });
 
-        document.querySelector(".form-container form").addEventListener("submit", async (event) => {
+        mentorSelect.addEventListener("change", () => {
+            updateCalendarButtonState();
+            if (document.querySelector("input[name='unavailable-type']:checked")?.value === "specific-time") {
+                window.CUACalendar?.setMentor?.(mentorSelect.value);
+            }
+        });
+
+        [dateInput, startSelect, endSelect].forEach(control => {
+            control.addEventListener("change", updateCalendarButtonState);
+        });
+
+        calendarButton.addEventListener("click", openAbsenceCalendar);
+        closeCalendar.addEventListener("click", closeCalendarModal);
+        calendarModal.addEventListener("click", (event) => {
+            if (event.target === calendarModal) closeCalendarModal();
+        });
+
+        form.addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            const selectedOption = document.getElementById("mentor-select").selectedOptions[0];
+            const selectedOption = mentorSelect.selectedOptions[0];
+            const unavailableType = document.querySelector("input[name='unavailable-type']:checked")?.value || "full-day";
             const payload = {
                 mentor_number: selectedOption?.value || "",
                 mentor_name: selectedOption?.dataset.mentorName || "",
-                date: document.getElementById("absence-date").value,
-                unavailable_type: document.querySelector("input[name='unavailable-type']:checked")?.value || "full-day",
-                start_time: document.getElementById("start-time").value,
-                end_time: document.getElementById("end-time").value,
+                date: dateInput.value,
+                unavailable_type: unavailableType,
+                start_time: startSelect.value,
+                end_time: endSelect.value,
                 reason: document.querySelector("textarea").value.trim(),
                 made_by: document.querySelector(".form-container input[type='text']").value.trim()
             };
@@ -176,18 +434,31 @@
                 return;
             }
 
+            if (payload.unavailable_type === "specific-time") {
+                const startMinutes = minutesFromTimeLabel(payload.start_time);
+                const endMinutes = minutesFromTimeLabel(payload.end_time);
+
+                if (startMinutes === null || endMinutes === null || startMinutes >= endMinutes) {
+                    alert("Please select a valid start and end time.");
+                    return;
+                }
+            }
+
             try {
                 await window.CUAApi.createAbsence(payload);
                 await window.MentorScheduleStore?.loadFromApi?.(true);
                 alert("Absence saved successfully.");
                 event.target.reset();
                 timeSelectors.style.display = "none";
+                updateCalendarButtonState();
+                window.CUACalendar?.refresh?.();
             } catch (error) {
                 alert(error.message || "Could not save the absence.");
             }
         });
 
         loadMentorsForAbsence();
+    });
 </script>
 </body>
 </html>

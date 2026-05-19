@@ -6,12 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let originalData = {};
 
-    let allMentors = [
-        { id: "1", name: "John Smith", categories: ["Math", "Computer Science"] },
-        { id: "2", name: "John Doe", categories: ["Business", "Biology"] },
-        { id: "3", name: "Jane Smith", categories: ["Math", "Biology"] },
-        { id: "4", name: "Jane Doe", categories: ["Biology", "Math"] }
-    ];
+    let allMentors = [];
 
     if (window.CUAApi) {
         window.CUAApi.getMentors({}, true)
@@ -36,10 +31,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Save original data
         originalData = {
+            courseDbId: window.CUACurrentCourse?.course_id || "",
             code: codeSpan.textContent,
             name: nameSpan.textContent,
-            professors: [...professorList.querySelectorAll("li")].map(li => li.textContent),
-            topics: [...topicsList.querySelectorAll("li")].map(li => li.textContent),
+            professors: [...professorList.querySelectorAll("li")]
+                .map(li => li.textContent.trim())
+                .filter(text => text && text !== "No professors assigned"),
+            topics: [...topicsList.querySelectorAll("li")]
+                .map(li => li.textContent.trim())
+                .filter(text => text && text !== "No topics listed"),
             description: descriptionP.textContent
         };
 
@@ -80,10 +80,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const mentorTabs = document.querySelector(".mentor-tabs");
 
         // Save original mentors
-        originalData.mentors = [...mentorTabs.querySelectorAll(".mentor-tab")].map(tab => ({
-            id: tab.dataset.mentor,
-            name: tab.textContent.trim()
-        }));
+        originalData.mentors = [...mentorTabs.querySelectorAll(".mentor-tab")]
+            .map(tab => ({
+                id: tab.dataset.mentor || tab.dataset.mentorName || tab.textContent.trim(),
+                name: tab.dataset.mentorName || tab.textContent.trim()
+            }))
+            .filter(mentor => mentor.name && mentor.name !== "No mentors");
 
         // Replace mentor tabs with editable version
         mentorTabs.innerHTML = originalData.mentors.map(m => `
@@ -134,7 +136,39 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function exitEditMode(save) {
+    async function persistCourseEdits(payload) {
+        if (!window.CUAApi?.updateCourse) {
+            throw new Error("Backend API is not loaded.");
+        }
+
+        const identifier = originalData.courseDbId || originalData.code;
+        const result = await window.CUAApi.updateCourse(identifier, {
+            course_id: originalData.courseDbId,
+            course_code: payload.code,
+            course_name: payload.name,
+            professors: payload.professors,
+            topics: payload.topics,
+            description: payload.description,
+            mentor_numbers: payload.mentors.map(mentor => mentor.id)
+        });
+
+        await window.Autocomplete?.loadCourseData?.(true).catch(() => null);
+
+        window.CUACurrentCourse = {
+            ...(window.CUACurrentCourse || {}),
+            course_id: result.course_id || originalData.courseDbId,
+            code: result.course_code || payload.code,
+            id: result.course_code || payload.code,
+            name: payload.name,
+            description: payload.description,
+            professors: payload.professors,
+            topics: payload.topics,
+            mentor_numbers: payload.mentors.map(mentor => mentor.id),
+            mentors: payload.mentors.map(mentor => mentor.name)
+        };
+    }
+
+    async function exitEditMode(save) {
         const infoList = document.getElementById("course-info-list");
         const topicsList = document.getElementById("topics-list");
         const descriptionWrapper = document.getElementById("course-description-wrapper");
@@ -151,6 +185,30 @@ document.addEventListener("DOMContentLoaded", () => {
             const newTopics = [...document.querySelectorAll("#topics-list input")]
                 .map(i => i.value.trim())
                 .filter(v => v.length > 0);
+
+            const newMentors = [...document.querySelectorAll(".mentor-tab.editable")].map(tab => ({
+                id: tab.dataset.mentor,
+                name: tab.childNodes[0].textContent.trim()
+            })).filter(mentor => mentor.id && mentor.name);
+
+            if (!newCode || !newName) {
+                alert("Course code and course name are required.");
+                return;
+            }
+
+            try {
+                await persistCourseEdits({
+                    code: newCode,
+                    name: newName,
+                    description: newDesc,
+                    professors: newProfessors,
+                    topics: newTopics,
+                    mentors: newMentors
+                });
+            } catch (error) {
+                alert(error.message || "Could not save course changes.");
+                return;
+            }
 
             infoList.innerHTML = `
                 <li><strong>Code:</strong> <span id="course-code">${newCode}</span></li>
@@ -190,22 +248,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const mentorTabs = document.querySelector(".mentor-tabs");
 
         if (save) {
-            const newMentors = [...document.querySelectorAll(".mentor-tab.editable")].map(tab => ({
-                id: tab.dataset.mentor,
-                name: tab.childNodes[0].textContent.trim()
+            const newMentors = (window.CUACurrentCourse?.mentor_numbers || []).map((id, index) => ({
+                id,
+                name: window.CUACurrentCourse?.mentors?.[index] || id
             }));
 
             mentorTabs.innerHTML = newMentors.map(m => `
-                <button class="mentor-tab" data-mentor="${m.id}">${m.name}</button>
+                <button class="mentor-tab" data-mentor="${m.id}" data-mentor-name="${m.name}">${m.name}</button>
             `).join("");
 
         } else {
             mentorTabs.innerHTML = originalData.mentors.map(m => `
-                <button class="mentor-tab" data-mentor="${m.id}">${m.name}</button>
+                <button class="mentor-tab" data-mentor="${m.id}" data-mentor-name="${m.name}">${m.name}</button>
             `).join("");
         }
 
-        // TODO: reattach calendar tab click handlers here if needed
+        window.CUACalendar?.setCourse?.(save ? document.getElementById("course-code")?.textContent : originalData.code);
 
         editActions.style.display = "none";
         editBtn.style.display = "inline-block";
@@ -282,8 +340,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const selected = [...document.querySelectorAll("#modal-mentor-checkboxes input:checked")];
 
         const mentorTabs = document.querySelector(".mentor-tabs");
+        const existing = new Set([...mentorTabs.querySelectorAll(".mentor-tab.editable")]
+            .map(tab => tab.dataset.mentor));
 
         selected.forEach(s => {
+            if (existing.has(s.dataset.id)) return;
             mentorTabs.insertAdjacentHTML("beforeend", `
                 <button class="mentor-tab editable" data-mentor="${s.dataset.id}">
                     ${s.dataset.name}

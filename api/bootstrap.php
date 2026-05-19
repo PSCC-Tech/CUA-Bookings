@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
-date_default_timezone_set('America/La_Paz');
+date_default_timezone_set('America/Puerto_Rico');
 
 const DB_HOST = '127.0.0.1';
 const DB_NAME = 'cua_bookings';

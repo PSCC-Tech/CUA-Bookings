@@ -16,8 +16,12 @@ const CourseDetailsData = {
             const course = data.courses?.[0];
             if (!course) return;
 
+            window.CUACurrentCourse = course;
             this.renderCourse(course);
             await this.renderMentorTabs(course);
+            document.dispatchEvent(new CustomEvent("cua-course-details-loaded", {
+                detail: { course }
+            }));
         } catch (error) {
             console.warn("Could not load course details:", error);
         }
@@ -51,7 +55,7 @@ const CourseDetailsData = {
         const mentors = await window.CUAApi.getMentors({ course_code: course.code || course.id }, true);
         tabsContainer.innerHTML = mentors.length
             ? mentors.map((mentor, index) => `
-                <button class="mentor-tab${index === 0 ? " active" : ""}" data-mentor-name="${this.escapeAttribute(mentor.name)}">
+                <button class="mentor-tab${index === 0 ? " active" : ""}" data-mentor="${this.escapeAttribute(mentor.mentor_number || mentor.number || mentor.name)}" data-mentor-name="${this.escapeAttribute(mentor.name)}">
                     ${this.escapeHtml(mentor.name)}
                 </button>
             `).join("")

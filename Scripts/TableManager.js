@@ -35,11 +35,6 @@ const TableManager = {
         /* CATEGORY FILTER */
         if (categoryDropdown) {
             const options = Array.from(categoryDropdown.querySelectorAll("div"));
-            const sorted = [...options].sort((a, b) =>
-                a.textContent.trim().localeCompare(b.textContent.trim())
-            );
-            sorted.forEach(option => categoryDropdown.appendChild(option));
-
             options.forEach(option => {
                 option.addEventListener("click", () => {
                     this.filters.category = option.dataset.category;

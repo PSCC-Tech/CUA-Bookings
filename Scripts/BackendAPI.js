@@ -143,6 +143,35 @@ const CUAApi = {
         return data;
     },
 
+    async updateCourse(identifier, payload) {
+        const params = new URLSearchParams();
+        const id = String(identifier || "").trim();
+
+        if (/^\d+$/.test(id)) {
+            params.set("id", id);
+        } else if (id) {
+            params.set("course_code", id);
+        }
+
+        const data = await this.request(`courses.php${params.toString() ? `?${params}` : ""}`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+        });
+        this.cache.courses = null;
+        this.cache.schedule = null;
+        return data;
+    },
+
+    async deleteCourses(ids = []) {
+        const data = await this.request("courses.php", {
+            method: "DELETE",
+            body: JSON.stringify({ ids })
+        });
+        this.cache.courses = data.courses || null;
+        this.cache.schedule = null;
+        return data;
+    },
+
     async createMentor(payload) {
         const data = await this.request("mentors.php", {
             method: "POST",
@@ -166,6 +195,16 @@ const CUAApi = {
         const data = await this.request(`mentors.php${params.toString() ? `?${params}` : ""}`, {
             method: "PUT",
             body: JSON.stringify(payload)
+        });
+        this.cache.mentors = null;
+        this.cache.schedule = null;
+        return data;
+    },
+
+    async deleteMentors(ids = []) {
+        const data = await this.request("mentors.php", {
+            method: "DELETE",
+            body: JSON.stringify({ ids })
         });
         this.cache.mentors = null;
         this.cache.schedule = null;

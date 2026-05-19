@@ -1,117 +1,5 @@
 const MentorScheduleStore = (() => {
-  let mentors = {
-    "John Smith": {
-      id: "john-smith",
-      name: "John Smith",
-      categories: ["Math", "Computer Science"],
-      weeklyAvailability: {
-        Monday: [{ start: "9:00 AM", end: "12:00 PM" }, { start: "1:00 PM", end: "3:00 PM" }],
-        Wednesday: [{ start: "10:00 AM", end: "2:00 PM" }],
-        Friday: [{ start: "9:00 AM", end: "12:00 PM" }]
-      },
-      bookings: [
-        { date: "2026-05-11", start: "9:30 AM", end: "10:00 AM", student: "John Doe", course: "MATH101 - Calculus I", location: "CUA (Library 2nd Floor)" },
-        { date: "2026-05-13", start: "11:00 AM", end: "11:30 AM", student: "Ana Torres", course: "COMP101 - Intro to Computer Science", location: "Online (Microsoft Teams)" },
-        { date: "2026-05-18", start: "1:00 PM", end: "1:30 PM", student: "Carlos Vega", course: "MATH101 - Calculus I", location: "CUA (Library 2nd Floor)" }
-      ],
-      absences: [
-        { date: "2026-05-22", start: "All day", reason: "Staff training" }
-      ]
-    },
-    "John Doe": {
-      id: "john-doe",
-      name: "John Doe",
-      categories: ["Business", "Biology"],
-      weeklyAvailability: {
-        Tuesday: [{ start: "9:00 AM", end: "12:00 PM" }],
-        Thursday: [{ start: "10:00 AM", end: "1:00 PM" }, { start: "2:00 PM", end: "4:00 PM" }],
-        Friday: [{ start: "1:00 PM", end: "4:00 PM" }]
-      },
-      bookings: [
-        { date: "2026-05-12", start: "10:00 AM", end: "10:30 AM", student: "Miguel Ramos", course: "BUS101 - Introduction to Business", location: "CUA (Library 2nd Floor)" },
-        { date: "2026-05-14", start: "2:30 PM", end: "3:00 PM", student: "Laura Ortiz", course: "BIO110 - General Biology", location: "Online (Microsoft Teams)" },
-        { date: "2026-05-21", start: "11:00 AM", end: "11:30 AM", student: "Jane Rivera", course: "BIO215 - Human Anatomy", location: "PC & Mac Lab (C234-C235)" }
-      ],
-      absences: [
-        { date: "2026-05-19", start: "9:00 AM", end: "10:30 AM", reason: "Department meeting" }
-      ]
-    },
-    "Jane Smith": {
-      id: "jane-smith",
-      name: "Jane Smith",
-      categories: ["Math", "Biology"],
-      weeklyAvailability: {
-        Monday: [{ start: "11:00 AM", end: "2:00 PM" }],
-        Tuesday: [{ start: "1:00 PM", end: "5:00 PM" }],
-        Thursday: [{ start: "9:00 AM", end: "12:00 PM" }]
-      },
-      bookings: [
-        { date: "2026-05-12", start: "1:30 PM", end: "2:00 PM", student: "Isabella Flores", course: "MATH201 - Linear Algebra", location: "CUA (Library 2nd Floor)" },
-        { date: "2026-05-18", start: "11:30 AM", end: "12:00 PM", student: "Samuel Cruz", course: "BIOL110 - General Biology", location: "Online (Microsoft Teams)" }
-      ],
-      absences: []
-    },
-    "Jane Doe": {
-      id: "jane-doe",
-      name: "Jane Doe",
-      categories: ["Biology", "Math"],
-      weeklyAvailability: {
-        Wednesday: [{ start: "8:30 AM", end: "11:30 AM" }],
-        Thursday: [{ start: "1:00 PM", end: "4:00 PM" }]
-      },
-      bookings: [
-        { date: "2026-05-13", start: "9:00 AM", end: "9:30 AM", student: "Daniel Ruiz", course: "BIO320 - Microbiology", location: "CUA (Library 2nd Floor)" }
-      ],
-      absences: [
-        { date: "2026-05-28", start: "All day", reason: "Approved absence" }
-      ]
-    },
-    "Dr. Wilson": {
-      id: "dr-wilson",
-      name: "Dr. Wilson",
-      categories: ["Computer Science", "Math"],
-      weeklyAvailability: {
-        Monday: [{ start: "3:00 PM", end: "5:00 PM" }],
-        Wednesday: [{ start: "12:00 PM", end: "4:00 PM" }],
-        Friday: [{ start: "10:00 AM", end: "1:00 PM" }]
-      },
-      bookings: [
-        { date: "2026-05-15", start: "11:00 AM", end: "11:30 AM", student: "Andrea Rivera", course: "COMP201 - Data Structures I", location: "PC & Mac Lab (C234-C235)" }
-      ],
-      absences: []
-    },
-    "Dr. Adams": {
-      id: "dr-adams",
-      name: "Dr. Adams",
-      categories: ["Business"],
-      weeklyAvailability: {
-        Tuesday: [{ start: "8:30 AM", end: "11:30 AM" }],
-        Thursday: [{ start: "8:30 AM", end: "11:30 AM" }]
-      },
-      bookings: [
-        { date: "2026-05-14", start: "9:30 AM", end: "10:00 AM", student: "Jessica Ramos", course: "BUS210 - Marketing Principles", location: "Online (Microsoft Teams)" }
-      ],
-      absences: []
-    },
-    "Sarah Smith": {
-      id: "sarah-smith",
-      name: "Sarah Smith",
-      categories: ["Math", "Chemistry", "English", "Computer Science"],
-      weeklyAvailability: {
-        Monday: [{ start: "10:00 AM", end: "2:00 PM" }],
-        Wednesday: [{ start: "10:00 AM", end: "3:00 PM" }],
-        Friday: [{ start: "12:00 PM", end: "4:00 PM" }]
-      },
-      bookings: [
-        { date: "2026-05-11", start: "10:00 AM", end: "10:30 AM", student: "John Doe", course: "MATH101 - Calculus I", location: "CUA (Library 2nd Floor)" },
-        { date: "2026-05-13", start: "12:00 PM", end: "12:30 PM", student: "Miguel Ramos", course: "CHEM110 - General Chemistry", location: "PC & Mac Lab (C234-C235)" },
-        { date: "2026-05-15", start: "2:00 PM", end: "2:30 PM", student: "Laura Ortiz", course: "COMP101 - Intro to Computer Science", location: "Online (Microsoft Teams)" }
-      ],
-      absences: [
-        { date: "2026-05-20", start: "1:00 PM", end: "2:00 PM", reason: "Committee meeting" }
-      ]
-    }
-  };
+  let mentors = {};
 
   const aliases = {};
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -172,7 +60,7 @@ const MentorScheduleStore = (() => {
         return listMentors();
       })
       .catch(error => {
-        console.warn("Using fallback mentor schedule data:", error);
+        console.warn("Could not load mentor schedule data:", error);
         return listMentors();
       })
       .finally(() => {
@@ -188,7 +76,7 @@ const MentorScheduleStore = (() => {
   }
 
   function getDefaultMentor() {
-    return mentors["John Smith"] || Object.values(mentors)[0] || null;
+    return Object.values(mentors)[0] || null;
   }
 
   function getMentorsForCourse(courseCode) {
@@ -202,19 +90,19 @@ const MentorScheduleStore = (() => {
     }
 
     if (normalized.startsWith("math")) {
-      return listMentors().filter(mentor => mentor.categories.includes("Math"));
+      return listMentors().filter(mentor => mentor.categories.includes("Mathematics"));
     }
 
-    if (normalized.startsWith("comp")) {
-      return listMentors().filter(mentor => mentor.categories.includes("Computer Science"));
+    if (normalized.startsWith("comp") || normalized.startsWith("cs") || normalized.startsWith("tech")) {
+      return listMentors().filter(mentor => mentor.categories.includes("Technology"));
     }
 
-    if (normalized.startsWith("bio")) {
-      return listMentors().filter(mentor => mentor.categories.includes("Biology"));
+    if (normalized.startsWith("bio") || normalized.startsWith("biol") || normalized.startsWith("chem")) {
+      return listMentors().filter(mentor => mentor.categories.includes("Sciences"));
     }
 
-    if (normalized.startsWith("bus")) {
-      return listMentors().filter(mentor => mentor.categories.includes("Business"));
+    if (normalized.startsWith("engl")) {
+      return listMentors().filter(mentor => mentor.categories.includes("English"));
     }
 
     return listMentors();
@@ -407,6 +295,18 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedDate: null,
     activeMentor: resolveInitialMentor()
   };
+
+  if (!state.activeMentor) {
+    eventDateEl.textContent = "No mentor schedule available";
+    eventListEl.innerHTML = `<div class="no-events">Mentor schedule data could not be loaded from the database.</div>`;
+    window.CUACalendar = {
+      setMentor: () => {},
+      setCourse: () => {},
+      refresh: () => {},
+      getActiveMentor: () => null
+    };
+    return;
+  }
 
   setupMentorTabs();
   setupMentorSelect();
@@ -735,7 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
       addEventItem({
         type: "available",
         time: `${slot.start} - ${slot.end}`,
-        text: canSelectSlots() ? "Available for booking" : "Available",
+        text: canSelectSlots() ? getSelectableSlotText() : "Available",
         slot,
         dateObj
       });
@@ -777,7 +677,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (type === "available" && canSelectSlots()) {
       eventItem.classList.add("selectable-slot");
       eventItem.addEventListener("click", () => {
-        window.openConfirmation(MentorScheduleStore.formatDateLabel(dateObj), slot.start);
+        const dateLabel = MentorScheduleStore.formatDateLabel(dateObj);
+        const dateKey = MentorScheduleStore.getDateKey(dateObj);
+
+        if (typeof window.CUAHandleCalendarSlot === "function") {
+          window.CUAHandleCalendarSlot({
+            dateObj,
+            dateKey,
+            dateLabel,
+            slot,
+            mentor: state.activeMentor
+          });
+          return;
+        }
+
+        window.openConfirmation(dateLabel, slot.start);
       });
     }
 
@@ -785,8 +699,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function canSelectSlots() {
-    return typeof window.openConfirmation === "function" &&
-      (Boolean(document.getElementById("confirm-selection")) || typeof window.viewEditDateCallback === "function");
+    return typeof window.CUAHandleCalendarSlot === "function" ||
+      (typeof window.openConfirmation === "function" &&
+        (Boolean(document.getElementById("confirm-selection")) || typeof window.viewEditDateCallback === "function"));
+  }
+
+  function getSelectableSlotText() {
+    return typeof window.CUAHandleCalendarSlot === "function"
+      ? "Available for selection"
+      : "Available for booking";
   }
   })();
 });

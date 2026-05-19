@@ -1,6 +1,6 @@
 /**
  * Autocomplete Module - Reusable autocomplete/suggestion component
- * Designed to work with static data now, easily adapted for backend integration
+ * Uses backend data for courses and students.
  */
 
 const Autocomplete = {
@@ -8,8 +8,7 @@ const Autocomplete = {
     courseLoadPromise: null,
 
     /**
-     * Configuration for data sources
-     * This structure allows easy switching between static data and backend APIs
+     * Configuration for data sources.
      */
     dataSources: {
         // Search by course ID (displays: "ID - Name")
@@ -68,8 +67,8 @@ const Autocomplete = {
     },
 
     /**
-     * Course data cache. Uses the PHP API when available and falls back to
-     * prototype data if the backend cannot be reached.
+     * Course data cache. Uses the PHP API and returns an empty list if the
+     * backend cannot be reached.
      */
     async loadCourseData(force = false) {
         if (!force && this.courseCache) return this.courseCache;
@@ -91,7 +90,7 @@ const Autocomplete = {
                     description: course.description || ""
                 }));
             } catch (error) {
-                console.warn("Using fallback course data:", error);
+                console.warn("Could not load course data:", error);
                 this.courseCache = this.getFallbackCourseData();
             } finally {
                 this.courseLoadPromise = null;
@@ -108,18 +107,7 @@ const Autocomplete = {
     },
 
     getFallbackCourseData() {
-        return [
-            { id: 'MATH101', name: 'Calculus I', category: 'Math' },
-            { id: 'MATH102', name: 'Calculus II', category: 'Math' },
-            { id: 'MATH201', name: 'Linear Algebra', category: 'Math' },
-            { id: 'COMP101', name: 'Intro to Computer Science', category: 'Computer Science' },
-            { id: 'COMP201', name: 'Data Structures I', category: 'Computer Science' },
-            { id: 'COMP202', name: 'Data Structures II', category: 'Computer Science' },
-            { id: 'COMP301', name: 'Algorithms', category: 'Computer Science' },
-            { id: 'BIOL110', name: 'General Biology', category: 'Biology' },
-            { id: 'BIOL215', name: 'Human Anatomy', category: 'Biology' },
-            { id: 'BUSS101', name: 'Introduction to Business', category: 'Business' }
-        ];
+        return [];
     },
 
     /**
@@ -426,8 +414,7 @@ const Autocomplete = {
     },
 
     /**
-     * Update data source (useful for switching between static/backend)
-     * FUTURE: Call this when switching to backend
+     * Update data source.
      */
     updateDataSource(dataSourceKey, newDataFunction) {
         if (this.dataSources[dataSourceKey]) {

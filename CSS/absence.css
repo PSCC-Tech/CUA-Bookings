@@ -1,43 +1,143 @@
-/* FORM */
-.form-container {
-    background: white;
-    padding: 25px;
-    width: 100%; 
-    max-width: 500px;
-    margin: auto;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+.absence-page .form-container {
+    max-width: 560px;
 }
 
+.absence-page .radio-group {
+    display: flex;
+    gap: 18px;
+    margin: 10px 0 2px;
+}
 
-form {
+.absence-page .radio-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-weight: 600;
+}
+
+.absence-page .radio-group input {
+    margin: 0;
+}
+
+.absence-page .absence-time-card {
+    display: none;
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid var(--inter-border);
+    border-radius: 8px;
+    background: #f8faf4;
+}
+
+.absence-page .absence-time-card-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+}
+
+.absence-page .absence-time-kicker {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--inter-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.absence-page .absence-calendar-btn {
+    min-height: 42px;
+    margin: 0;
+    padding: 0 14px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.absence-page .absence-calendar-btn.has-selection,
+.absence-page .absence-calendar-btn.has-selection:hover:not(:disabled),
+.absence-page .absence-calendar-btn.has-selection:focus-visible {
+    background: var(--inter-yellow-soft) !important;
+    color: var(--inter-ink) !important;
+    border-color: var(--inter-yellow) !important;
+    box-shadow: 0 0 0 3px rgba(254, 209, 65, 0.22) !important;
+    transform: none !important;
+}
+
+.absence-page .absence-calendar-btn:hover:not(:disabled) {
+    transform: none;
+}
+
+.absence-page .absence-time-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.absence-page .absence-time-grid label {
     display: flex;
     flex-direction: column;
+    margin: 0;
 }
 
-label {
-    margin-top: 12px;
-    font-weight: bold;
+.absence-page #calendar-modal .modal-content {
+    width: min(980px, 100%);
+    align-items: stretch;
 }
 
-input, textarea {
-    margin-top: 5px;
-    padding: 8px;
-    border: 1px solid #bbb;
-    border-radius: 5px;
+.absence-page #calendar-modal .calendar-modal-header {
+    max-width: none;
+    padding-right: 48px;
 }
 
-button {
-    margin-top: 20px;
-    padding: 10px;
-    background: #4c4cff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.absence-page .absence-modal-context {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    margin: -4px 0 18px;
+    padding: 12px 14px;
+    border: 1px solid var(--inter-border);
+    border-radius: 8px;
+    background: #f8faf4;
 }
 
-button:hover {
-    background: #3a3ad6;
+.absence-page .absence-modal-context span {
+    color: var(--inter-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
-/* End of FORM */
+
+.absence-page .absence-modal-context strong {
+    color: var(--inter-ink);
+    font-size: 1rem;
+}
+
+.absence-page .modal-calendar {
+    align-items: stretch;
+}
+
+.absence-page .modal-calendar .mentor-layout {
+    max-width: none;
+    grid-template-columns: minmax(320px, 0.95fr) minmax(320px, 1.05fr);
+    gap: 18px;
+    padding: 0;
+}
+
+.absence-page .calendar-container,
+.absence-page .event-panel {
+    border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+    .absence-page .absence-time-card-header,
+    .absence-page .absence-time-grid,
+    .absence-page .modal-calendar .mentor-layout,
+    .absence-page .absence-modal-context {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

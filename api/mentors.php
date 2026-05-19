@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-require_method(['GET', 'POST', 'PUT']);
+require_method(['GET', 'POST', 'PUT', 'DELETE']);
 
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -136,7 +136,82 @@ if ($method === 'GET') {
     ok(['mentors' => $mentors]);
 }
 
+function mentor_id_from_number(PDO $pdo, string $mentorNumber): ?int
+{
+    $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? LIMIT 1');
+    $stmt->execute([$mentorNumber]);
+    $id = $stmt->fetchColumn();
+
+    return $id ? (int)$id : null;
+}
+
+function mentor_delete_ids(PDO $pdo, array $data): array
+{
+    $ids = [];
+    $rawIds = $data['ids'] ?? $data['mentor_ids'] ?? null;
+
+    if (is_array($rawIds)) {
+        foreach ($rawIds as $id) {
+            if (ctype_digit((string)$id)) {
+                $ids[] = (int)$id;
+            }
+        }
+    }
+
+    $rawNumbers = $data['mentor_numbers'] ?? null;
+    if (is_array($rawNumbers)) {
+        foreach ($rawNumbers as $number) {
+            $id = mentor_id_from_number($pdo, trim((string)$number));
+            if ($id) {
+                $ids[] = $id;
+            }
+        }
+    }
+
+    $queryId = read_id();
+    if ($queryId) {
+        $ids[] = $queryId;
+    }
+
+    foreach (['mentor_id', 'id'] as $key) {
+        if (isset($data[$key]) && ctype_digit((string)$data[$key])) {
+            $ids[] = (int)$data[$key];
+        }
+    }
+
+    $mentorNumber = trim((string)($data['mentor_number'] ?? $_GET['mentor_number'] ?? ''));
+    if ($mentorNumber !== '') {
+        $id = mentor_id_from_number($pdo, $mentorNumber);
+        if ($id) {
+            $ids[] = $id;
+        }
+    }
+
+    return array_values(array_unique(array_filter($ids)));
+}
+
 $data = input_json();
+
+if ($method === 'DELETE') {
+    $ids = mentor_delete_ids($pdo, $data);
+    if (!$ids) {
+        fail('Select at least one mentor to delete.');
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $pdo->beginTransaction();
+
+    try {
+        $pdo->prepare("UPDATE mentors SET is_active = 0 WHERE mentor_id IN ($placeholders)")->execute($ids);
+        $pdo->prepare("UPDATE mentor_courses SET is_active = 0 WHERE mentor_id IN ($placeholders)")->execute($ids);
+        $pdo->prepare("UPDATE mentor_weekly_availability SET is_active = 0 WHERE mentor_id IN ($placeholders)")->execute($ids);
+        $pdo->commit();
+        ok(['deleted' => count($ids)]);
+    } catch (Throwable $error) {
+        $pdo->rollBack();
+        fail($error->getMessage(), 400);
+    }
+}
 
 if ($method === 'PUT') {
     $mentorId = read_id();

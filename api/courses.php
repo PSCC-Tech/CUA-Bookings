@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-require_method(['GET', 'POST']);
+require_method(['GET', 'POST', 'PUT', 'DELETE']);
 
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-if ($method === 'GET') {
+function fetch_courses(PDO $pdo): array
+{
     $search = trim((string)($_GET['q'] ?? $_GET['search'] ?? ''));
     $category = trim((string)($_GET['category'] ?? ''));
     $mentor = trim((string)($_GET['mentor'] ?? ''));
@@ -78,7 +79,7 @@ if ($method === 'GET') {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
 
-    $courses = array_map(static function (array $row): array {
+    return array_map(static function (array $row): array {
         return [
             'course_id' => (int)$row['course_id'],
             'id' => $row['course_code'],
@@ -92,61 +93,58 @@ if ($method === 'GET') {
             'topics' => $row['topics'] ? split_csv_names($row['topics']) : [],
         ];
     }, $stmt->fetchAll());
-
-    ok(['courses' => $courses]);
 }
 
-$data = input_json();
-$parsed = parse_course_code((string)($data['course_code'] ?? $data['code'] ?? ''));
-
-$courseName = trim((string)($data['course_name'] ?? $data['name'] ?? ''));
-if ($courseName === '') {
-    fail('Course name is required.');
-}
-
-$description = trim((string)($data['description'] ?? ''));
-$professorNames = is_array($data['professors'] ?? null)
-    ? array_values(array_filter(array_map('trim', $data['professors'])))
-    : split_csv_names((string)($data['professors'] ?? ''));
-$topics = is_array($data['topics'] ?? null)
-    ? array_values(array_filter(array_map('trim', $data['topics'])))
-    : [];
-$mentorNumbers = is_array($data['mentor_numbers'] ?? null)
-    ? array_values(array_filter(array_map('trim', $data['mentor_numbers'])))
-    : [];
-
-$pdo->beginTransaction();
-
-try {
+function course_subject_id(PDO $pdo, string $subjectCode): int
+{
     $subjectStmt = $pdo->prepare('SELECT subject_id FROM course_subjects WHERE subject_code = ? LIMIT 1');
-    $subjectStmt->execute([$parsed['subject_code']]);
+    $subjectStmt->execute([$subjectCode]);
     $subjectId = $subjectStmt->fetchColumn();
 
     if (!$subjectId) {
-        throw new RuntimeException('Unknown course subject prefix: ' . $parsed['subject_code']);
+        throw new RuntimeException('Unknown course subject prefix: ' . $subjectCode);
     }
 
-    $existingStmt = $pdo->prepare('
-        SELECT course_id
-        FROM courses
-        WHERE subject_id = ? AND course_number = ? AND course_suffix = ?
-        LIMIT 1
-    ');
-    $existingStmt->execute([(int)$subjectId, $parsed['course_number'], $parsed['course_suffix']]);
-    $existingId = $existingStmt->fetchColumn();
+    return (int)$subjectId;
+}
 
-    if ($existingId) {
-        $courseId = (int)$existingId;
-        $update = $pdo->prepare('UPDATE courses SET course_name = ?, description = ?, is_active = 1 WHERE course_id = ?');
-        $update->execute([$courseName, $description ?: null, $courseId]);
-    } else {
-        $insert = $pdo->prepare('
-            INSERT INTO courses (subject_id, course_number, course_suffix, course_name, description)
-            VALUES (?, ?, ?, ?, ?)
-        ');
-        $insert->execute([(int)$subjectId, $parsed['course_number'], $parsed['course_suffix'], $courseName, $description ?: null]);
-        $courseId = (int)$pdo->lastInsertId();
+function course_id_from_code(PDO $pdo, string $courseCode): ?int
+{
+    $stmt = $pdo->prepare('SELECT course_id FROM v_courses_with_categories WHERE course_code = ? LIMIT 1');
+    $stmt->execute([normalize_course_code($courseCode)]);
+    $id = $stmt->fetchColumn();
+
+    return $id ? (int)$id : null;
+}
+
+function read_course_target_id(PDO $pdo, array $data): ?int
+{
+    $id = read_id();
+    if ($id) {
+        return $id;
     }
+
+    foreach (['course_id', 'id'] as $key) {
+        if (isset($data[$key]) && ctype_digit((string)$data[$key])) {
+            return (int)$data[$key];
+        }
+    }
+
+    $code = trim((string)($data['course_code'] ?? $data['code'] ?? $_GET['course_code'] ?? ''));
+    return $code !== '' ? course_id_from_code($pdo, $code) : null;
+}
+
+function sync_course_relations(PDO $pdo, int $courseId, array $data, bool $syncMentors): void
+{
+    $professorNames = is_array($data['professors'] ?? null)
+        ? array_values(array_filter(array_map('trim', $data['professors'])))
+        : split_csv_names((string)($data['professors'] ?? ''));
+    $topics = is_array($data['topics'] ?? null)
+        ? array_values(array_filter(array_map('trim', $data['topics'])))
+        : [];
+    $mentorNumbers = is_array($data['mentor_numbers'] ?? null)
+        ? array_values(array_filter(array_map('trim', $data['mentor_numbers'])))
+        : [];
 
     $pdo->prepare('DELETE FROM course_professors WHERE course_id = ?')->execute([$courseId]);
     foreach ($professorNames as $professorName) {
@@ -163,23 +161,147 @@ try {
             ->execute([$courseId, $topic, $index + 1]);
     }
 
-    $pdo->prepare('DELETE FROM mentor_courses WHERE course_id = ?')->execute([$courseId]);
-    if ($mentorNumbers) {
-        $mentorStmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? OR full_name = ? LIMIT 1');
-        $assign = $pdo->prepare('INSERT IGNORE INTO mentor_courses (mentor_id, course_id, assigned_by_user_id) VALUES (?, ?, ?)');
-        $userId = find_or_create_user($pdo, (string)($data['made_by'] ?? 'Front Desk Staff'));
+    if (!$syncMentors) {
+        return;
+    }
 
-        foreach ($mentorNumbers as $mentorNumber) {
-            $mentorStmt->execute([$mentorNumber, $mentorNumber]);
-            $mentorId = $mentorStmt->fetchColumn();
-            if ($mentorId) {
-                $assign->execute([(int)$mentorId, $courseId, $userId]);
+    $pdo->prepare('DELETE FROM mentor_courses WHERE course_id = ?')->execute([$courseId]);
+    if (!$mentorNumbers) {
+        return;
+    }
+
+    $mentorStmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? OR full_name = ? LIMIT 1');
+    $assign = $pdo->prepare('
+        INSERT INTO mentor_courses (mentor_id, course_id, assigned_by_user_id, is_active)
+        VALUES (?, ?, ?, 1)
+        ON DUPLICATE KEY UPDATE assigned_by_user_id = VALUES(assigned_by_user_id), is_active = 1
+    ');
+    $userId = find_or_create_user($pdo, (string)($data['made_by'] ?? 'Front Desk Staff'));
+
+    foreach ($mentorNumbers as $mentorNumber) {
+        $mentorStmt->execute([$mentorNumber, $mentorNumber]);
+        $mentorId = $mentorStmt->fetchColumn();
+        if ($mentorId) {
+            $assign->execute([(int)$mentorId, $courseId, $userId]);
+        }
+    }
+}
+
+function save_course(PDO $pdo, array $data, ?int $targetCourseId = null): array
+{
+    $parsed = parse_course_code((string)($data['course_code'] ?? $data['code'] ?? ''));
+    $courseName = trim((string)($data['course_name'] ?? $data['name'] ?? ''));
+    $description = trim((string)($data['description'] ?? ''));
+
+    if ($courseName === '') {
+        fail('Course name is required.');
+    }
+
+    $subjectId = course_subject_id($pdo, $parsed['subject_code']);
+    $existingStmt = $pdo->prepare('
+        SELECT course_id
+        FROM courses
+        WHERE subject_id = ? AND course_number = ? AND course_suffix = ?
+        LIMIT 1
+    ');
+    $existingStmt->execute([$subjectId, $parsed['course_number'], $parsed['course_suffix']]);
+    $existingId = $existingStmt->fetchColumn();
+
+    if ($targetCourseId) {
+        $existsStmt = $pdo->prepare('SELECT course_id FROM courses WHERE course_id = ? LIMIT 1');
+        $existsStmt->execute([$targetCourseId]);
+        if (!$existsStmt->fetchColumn()) {
+            fail('Course was not found.', 404);
+        }
+
+        if ($existingId && (int)$existingId !== $targetCourseId) {
+            throw new RuntimeException('Another course already uses that course code.');
+        }
+
+        $courseId = $targetCourseId;
+        $update = $pdo->prepare('
+            UPDATE courses
+            SET subject_id = ?, course_number = ?, course_suffix = ?, course_name = ?, description = ?, is_active = 1
+            WHERE course_id = ?
+        ');
+        $update->execute([$subjectId, $parsed['course_number'], $parsed['course_suffix'], $courseName, $description ?: null, $courseId]);
+    } elseif ($existingId) {
+        $courseId = (int)$existingId;
+        $update = $pdo->prepare('UPDATE courses SET course_name = ?, description = ?, is_active = 1 WHERE course_id = ?');
+        $update->execute([$courseName, $description ?: null, $courseId]);
+    } else {
+        $insert = $pdo->prepare('
+            INSERT INTO courses (subject_id, course_number, course_suffix, course_name, description)
+            VALUES (?, ?, ?, ?, ?)
+        ');
+        $insert->execute([$subjectId, $parsed['course_number'], $parsed['course_suffix'], $courseName, $description ?: null]);
+        $courseId = (int)$pdo->lastInsertId();
+    }
+
+    $syncMentors = !$targetCourseId || array_key_exists('mentor_numbers', $data);
+    sync_course_relations($pdo, $courseId, $data, $syncMentors);
+
+    return ['course_id' => $courseId, 'course_code' => $parsed['normalized']];
+}
+
+function course_delete_ids(PDO $pdo, array $data): array
+{
+    $ids = [];
+    $rawIds = $data['ids'] ?? $data['course_ids'] ?? null;
+
+    if (is_array($rawIds)) {
+        foreach ($rawIds as $id) {
+            if (ctype_digit((string)$id)) {
+                $ids[] = (int)$id;
             }
         }
     }
 
+    $singleId = read_course_target_id($pdo, $data);
+    if ($singleId) {
+        $ids[] = $singleId;
+    }
+
+    return array_values(array_unique(array_filter($ids)));
+}
+
+if ($method === 'GET') {
+    ok(['courses' => fetch_courses($pdo)]);
+}
+
+$data = input_json();
+
+if ($method === 'DELETE') {
+    $ids = course_delete_ids($pdo, $data);
+    if (!$ids) {
+        fail('Select at least one course to delete.');
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $pdo->beginTransaction();
+
+    try {
+        $pdo->prepare("UPDATE courses SET is_active = 0 WHERE course_id IN ($placeholders)")->execute($ids);
+        $pdo->prepare("UPDATE mentor_courses SET is_active = 0 WHERE course_id IN ($placeholders)")->execute($ids);
+        $pdo->commit();
+        ok(['deleted' => count($ids), 'courses' => fetch_courses($pdo)]);
+    } catch (Throwable $error) {
+        $pdo->rollBack();
+        fail($error->getMessage(), 400);
+    }
+}
+
+$targetCourseId = $method === 'PUT' ? read_course_target_id($pdo, $data) : null;
+if ($method === 'PUT' && !$targetCourseId) {
+    fail('Course ID is required.', 400);
+}
+
+$pdo->beginTransaction();
+
+try {
+    $saved = save_course($pdo, $data, $targetCourseId);
     $pdo->commit();
-    ok(['course_id' => $courseId, 'course_code' => $parsed['normalized']]);
+    ok($saved);
 } catch (Throwable $error) {
     $pdo->rollBack();
     fail($error->getMessage(), 400);

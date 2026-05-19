@@ -432,23 +432,41 @@ INSERT INTO admin_profiles (
 );
 
 INSERT INTO categories (category_name) VALUES
-('Math'),
-('Computer Science'),
-('Biology'),
-('Business'),
-('Chemistry'),
-('English');
+('Mathematics'),
+('Sciences'),
+('Spanish'),
+('English'),
+('Stadistics'),
+('Accounting'),
+('Finances'),
+('Microeconomics'),
+('Quantitative Methods'),
+('Technology'),
+('Others');
 
 INSERT INTO course_subjects (subject_code, subject_name, category_id) VALUES
-('MATH', 'Mathematics', (SELECT category_id FROM categories WHERE category_name = 'Math')),
-('COMP', 'Computer Science', (SELECT category_id FROM categories WHERE category_name = 'Computer Science')),
-('CS', 'Computer Science', (SELECT category_id FROM categories WHERE category_name = 'Computer Science')),
-('BIOL', 'Biology', (SELECT category_id FROM categories WHERE category_name = 'Biology')),
-('BIO', 'Biology', (SELECT category_id FROM categories WHERE category_name = 'Biology')),
-('BUS', 'Business', (SELECT category_id FROM categories WHERE category_name = 'Business')),
-('BUSS', 'Business', (SELECT category_id FROM categories WHERE category_name = 'Business')),
-('CHEM', 'Chemistry', (SELECT category_id FROM categories WHERE category_name = 'Chemistry')),
-('ENGL', 'English', (SELECT category_id FROM categories WHERE category_name = 'English'));
+('MATH', 'Mathematics', (SELECT category_id FROM categories WHERE category_name = 'Mathematics')),
+('BIOL', 'Biology', (SELECT category_id FROM categories WHERE category_name = 'Sciences')),
+('BIO', 'Biology', (SELECT category_id FROM categories WHERE category_name = 'Sciences')),
+('CHEM', 'Chemistry', (SELECT category_id FROM categories WHERE category_name = 'Sciences')),
+('SPAN', 'Spanish', (SELECT category_id FROM categories WHERE category_name = 'Spanish')),
+('ESPA', 'Spanish', (SELECT category_id FROM categories WHERE category_name = 'Spanish')),
+('ENGL', 'English', (SELECT category_id FROM categories WHERE category_name = 'English')),
+('STAT', 'Stadistics', (SELECT category_id FROM categories WHERE category_name = 'Stadistics')),
+('STAD', 'Stadistics', (SELECT category_id FROM categories WHERE category_name = 'Stadistics')),
+('ACCT', 'Accounting', (SELECT category_id FROM categories WHERE category_name = 'Accounting')),
+('ACC', 'Accounting', (SELECT category_id FROM categories WHERE category_name = 'Accounting')),
+('FIN', 'Finances', (SELECT category_id FROM categories WHERE category_name = 'Finances')),
+('FINA', 'Finances', (SELECT category_id FROM categories WHERE category_name = 'Finances')),
+('ECON', 'Microeconomics', (SELECT category_id FROM categories WHERE category_name = 'Microeconomics')),
+('MICRO', 'Microeconomics', (SELECT category_id FROM categories WHERE category_name = 'Microeconomics')),
+('QUME', 'Quantitative Methods', (SELECT category_id FROM categories WHERE category_name = 'Quantitative Methods')),
+('QM', 'Quantitative Methods', (SELECT category_id FROM categories WHERE category_name = 'Quantitative Methods')),
+('COMP', 'Computer Science', (SELECT category_id FROM categories WHERE category_name = 'Technology')),
+('CS', 'Computer Science', (SELECT category_id FROM categories WHERE category_name = 'Technology')),
+('TECH', 'Technology', (SELECT category_id FROM categories WHERE category_name = 'Technology')),
+('BUS', 'Business', (SELECT category_id FROM categories WHERE category_name = 'Others')),
+('BUSS', 'Business', (SELECT category_id FROM categories WHERE category_name = 'Others'));
 
 INSERT INTO locations (location_name, location_type, address) VALUES
 ('CUA (Library 2nd Floor)', 'physical', 'Library 2nd Floor'),

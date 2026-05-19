@@ -220,14 +220,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             mentorNumber: mentor.mentor_number || mentor.id || "",
             categories: mentor.categories
         }))
-        : [
-            { name: "John Smith", categories: ["Math", "Computer Science"] },
-            { name: "John Doe", categories: ["Business", "Biology"] },
-            { name: "Jane Smith", categories: ["Math", "Biology"] },
-            { name: "Jane Doe", categories: ["Biology", "Math"] },
-            { name: "Dr. Wilson", categories: ["Computer Science", "Math"] },
-            { name: "Dr. Adams", categories: ["Business"] }
-        ];
+        : [];
 
     // -------------------------
     // CATEGORY DROPDOWN + FILTERING

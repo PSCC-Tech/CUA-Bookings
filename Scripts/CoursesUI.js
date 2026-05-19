@@ -1,12 +1,17 @@
 const CoursesUI = {
     selected: new Map(), // Stores selected courses for deletion
     categorySections: [
-        { name: "Math", title: "Math Courses", icon: "fa-solid fa-square-root-variable" },
-        { name: "Computer Science", title: "Computer Science Courses", icon: "fa-solid fa-computer" },
-        { name: "Biology", title: "Biology Courses", icon: "fa-solid fa-dna" },
-        { name: "Business", title: "Business Courses", icon: "fa-solid fa-briefcase" },
-        { name: "Chemistry", title: "Chemistry Courses", icon: "fa-solid fa-flask" },
-        { name: "English", title: "English Courses", icon: "fa-solid fa-book" }
+        { name: "Mathematics", title: "Mathematics Courses", icon: "fa-solid fa-square-root-variable" },
+        { name: "Sciences", title: "Sciences Courses", icon: "fa-solid fa-flask" },
+        { name: "Spanish", title: "Spanish Courses", icon: "fa-solid fa-book-open" },
+        { name: "English", title: "English Courses", icon: "fa-solid fa-book" },
+        { name: "Stadistics", title: "Stadistics Courses", icon: "fa-solid fa-chart-column" },
+        { name: "Accounting", title: "Accounting Courses", icon: "fa-solid fa-calculator" },
+        { name: "Finances", title: "Finances Courses", icon: "fa-solid fa-coins" },
+        { name: "Microeconomics", title: "Microeconomics Courses", icon: "fa-solid fa-chart-line" },
+        { name: "Quantitative Methods", title: "Quantitative Methods Courses", icon: "fa-solid fa-percent" },
+        { name: "Technology", title: "Technology Courses", icon: "fa-solid fa-computer" },
+        { name: "Others", title: "Other Courses", icon: "fa-solid fa-layer-group" }
     ],
 
     init() {
@@ -71,8 +76,13 @@ const CoursesUI = {
 
     ensureCourseSections(root) {
         const existingSections = [...root.querySelectorAll(".course-section")];
+        const allowedCategories = new Set(this.categorySections.map(category => category.name));
 
         existingSections.forEach(section => {
+            if (section.dataset.category && !allowedCategories.has(section.dataset.category)) {
+                section.remove();
+                return;
+            }
             if (section.dataset.category) return;
             const title = section.querySelector(".title-text")?.textContent || "";
             const match = this.categorySections.find(category => title.includes(category.name));
@@ -380,13 +390,14 @@ const CoursesUI = {
             const checkbox = row.querySelector(".course-select");
 
             checkbox.addEventListener("change", () => {
-                const courseId = row.children[1].innerText.trim();
+                const courseId = row.dataset.courseId || row.children[1].innerText.trim();
+                const courseCode = row.children[1].innerText.trim();
                 const courseName = row.children[2].innerText.trim();
                 const professor = row.children[3].innerText.trim();
                 const mentor = row.children[4].innerText.trim();
 
                 if (checkbox.checked) {
-                    this.addToDeletePanel(courseId, courseName, professor, mentor, row);
+                    this.addToDeletePanel(courseId, courseCode, courseName, professor, mentor, row);
                 } else {
                     this.removeFromDeletePanel(courseId);
                 }
@@ -397,16 +408,16 @@ const CoursesUI = {
     /* -----------------------------------------
        ADD COURSE TO DELETE PANEL
     ----------------------------------------- */
-    addToDeletePanel(id, name, professor, mentor, row) {
+    addToDeletePanel(id, code, name, professor, mentor, row) {
         if (this.selected.has(id)) return;
 
-        this.selected.set(id, { id, name, professor, mentor, row });
+        this.selected.set(id, { id, code, name, professor, mentor, row });
 
         const tr = document.createElement("tr");
         tr.dataset.id = id;
 
         tr.innerHTML = `
-            <td>${id}</td>
+            <td>${code}</td>
             <td>${name}</td>
             <td>${professor}</td>
             <td>${mentor}</td>
@@ -440,9 +451,24 @@ const CoursesUI = {
        DELETE PANEL BUTTON 
     ----------------------------------------- */
     setupDeletePanelListeners() {
-        this.confirmDeleteBtn.addEventListener("click", () => {
-            alert("Delete action triggered for selected courses.");
-            // Later: send delete request to backend
+        this.confirmDeleteBtn.addEventListener("click", async () => {
+            if (!this.selected.size) return;
+            if (!window.CUAApi?.deleteCourses) {
+                alert("Backend API is not loaded.");
+                return;
+            }
+
+            const names = [...this.selected.values()].map(item => item.code).join(", ");
+            const confirmed = confirm(`Delete selected course${this.selected.size === 1 ? "" : "s"}: ${names}?`);
+            if (!confirmed) return;
+
+            try {
+                await window.CUAApi.deleteCourses([...this.selected.keys()]);
+                alert("Selected course records were deleted.");
+                window.location.reload();
+            } catch (error) {
+                alert(error.message || "Could not delete selected courses.");
+            }
         });
 
         document.getElementById("cancel-delete-btn").addEventListener("click", () => {
@@ -535,7 +561,6 @@ const CoursesUI = {
                 cell.textContent = preview;
                 cell.dataset.original = preview;
             }
-            console.log("initializePeopleCells() ran");
         });
 
         // MENTORS

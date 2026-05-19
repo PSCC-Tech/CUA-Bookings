@@ -7,7 +7,37 @@ require_method(['GET']);
 
 $pdo = db();
 
-$categories = $pdo->query('SELECT category_id, category_name FROM categories ORDER BY category_name')
+$categories = $pdo->query("
+    SELECT category_id, category_name
+    FROM categories
+    WHERE category_name IN (
+        'Mathematics',
+        'Sciences',
+        'Spanish',
+        'English',
+        'Stadistics',
+        'Accounting',
+        'Finances',
+        'Microeconomics',
+        'Quantitative Methods',
+        'Technology',
+        'Others'
+    )
+    ORDER BY FIELD(
+        category_name,
+        'Mathematics',
+        'Sciences',
+        'Spanish',
+        'English',
+        'Stadistics',
+        'Accounting',
+        'Finances',
+        'Microeconomics',
+        'Quantitative Methods',
+        'Technology',
+        'Others'
+    ), category_name
+")
     ->fetchAll();
 
 $locations = $pdo->query('
