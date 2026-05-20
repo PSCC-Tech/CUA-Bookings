@@ -84,16 +84,20 @@ position: sticky;
 }
 
 .mentor-inner {
-    width: 85%;        /* match your table width */
-    max-width: 950px;  /* match your table max-width */
-    margin: 0 auto;    /* center it */
+    width: fit-content;
+    min-width: min(100%, 760px);
+    max-width: 100%;
+    margin: 0 auto;
+    overflow-x: auto;
+    padding-bottom: 6px;
 }
 
 /* ====== Table Styling ====== */
 
 .mentor-table {
-    table-layout: fixed;
-    width: 100%;
+    table-layout: auto;
+    width: max-content;
+    min-width: 100%;
     border-collapse: collapse;
     background: #ffffff;
     border-radius: 8px;
@@ -102,9 +106,13 @@ position: sticky;
 }
 
 @media (max-width: 600px) {
-    .mentor-table {
+    .mentor-inner {
         width: 100%;
-        max-width: none;
+        min-width: 0;
+    }
+
+    .mentor-table {
+        min-width: 620px;
     }
 }
 
@@ -118,6 +126,7 @@ position: sticky;
     padding: 14px;
     text-align: left;
     font-size: 15px;
+    white-space: nowrap;
 }
 
 /* Body */
@@ -125,6 +134,62 @@ position: sticky;
     padding: 14px;
     border-bottom: 1px solid #e0e0e0;
     font-size: 15px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.mentor-table th:first-child,
+.mentor-table td:first-child {
+    width: 1%;
+    text-align: center;
+}
+
+.mentor-table th:nth-child(2),
+.mentor-table td:nth-child(2) {
+    width: 1%;
+}
+
+.mentor-name-link {
+    min-width: 180px;
+    color: var(--inter-green, #007a5e);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.mentor-table th:nth-child(4),
+.mentor-table td:nth-child(4) {
+    min-width: 220px;
+}
+
+.mentor-table th:last-child,
+.mentor-table td:last-child {
+    width: 1%;
+    text-align: center;
+}
+
+.mentor-details-btn {
+    min-height: 34px;
+    margin: 0;
+    padding: 7px 12px;
+    border: 1px solid var(--inter-green, #007a5e);
+    border-radius: 6px;
+    background: var(--inter-green, #007a5e);
+    color: white;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.mentor-details-btn::after {
+    content: "→";
+    margin-left: 7px;
+}
+
+.mentor-details-btn:hover {
+    background: var(--inter-green-dark, #005f46);
+    border-color: var(--inter-green-dark, #005f46);
 }
 
 /* Zebra striping */

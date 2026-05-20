@@ -262,7 +262,7 @@ const TableManager = {
         const q = query.toLowerCase();
 
         cells.forEach(cell => {
-            if (cell.querySelector("input")) return;
+            if (cell.querySelector("input, button")) return;
 
             let original = cell.textContent;
 

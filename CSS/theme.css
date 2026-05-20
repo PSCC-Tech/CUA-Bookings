@@ -108,9 +108,21 @@ input[type="radio"] {
 }
 
 .nav-links li:not(.active):hover,
-.logout,
-.logout:hover {
+.logout {
     background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.logout {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.logout:hover {
+    background: var(--inter-yellow) !important;
+    border-color: var(--inter-yellow) !important;
+    color: var(--inter-ink) !important;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+    transform: translateY(-1px);
 }
 
 .nav-links .active,
@@ -239,15 +251,20 @@ input[type="radio"] {
     content: "";
     position: absolute;
     top: 0;
-    left: 0;
+    left: 50%;
     width: 118px;
     height: 118px;
     background: var(--brand-logo) center / contain no-repeat;
     filter: drop-shadow(0 8px 14px var(--inter-shadow));
+    transform: translateX(-50%);
 }
 
 .login-brand h1 {
     color: var(--inter-ink) !important;
+}
+
+.login-brand .login-welcome {
+    color: var(--inter-green) !important;
 }
 
 .login-brand p {
@@ -486,6 +503,17 @@ button,
 .course-table th,
 .mentor-table th {
     color: white !important;
+}
+
+.data-table th,
+.data-table td,
+.course-table th,
+.course-table td,
+.mentor-table th,
+.mentor-table td,
+#delete-table th,
+#delete-table td {
+    text-align: center;
 }
 
 button:disabled,

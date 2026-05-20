@@ -46,7 +46,7 @@ const CoursesUI = {
         root.querySelectorAll(".course-table tbody").forEach(tbody => {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5">${this.escapeHtml(message)}</td>
+                    <td colspan="6">${this.escapeHtml(message)}</td>
                 </tr>
             `;
         });
@@ -124,6 +124,7 @@ const CoursesUI = {
                             <th>Course Name</th>
                             <th>Professors</th>
                             <th>Mentors</th>
+                            <th>Details</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -146,6 +147,11 @@ const CoursesUI = {
                 <td class="course-name-link" onclick="window.location='${detailsUrl}'">${this.escapeHtml(course.name)}</td>
                 <td class="professor-cell" data-professors="${this.escapeAttribute(professors)}"></td>
                 <td class="mentor-cell" data-mentors="${this.escapeAttribute(mentors)}"></td>
+                <td>
+                    <button type="button" class="course-details-btn" onclick="window.location='${detailsUrl}'">
+                        View details
+                    </button>
+                </td>
             </tr>
         `;
     },

@@ -368,30 +368,117 @@
     font-size: inherit;
 }
 
-/* Modal */
 .hidden {
     display: none !important;
 }
 
-.modal {
+.mentor-picker-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    z-index: 5000;
+    background: rgba(18, 32, 26, 0.62);
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 24px;
+    box-sizing: border-box;
 }
 
-.modal-content {
+.mentor-picker-content {
     background: white;
-    padding: 20px;
+    padding: 22px;
     border-radius: 8px;
-    width: 500px;
-    max-height: 80vh;
+    width: min(720px, 100%);
+    max-height: min(82vh, 760px);
     overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+
+.mentor-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mentor-search {
+    min-width: min(260px, 100%);
+    flex: 1;
+}
+
+.mentor-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+    max-height: 42vh;
+    overflow: auto;
+    padding: 12px;
+    border: 1px solid var(--inter-border, #d8ded3);
+    border-radius: 8px;
+}
+
+.mentor-column {
+    min-width: 190px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mentor-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.3;
+}
+
+.mentor-checkboxes label.hidden {
+    display: none;
+}
+
+.mentor-checkboxes label.is-assigned {
+    color: #6f7d73;
+}
+
+.assigned-note {
+    font-size: 0.82rem;
+    color: #6f7d73;
+}
+
+.mentor-picker-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.mentor-tab.editable {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mentor-tab-name {
+    pointer-events: none;
+}
+
+.remove-mentor {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    color: #9f2f2a;
+    font-weight: 700;
+}
+
+.remove-mentor:hover {
+    background: rgba(159, 47, 42, 0.12);
 }
 
 .people-dropdown {

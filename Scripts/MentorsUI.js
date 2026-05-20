@@ -33,7 +33,7 @@ const MentorsUI = {
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="4">${this.escapeHtml(message)}</td>
+                <td colspan="5">${this.escapeHtml(message)}</td>
             </tr>
         `;
     },
@@ -52,6 +52,11 @@ const MentorsUI = {
                     <td>${this.escapeHtml(mentor.mentor_number)}</td>
                     <td class="mentor-name-link" onclick="window.location='${detailsUrl}'">${this.escapeHtml(mentor.name)}</td>
                     <td>${this.escapeHtml(mentor.contact || mentor.email || mentor.phone || "")}</td>
+                    <td>
+                        <button type="button" class="mentor-details-btn" onclick="window.location='${detailsUrl}'">
+                            View details
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join("");
@@ -322,7 +327,7 @@ const MentorsUI = {
         const cells = row.querySelectorAll("td");
 
         cells.forEach(cell => {
-            if (cell.querySelector("input")) return; // skip checkboxes
+            if (cell.querySelector("input, button")) return; // keep controls intact
 
             const original = cell.dataset.original || cell.innerText;
             cell.dataset.original = original;

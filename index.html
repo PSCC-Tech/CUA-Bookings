@@ -6,10 +6,10 @@
     <title>CUA Bookings</title>
     <!--<link rel="stylesheet" href="styles.css">-->
     <link rel="stylesheet" href="CSS/base.css?v=20260518-1">
-    <link rel="stylesheet" href="CSS/index.css?v=20260514-5">
+    <link rel="stylesheet" href="CSS/index.css?v=20260520-1">
     <link rel="stylesheet" href="CSS/courses.css?v=20260514-5"> <!-- For filter button -->
     <link rel="stylesheet" href="CSS/calendar.css?v=20260518-1">
-    <link rel="stylesheet" href="CSS/theme.css?v=20260518-4">
+    <link rel="stylesheet" href="CSS/theme.css?v=20260519-2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -165,10 +165,14 @@
                     <datalist id="location"></datalist>
 
                     <label>Topics to Discuss</label>
-                    <textarea id="topics-input" rows="3" placeholder="Enter topics"></textarea>
+                    <div class="autocomplete-input-wrapper">
+                        <textarea id="topics-input" rows="3" placeholder="Write a topic or choose a recommendation"></textarea>
+                    </div>
 
                     <label>Professor</label>
-                    <input type="text" id="professor-input" placeholder="Enter professor">
+                    <div class="autocomplete-input-wrapper">
+                        <input type="text" id="professor-input" placeholder="Write a professor or choose a recommendation">
+                    </div>
 
                     <label>Made by</label>
                     <input type="text" id="made-by-input" placeholder="Enter name">
@@ -270,8 +274,8 @@
 <script src="Scripts/Auth.js?v=20260518-1"></script>
 <script src="Scripts/Logout.js?v=20260518-1"></script>
 <script src="Scripts/Calendar.js?v=20260518-1"></script>
-<script src="Scripts/Autocomplete.js?v=20260514-5"></script>
-<script src="Scripts/IndexUI.js?v=20260514-5"></script>
+<script src="Scripts/Autocomplete.js?v=20260520-1"></script>
+<script src="Scripts/IndexUI.js?v=20260520-1"></script>
 
 </body>
 </html>

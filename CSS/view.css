@@ -11,6 +11,11 @@
     align-items: center;
     margin: 5px;
     padding: 20px;
+    background: #ffffff;
+    border: 1px solid var(--inter-border, #dfe6dc);
+    border-radius: 8px;
+    box-shadow: 0 8px 22px var(--inter-shadow, rgba(23, 63, 53, 0.08));
+    box-sizing: border-box;
 }
 
 /* HEADER LAYOUT */
@@ -804,8 +809,11 @@ mark {
 .booking-card[data-active="true"],
 .active-session-card {
     position: relative;
-    border-left: 4px solid #4CAF50;
+    border-left: 4px solid var(--inter-green, #4CAF50);
+    outline: 2px solid rgba(0, 122, 94, 0.16);
+    outline-offset: 0;
     animation: active-session-pulse 2.2s ease-in-out infinite;
+    will-change: filter, outline-color, outline-offset;
 }
 
 .booking-card[data-active="true"]::after,
@@ -820,22 +828,36 @@ mark {
     background: #4CAF50;
     box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.45);
     animation: active-session-dot 1.6s ease-out infinite;
+    pointer-events: none;
+    will-change: transform, opacity, box-shadow;
 }
 
 @keyframes active-session-pulse {
     0%, 100% {
-        box-shadow: 0 0 10px rgba(0,0,0,0.1), 0 0 0 rgba(76, 175, 80, 0);
+        filter: drop-shadow(0 0 0 rgba(0, 122, 94, 0));
+        outline-color: rgba(0, 122, 94, 0.16);
+        outline-offset: 0;
     }
     50% {
-        box-shadow: 0 4px 18px rgba(0,0,0,0.14), 0 0 14px rgba(76, 175, 80, 0.28);
+        filter: drop-shadow(0 0 10px rgba(0, 122, 94, 0.28));
+        outline-color: rgba(254, 209, 65, 0.85);
+        outline-offset: 3px;
     }
 }
 
 @keyframes active-session-dot {
     0% {
+        opacity: 1;
+        transform: scale(1);
         box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.45);
     }
+    50% {
+        opacity: 0.82;
+        transform: scale(1.25);
+    }
     70%, 100% {
+        opacity: 1;
+        transform: scale(1);
         box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
     }
 }

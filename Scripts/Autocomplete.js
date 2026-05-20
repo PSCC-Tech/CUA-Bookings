@@ -6,6 +6,8 @@
 const Autocomplete = {
     courseCache: null,
     courseLoadPromise: null,
+    lookupCache: null,
+    lookupLoadPromise: null,
 
     /**
      * Configuration for data sources.
@@ -63,6 +65,111 @@ const Autocomplete = {
             getId: (item) => item.studentId,
             getName: (item) => item.name,
             noResultsText: "No matching students found"
+        },
+
+        professors: {
+            getData: async function(query, config = {}) {
+                const normalizedQuery = Autocomplete._normalizeText(query);
+                const selectedCourse = typeof config.getSelectedCourse === "function"
+                    ? config.getSelectedCourse()
+                    : null;
+                const selectedCourseId = selectedCourse?.id || selectedCourse?.code || "";
+                const selectedProfessorNames = Array.isArray(selectedCourse?.professors)
+                    ? selectedCourse.professors
+                    : [];
+
+                const courseItems = selectedProfessorNames
+                    .map(name => ({
+                        name: String(name || "").trim(),
+                        email: "",
+                        source: selectedCourseId ? `Recommended for ${selectedCourseId}` : "Recommended professor"
+                    }))
+                    .filter(item => item.name);
+
+                let lookupItems = [];
+                try {
+                    const lookups = await Autocomplete.loadLookupData();
+                    lookupItems = Array.isArray(lookups.professors)
+                        ? lookups.professors.map(professor => ({
+                            name: String(professor.name || professor.full_name || "").trim(),
+                            email: professor.email || "",
+                            source: "Professor"
+                        }))
+                        : [];
+                } catch (error) {
+                    lookupItems = [];
+                }
+
+                const professors = Autocomplete._uniqueByField([...courseItems, ...lookupItems], "name");
+
+                if (!normalizedQuery) {
+                    return selectedCourse ? courseItems : [];
+                }
+
+                return professors.filter(professor =>
+                    Autocomplete._matchesText(normalizedQuery, professor.name, professor.email)
+                );
+            },
+            formatDisplay: (item) => item.name,
+            formatSecondary: (item) => item.email || item.source || "Professor",
+            getId: (item) => item.name,
+            getName: (item) => item.name,
+            getInputValue: (item) => item.name,
+            noResultsText: "No matching professors. You can still type a new one."
+        },
+
+        topics: {
+            getData: async function(query, config = {}) {
+                const normalizedQuery = Autocomplete._normalizeText(query);
+                const selectedCourse = typeof config.getSelectedCourse === "function"
+                    ? config.getSelectedCourse()
+                    : null;
+                const selectedCourseId = selectedCourse?.id || selectedCourse?.code || "";
+                const selectedTopics = Array.isArray(selectedCourse?.topics) ? selectedCourse.topics : [];
+
+                const selectedItems = selectedTopics
+                    .map(topic => ({
+                        topic: String(topic || "").trim(),
+                        courseId: selectedCourseId,
+                        courseName: selectedCourse?.name || "",
+                        source: selectedCourseId ? `Recommended for ${selectedCourseId}` : "Recommended topic",
+                        selectedCourseTopic: true
+                    }))
+                    .filter(item => item.topic);
+
+                let courseItems = [];
+                try {
+                    const courses = await Autocomplete.loadCourseData();
+                    courseItems = courses.flatMap(course =>
+                        (Array.isArray(course.topics) ? course.topics : [])
+                            .map(topic => ({
+                                topic: String(topic || "").trim(),
+                                courseId: course.id || course.code || "",
+                                courseName: course.name || "",
+                                source: course.id ? `${course.id} - ${course.name}` : "Recommended topic",
+                                selectedCourseTopic: Boolean(selectedCourseId && (course.id || course.code) === selectedCourseId)
+                            }))
+                    );
+                } catch (error) {
+                    courseItems = [];
+                }
+
+                const topics = Autocomplete._uniqueByField([...selectedItems, ...courseItems], "topic");
+
+                if (!normalizedQuery) {
+                    return selectedCourse ? topics.filter(item => item.selectedCourseTopic) : [];
+                }
+
+                return topics.filter(item =>
+                    Autocomplete._matchesText(normalizedQuery, item.topic, item.courseId, item.courseName)
+                );
+            },
+            formatDisplay: (item) => item.topic,
+            formatSecondary: (item) => item.source || "Recommended topic",
+            getId: (item) => item.topic,
+            getName: (item) => item.topic,
+            getInputValue: (item) => item.topic,
+            noResultsText: "No matching topics. You can still type a new topic."
         }
     },
 
@@ -102,6 +209,27 @@ const Autocomplete = {
         return this.courseLoadPromise;
     },
 
+    async loadLookupData(force = false) {
+        if (!force && this.lookupCache) return this.lookupCache;
+        if (!force && this.lookupLoadPromise) return this.lookupLoadPromise;
+
+        this.lookupLoadPromise = (async () => {
+            try {
+                if (!window.CUAApi) throw new Error("Backend API is not loaded.");
+                this.lookupCache = await window.CUAApi.getLookups(force);
+            } catch (error) {
+                console.warn("Could not load lookup data:", error);
+                this.lookupCache = {};
+            } finally {
+                this.lookupLoadPromise = null;
+            }
+
+            return this.lookupCache;
+        })();
+
+        return this.lookupLoadPromise;
+    },
+
     getStaticCourseData() {
         return this.courseCache || this.getFallbackCourseData();
     },
@@ -126,6 +254,7 @@ const Autocomplete = {
             debounceMs: 300,
             onSelect: null,
             categoryFilter: null,
+            showNoResultsOnEmpty: true,
             ...options
         };
 
@@ -178,7 +307,7 @@ const Autocomplete = {
         const data = inputElement.autocompleteData;
 
         try {
-            let results = await Promise.resolve(data.dataSource.getData(query));
+            let results = await Promise.resolve(data.dataSource.getData(query, data.config, inputElement));
             
             // Apply category filter if set
             if (data.config.categoryFilter && data.config.categoryFilter !== 'Show All' && data.config.categoryFilter !== 'all') {
@@ -191,7 +320,11 @@ const Autocomplete = {
             data.selectedIndex = -1;
 
             if (limited.length === 0) {
-                this._showNoResults(inputElement);
+                if (query.length === 0 && data.config.showNoResultsOnEmpty === false) {
+                    this._clearSuggestions(inputElement);
+                } else {
+                    this._showNoResults(inputElement);
+                }
             } else {
                 this._renderSuggestions(limited, inputElement);
             }
@@ -258,7 +391,7 @@ const Autocomplete = {
     _handleKeydown(event, inputElement) {
         const data = inputElement.autocompleteData;
 
-        if (data.suggestionsContainer.style.display === 'none') return;
+        if (data.suggestionsContainer.style.display !== 'block') return;
 
         switch (event.key) {
             case 'ArrowDown':
@@ -270,9 +403,11 @@ const Autocomplete = {
                 this._moveSelection(-1, inputElement);
                 break;
             case 'Enter':
-                event.preventDefault();
                 if (data.selectedIndex >= 0) {
+                    event.preventDefault();
                     this._selectSuggestion(data.selectedIndex, inputElement);
+                } else if (inputElement.tagName !== "TEXTAREA") {
+                    event.preventDefault();
                 }
                 break;
             case 'Escape':
@@ -386,6 +521,41 @@ const Autocomplete = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    _normalizeText(text = "") {
+        return String(text || "").trim().toLowerCase();
+    },
+
+    _matchesText(normalizedQuery, ...values) {
+        return values.some(value =>
+            String(value || "").toLowerCase().includes(normalizedQuery)
+        );
+    },
+
+    _uniqueByField(items, fieldName) {
+        const seen = new Map();
+        const unique = [];
+
+        items.forEach(item => {
+            const value = String(item?.[fieldName] || "").trim();
+            if (!value) return;
+
+            const key = value.toLowerCase();
+            if (!seen.has(key)) {
+                const normalizedItem = { ...item, [fieldName]: value };
+                seen.set(key, normalizedItem);
+                unique.push(normalizedItem);
+                return;
+            }
+
+            const existing = seen.get(key);
+            if (!existing.email && item.email) {
+                existing.email = item.email;
+            }
+        });
+
+        return unique;
     },
 
     /**

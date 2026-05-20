@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CUA Bookings</title>
     <link rel="stylesheet" href="CSS/base.css">
-    <link rel="stylesheet" href="CSS/courses-details.css">
+    <link rel="stylesheet" href="CSS/courses-details.css?v=20260519-1">
     <link rel="stylesheet" href="CSS/calendar.css?v=20260518-1">
-    <link rel="stylesheet" href="CSS/theme.css?v=20260518-4">
+    <link rel="stylesheet" href="CSS/theme.css?v=20260519-2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -139,10 +139,10 @@
 
     </div>
 
-    <div id="mentor-modal" class="modal hidden">
-        <div class="modal-content">
+    <div id="mentor-modal" class="mentor-picker-modal hidden" aria-hidden="true">
+        <div class="mentor-picker-content" role="dialog" aria-modal="true" aria-labelledby="mentor-modal-title">
 
-            <h3>Select Mentors</h3>
+            <h3 id="mentor-modal-title">Select Mentors</h3>
 
             <div class="mentor-controls">
 
@@ -174,8 +174,10 @@
 
             <div class="mentor-checkboxes" id="modal-mentor-checkboxes"></div>
 
-            <button id="confirm-add-mentors">Add Selected</button>
-            <button id="close-mentor-modal">Cancel</button>
+            <div class="mentor-picker-actions">
+                <button id="confirm-add-mentors">Add Selected</button>
+                <button id="close-mentor-modal">Cancel</button>
+            </div>
 
         </div>
     </div>
@@ -184,32 +186,9 @@
 <script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/Auth.js?v=20260518-1"></script>
 <script src="Scripts/Logout.js?v=20260518-1"></script>
-<script src="Scripts/CourseDetailsData.js"></script>
+<script src="Scripts/CourseDetailsData.js?v=20260519-1"></script>
 <script src="Scripts/Calendar.js?v=20260518-1"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const editBtn = document.querySelector(".edit-btn");
-    const editActions = document.querySelector(".edit-actions");
-
-    editBtn.addEventListener("click", () => {
-        editBtn.style.display = "none";
-        editActions.style.display = "flex";
-    });
-
-    document.querySelector(".confirm-btn").addEventListener("click", () => {
-        editActions.style.display = "none";
-        editBtn.style.display = "inline-block";
-    });
-
-    document.querySelector(".cancel-btn").addEventListener("click", () => {
-        editActions.style.display = "none";
-        editBtn.style.display = "inline-block";
-    });
-});
-</script>
-
-<script src="Scripts/CoursesDetailsEdit.js"></script>
+<script src="Scripts/CoursesDetailsEdit.js?v=20260519-1"></script>
 
 </body>
 </html>

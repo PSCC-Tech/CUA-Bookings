@@ -352,6 +352,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateMentorOptions(getCourseMentors(course), false);
         updateDateTimeButtonState();
         syncCalendarCourse(false);
+        refreshRecommendationInputs();
     }
 
     function updateAutocompleteCategory(input, category, refresh = true) {
@@ -363,6 +364,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
             window.Autocomplete._clearSuggestions(input);
         }
+    }
+
+    function clearAutocompleteSuggestions(input) {
+        if (input?.autocompleteData && window.Autocomplete) {
+            window.Autocomplete._clearSuggestions(input);
+        }
+    }
+
+    function refreshRecommendationInputs() {
+        clearAutocompleteSuggestions(professorInput);
+        clearAutocompleteSuggestions(topicsInput);
     }
 
     function clearSelectedCourse() {
@@ -377,6 +389,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         updateDateTimeButtonState();
+        refreshRecommendationInputs();
     }
 
     function findExactCourse(value) {
@@ -664,6 +677,26 @@ document.addEventListener("DOMContentLoaded", async () => {
                 selectCourse(suggestion);
                 courseNameInput.value = suggestion.name;
             }
+        });
+    }
+
+    if (topicsInput && window.Autocomplete) {
+        window.Autocomplete.init(topicsInput, "topics", {
+            minChars: 0,
+            maxResults: 8,
+            debounceMs: 180,
+            showNoResultsOnEmpty: false,
+            getSelectedCourse: () => selectedCourse
+        });
+    }
+
+    if (professorInput && window.Autocomplete) {
+        window.Autocomplete.init(professorInput, "professors", {
+            minChars: 0,
+            maxResults: 8,
+            debounceMs: 180,
+            showNoResultsOnEmpty: false,
+            getSelectedCourse: () => selectedCourse
         });
     }
 

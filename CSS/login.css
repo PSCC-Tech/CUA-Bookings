@@ -1,8 +1,11 @@
 body {
     min-height: 100vh;
+    min-height: 100svh;
     background: #f4f4f4;
     display: grid;
     place-items: center;
+    padding: 24px;
+    box-sizing: border-box;
 }
 
 .login-shell {
@@ -12,21 +15,31 @@ body {
     box-shadow: 0 18px 48px rgba(18, 18, 30, 0.16);
     padding: 32px;
     box-sizing: border-box;
+    text-align: center;
 }
 
 .login-brand {
     margin-bottom: 28px;
 }
 
+.login-welcome {
+    display: block;
+    margin: 0 0 8px;
+    color: var(--inter-green, #007a5e);
+    font-size: 0.98rem;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
 .login-brand h1 {
     margin: 0;
-    color: #1e1e2f;
+    color: var(--inter-ink, #1e1e2f);
     font-size: 2rem;
 }
 
 .login-brand p {
     margin: 8px 0 0;
-    color: #666;
+    color: var(--inter-muted, #666);
     line-height: 1.4;
 }
 
@@ -37,8 +50,9 @@ body {
 }
 
 .login-form label {
-    color: #252536;
+    color: var(--inter-ink, #252536);
     font-weight: 700;
+    text-align: left;
 }
 
 .login-form input {

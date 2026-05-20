@@ -62,10 +62,19 @@ input, select, textarea {
     width: 100%;
 }
 
-.form-container .autocomplete-input-wrapper > input {
+.form-container .autocomplete-input-wrapper > input,
+.form-container .autocomplete-input-wrapper > textarea {
     width: 100%;
-    min-height: 36px;
     box-sizing: border-box;
+}
+
+.form-container .autocomplete-input-wrapper > input {
+    min-height: 36px;
+}
+
+.form-container .autocomplete-input-wrapper > textarea {
+    min-height: 82px;
+    resize: vertical;
 }
 
 .form-container form > .autocomplete-input-wrapper {

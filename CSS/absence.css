@@ -93,8 +93,8 @@
 .absence-page .absence-modal-context {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    justify-content: flex-start;
+    gap: 18px;
     width: 100%;
     margin: -4px 0 18px;
     padding: 12px 14px;
@@ -113,6 +113,7 @@
 .absence-page .absence-modal-context strong {
     color: var(--inter-ink);
     font-size: 1rem;
+    text-align: left;
 }
 
 .absence-page .modal-calendar {
