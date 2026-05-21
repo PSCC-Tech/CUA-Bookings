@@ -6,6 +6,7 @@ require_once __DIR__ . '/bootstrap.php';
 require_method(['GET', 'POST']);
 
 $pdo = db();
+require_admin_user();
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
     $stmt = $pdo->query("
@@ -47,6 +48,13 @@ if (!$isFullDay && ($startTime === '' || $endTime === '')) {
     fail('Start and end times are required for a specific-time absence.');
 }
 
+$startTimestamp = !$isFullDay ? strtotime($startTime) : false;
+$endTimestamp = !$isFullDay ? strtotime($endTime) : false;
+
+if (!$isFullDay && (!$startTimestamp || !$endTimestamp || $startTimestamp >= $endTimestamp)) {
+    fail('Please select a valid start and end time for the absence.');
+}
+
 $stmt = $pdo->prepare('
     INSERT INTO mentor_schedule_exceptions (
         mentor_id, exception_date, start_time, end_time, is_full_day,
@@ -58,8 +66,8 @@ $stmt = $pdo->prepare('
 $stmt->execute([
     $mentorId,
     date('Y-m-d', strtotime($date)),
-    $isFullDay ? null : date('H:i:s', strtotime($startTime)),
-    $isFullDay ? null : date('H:i:s', strtotime($endTime)),
+    $isFullDay ? null : date('H:i:s', $startTimestamp),
+    $isFullDay ? null : date('H:i:s', $endTimestamp),
     $isFullDay ? 1 : 0,
     $reason ?: null,
     $createdBy,

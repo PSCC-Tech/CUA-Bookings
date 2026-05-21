@@ -8,6 +8,8 @@ const AccountUI = {
         this.message = document.getElementById("profile-message");
         this.editActions = document.querySelector(".edit-actions");
         this.editableFields = [...document.querySelectorAll("[data-editable]")];
+        this.eyebrow = document.querySelector(".account-eyebrow");
+        this.summary = document.querySelector(".account-summary");
 
         this.setupListeners();
         this.loadAccount();
@@ -106,7 +108,22 @@ const AccountUI = {
 
         const permissionList = document.getElementById("permission-list");
         if (permissionList && Array.isArray(account.permissions)) {
-            permissionList.innerHTML = account.permissions.map(permission => `<span>${permission}</span>`).join("");
+            permissionList.textContent = "";
+            account.permissions.forEach(permission => {
+                const item = document.createElement("span");
+                item.textContent = permission;
+                permissionList.appendChild(item);
+            });
+        }
+
+        if (this.eyebrow) {
+            this.eyebrow.textContent = `${account.role || "User"} Account`;
+        }
+
+        if (this.summary) {
+            this.summary.textContent = account.role === "Administrator"
+                ? "System access for bookings, courses, mentors, absences, and reports."
+                : "System access for daily bookings and active mentorship sessions.";
         }
     },
 

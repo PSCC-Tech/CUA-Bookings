@@ -8,6 +8,10 @@ require_method(['GET', 'POST', 'PUT', 'DELETE']);
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
+if ($method !== 'GET') {
+    require_admin_user();
+}
+
 function fetch_courses(PDO $pdo): array
 {
     $search = trim((string)($_GET['q'] ?? $_GET['search'] ?? ''));

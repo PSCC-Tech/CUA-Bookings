@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data - CUA Bookings</title>
-    <link rel="stylesheet" href="CSS/base.css?v=20260518-1">
+    <link rel="stylesheet" href="CSS/base.css?v=20260521-6">
     <link rel="stylesheet" href="CSS/data.css?v=20260519-1">
-    <link rel="stylesheet" href="CSS/theme.css?v=20260519-2">
+    <link rel="stylesheet" href="CSS/theme.css?v=20260521-6">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -29,7 +29,7 @@
         <main class="content data-content">
             <div class="top-menu">
                 <span class="top-option" onclick="window.location='index.html'">Create</span>
-                <span class="top-option" onclick="window.location='absence.html'">Absence</span>
+                <span class="top-option" data-admin-only onclick="window.location='absence.html'">Absence</span>
                 <span class="top-option" onclick="window.location='view.html?v=20260514-5'">Upcoming</span>
                 <span class="top-option active">Data</span>
             </div>
@@ -187,7 +187,10 @@
 
     <script src="Scripts/BackendAPI.js?v=20260514-5"></script>
     <script src="Scripts/Auth.js?v=20260518-1"></script>
+    <script src="Scripts/AppFeedback.js?v=20260521-1"></script>
+    <script src="Scripts/RoleUI.js?v=20260521-1"></script>
     <script src="Scripts/Logout.js?v=20260518-1"></script>
+    <script src="Scripts/Footer.js?v=20260521-6"></script>
     <script src="Scripts/DataUI.js?v=20260518-1"></script>
 </body>
 </html>

@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const schedulePayload = getSchedulePayload(newSchedule);
 
                 if (!newID || !newName || !newContact) {
-                    alert("Mentor number, name, and contact are required.");
+                    window.CUANotify?.error("Mentor number, name, and contact are required.") || alert("Mentor number, name, and contact are required.");
                     return;
                 }
 
@@ -280,11 +280,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 scheduleList.innerHTML = renderScheduleItems(originalData.scheduleList);
             }
         } catch (error) {
-            alert(error.message || "Could not save mentor changes.");
+            window.CUANotify?.error(error.message || "Could not save mentor changes.") || alert(error.message || "Could not save mentor changes.");
             return;
         }
 
         hideEditUI();
+        if (save) {
+            window.CUANotify?.success("Mentor changes saved.");
+        }
     }
 
     function attachDynamicButtons() {
@@ -423,7 +426,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 const courseName = courseItem?.querySelector('.course-item-text')?.textContent?.trim() || courseId;
                 if (!courseId) return;
 
-                const confirmed = confirm(`Remove ${courseName} from this mentor?`);
+                const confirmed = window.CUAConfirm
+                    ? await window.CUAConfirm(`Remove ${courseName} from this mentor?`, {
+                        title: "Remove course",
+                        confirmText: "Remove",
+                        danger: true
+                    })
+                    : confirm(`Remove ${courseName} from this mentor?`);
                 if (!confirmed) return;
 
                 const previousCourses = mentorCourses.map(course => ({ ...course }));
@@ -434,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     renderMentorCourses();
                 } catch (error) {
                     mentorCourses = previousCourses;
-                    alert(error.message || 'Could not update mentor courses.');
+                    window.CUANotify?.error(error.message || 'Could not update mentor courses.') || alert(error.message || 'Could not update mentor courses.');
                     renderMentorCourses();
                 }
             };
@@ -513,13 +522,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const name = newCourseName.value.trim();
 
         if (!id || !name) {
-            alert('Please enter both a course ID and course name.');
+            window.CUANotify?.error('Please enter both a course ID and course name.') || alert('Please enter both a course ID and course name.');
             return;
         }
 
         // Check for duplicates
         if (mentorCourses.some(course => course.id === id)) {
-            alert(`Course ${id} is already assigned to this mentor.`);
+            window.CUANotify?.error(`Course ${id} is already assigned to this mentor.`) || alert(`Course ${id} is already assigned to this mentor.`);
             return;
         }
 
@@ -532,7 +541,7 @@ document.addEventListener("DOMContentLoaded", () => {
             closeNewCourseForm();
         } catch (error) {
             mentorCourses = previousCourses;
-            alert(error.message || 'Could not update mentor courses.');
+            window.CUANotify?.error(error.message || 'Could not update mentor courses.') || alert(error.message || 'Could not update mentor courses.');
             renderMentorCourses();
         }
     }

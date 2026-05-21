@@ -471,7 +471,7 @@ function booking_notification_role_copy(string $roleKey): array
             'preheader' => 'Your CUA mentorship session details are ready for review.',
             'paragraphs' => [
                 'Your mentorship session has been scheduled through the Centro Universitario de Aprendizaje.',
-                'Please review the session details below and arrive on time. If you need to request a change, contact the CUA staff as soon as possible.',
+                'Please review the session details below and arrive on time. If any change is necessary, please contact the CUA Mentorship Coordinator at (787) 931-0729.',
             ],
         ];
     }
@@ -508,6 +508,75 @@ function booking_notification_role_copy(string $roleKey): array
     ];
 }
 
+function booking_notification_contact_info(): array
+{
+    return [
+        'intro' => 'For more information or to schedule your appointment, please contact',
+        'main_label' => 'Centro Universitario de Aprendizaje',
+        'main_phone' => '787-891-0925',
+        'lines' => [
+            [
+                'contact' => 'Ext. 2256 or (787) 931-0729',
+                'label' => 'CUA Mentorship Coordinator',
+            ],
+            [
+                'contact' => 'Ext. 2259 or (787) 931-0730',
+                'label' => 'Mathematics, Spanish, and Sciences Laboratory',
+            ],
+            [
+                'contact' => 'Ext. 2261 or (787) 931-0732',
+                'label' => 'English Laboratory',
+            ],
+            [
+                'contact' => 'Ext. 2182 or (787) 931-0629',
+                'label' => 'CUA Administrative Assistant',
+            ],
+        ],
+    ];
+}
+
+function booking_notification_contact_text(): string
+{
+    $info = booking_notification_contact_info();
+    $lines = [
+        $info['intro'],
+        $info['main_label'] . ': ' . $info['main_phone'],
+    ];
+
+    foreach ($info['lines'] as $line) {
+        $lines[] = $line['contact'] . ' - ' . $line['label'];
+    }
+
+    return implode("\n", $lines);
+}
+
+function booking_notification_contact_html(): string
+{
+    $info = booking_notification_contact_info();
+    $html = '<div style="margin:14px 0 0;padding:14px 16px;background:#ffffff;border:1px solid #dfe6dc;">'
+        . '<p style="margin:0 0 8px;color:#173f35;font-size:12px;line-height:1.5;">'
+        . htmlspecialchars($info['intro'], ENT_QUOTES, 'UTF-8')
+        . '</p>'
+        . '<p style="margin:0 0 10px;color:#173f35;font-size:13px;line-height:1.5;">'
+        . '<strong>' . htmlspecialchars($info['main_label'], ENT_QUOTES, 'UTF-8') . ':</strong> '
+        . htmlspecialchars($info['main_phone'], ENT_QUOTES, 'UTF-8')
+        . '</p>'
+        . '<table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;width:100%;">';
+
+    foreach ($info['lines'] as $line) {
+        $html .= '<tr>'
+            . '<td style="padding:4px 10px 4px 0;color:#173f35;font-size:12px;line-height:1.4;font-weight:700;vertical-align:top;">'
+            . htmlspecialchars($line['contact'], ENT_QUOTES, 'UTF-8')
+            . '</td>'
+            . '<td style="padding:4px 0;color:#5f6d67;font-size:12px;line-height:1.4;vertical-align:top;">'
+            . htmlspecialchars($line['label'], ENT_QUOTES, 'UTF-8')
+            . '</td>'
+            . '</tr>';
+    }
+
+    return $html . '</table></div>';
+}
+
 function booking_notification_build_message(array $details, array $recipient): array
 {
     $booking = $details['booking'];
@@ -518,6 +587,8 @@ function booking_notification_build_message(array $details, array $recipient): a
     $greetingName = $recipientName !== '' ? $recipientName : 'recipient';
     $course = trim((string)$booking['course_code'] . ' - ' . (string)$booking['course_name']);
     $sessionType = count($details['students']) > 1 ? 'Grouped (' . count($details['students']) . ' students)' : 'Single';
+    $contactText = booking_notification_contact_text();
+    $contactHtml = booking_notification_contact_html();
     $timeLine = $dateTime['end_time'] !== ''
         ? $dateTime['time'] . ' - ' . $dateTime['end_time']
         : $dateTime['time'];
@@ -586,7 +657,8 @@ function booking_notification_build_message(array $details, array $recipient): a
     }
     $text .= "\nCentro Universitario de Aprendizaje\n";
     $text .= "Universidad Interamericana de Puerto Rico, Recinto de Aguadilla\n\n";
-    $text .= "This is an automated message from CUA Bookings. For changes to this booking, please contact CUA staff.";
+    $text .= $contactText . "\n\n";
+    $text .= "This is an automated message from CUA Bookings.";
 
     $htmlRows = '';
     foreach ($rows as $label => $value) {
@@ -650,8 +722,9 @@ function booking_notification_build_message(array $details, array $recipient): a
         . 'Centro Universitario de Aprendizaje</p>'
         . '<p style="margin:0 0 12px;color:#5f6d67;font-size:13px;line-height:1.5;">'
         . 'Universidad Interamericana de Puerto Rico, Recinto de Aguadilla</p>'
-        . '<p style="margin:0;color:#5f6d67;font-size:12px;line-height:1.5;">'
-        . 'This is an automated message from CUA Bookings. For changes to this booking, please contact CUA staff.'
+        . $contactHtml
+        . '<p style="margin:12px 0 0;color:#5f6d67;font-size:12px;line-height:1.5;">'
+        . 'This is an automated message from CUA Bookings.'
         . '</p></td></tr>'
         . '</table></td></tr></table></body></html>';
 

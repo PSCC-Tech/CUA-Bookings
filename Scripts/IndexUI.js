@@ -244,6 +244,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     let selectedCourse = null;
     let bookingType = "scheduled";
 
+    function currentUserName() {
+        return window.CUAAuth?.user?.fullName || window.CUAAuth?.user?.full_name || "";
+    }
+
+    function notifyError(message) {
+        window.CUANotify?.error(message) || alert(message);
+    }
+
+    function notifySuccess(message) {
+        window.CUANotify?.success(message) || alert(message);
+    }
+
+    if (madeByInput) {
+        madeByInput.value = currentUserName();
+        document.addEventListener("cua-auth-ready", event => {
+            madeByInput.value = event.detail?.fullName || event.detail?.full_name || "";
+        });
+    }
+
     function getCourseMentors(course) {
         if (course && window.MentorScheduleStore) {
             return window.MentorScheduleStore.getMentorsForCourse(course.id)
@@ -508,7 +527,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             mentor_number: selectedMentorOption?.dataset.mentorNumber || "",
             location: locationInput?.value.trim() || "",
             professor: professorInput?.value.trim() || "",
-            made_by: madeByInput?.value.trim() || "",
+            made_by: madeByInput?.value.trim() || currentUserName(),
             topics: topicsInput?.value.trim() || "",
             date: toISODate(dateLabel),
             time: timeLabel,
@@ -523,26 +542,43 @@ document.addEventListener("DOMContentLoaded", async () => {
             const lookups = await window.CUAApi.getLookups();
             const locationList = document.getElementById("location");
             if (locationList && Array.isArray(lookups.locations)) {
-                locationList.innerHTML = lookups.locations
-                    .map(location => `<option value="${location.name}">`)
-                    .join("");
+                locationList.innerHTML = "";
+                lookups.locations.forEach(location => {
+                    const option = document.createElement("option");
+                    option.value = location.name || location.location_name || "";
+                    if (option.value) {
+                        locationList.appendChild(option);
+                    }
+                });
             }
         } catch (error) {
             console.warn("Could not load form lookups:", error);
         }
     }
 
+    function getLocationOptions() {
+        const locationList = document.getElementById("location");
+        if (!locationList) return [];
+
+        return Array.from(locationList.options || [])
+            .map(option => ({
+                name: option.value || option.textContent || "",
+                source: "Location"
+            }))
+            .filter(location => location.name);
+    }
+
     async function handleBookingSubmit(event) {
         event.preventDefault();
 
         if (!ensureCourseSelected()) {
-            alert("Please select a course before creating the booking.");
+            notifyError("Please select a course before creating the booking.");
             courseCodeInput.focus();
             return;
         }
 
         if (!mentorSelect.value) {
-            alert("Please select a mentor before creating the booking.");
+            notifyError("Please select a mentor before creating the booking.");
             mentorSelect.focus();
             return;
         }
@@ -550,7 +586,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (bookingType === "walk-in") {
             stampWalkInDateTime();
         } else if (!selectedDateTimeInput.value) {
-            alert("Please choose a date and time before creating the booking.");
+            notifyError("Please choose a date and time before creating the booking.");
             dateTimeButton.focus();
             return;
         }
@@ -558,13 +594,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const payload = buildBookingPayload();
 
         if (!payload.location) {
-            alert("Please enter a location.");
+            notifyError("Please enter a location.");
             locationInput?.focus();
             return;
         }
 
         if (!validateStudents(payload.students)) {
-            alert("Please enter the student ID and name for every student.");
+            notifyError("Please enter the student ID and name for every student.");
             return;
         }
 
@@ -572,8 +608,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!window.CUAApi) throw new Error("Backend API is not loaded.");
             const result = await window.CUAApi.createBooking(payload);
             await window.MentorScheduleStore?.loadFromApi(true);
-            alert(getBookingSuccessMessage(result));
+            notifySuccess(getBookingSuccessMessage(result));
             bookingForm.reset();
+            if (madeByInput) madeByInput.value = currentUserName();
             selectedCourse = null;
             clearSelectedDateTime();
             updateMentorOptions(getCourseMentors(null), true);
@@ -581,7 +618,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             extraStudentsContainer.innerHTML = "";
             restoreStudent1();
         } catch (error) {
-            alert(error.message || "Could not create booking.");
+            notifyError(error.message || "Could not create booking.");
         }
     }
 
@@ -677,6 +714,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 selectCourse(suggestion);
                 courseNameInput.value = suggestion.name;
             }
+        });
+    }
+
+    if (locationInput && window.Autocomplete) {
+        window.Autocomplete.init(locationInput, "locations", {
+            minChars: 0,
+            maxResults: 8,
+            debounceMs: 180,
+            showNoResultsOnEmpty: false,
+            getLocationOptions
         });
     }
 

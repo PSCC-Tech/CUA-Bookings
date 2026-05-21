@@ -212,6 +212,12 @@ const DataUI = {
     }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    const user = window.CUAAuth?.ready
+        ? await window.CUAAuth.ready.catch(() => null)
+        : window.CUAAuth?.user;
+
+    if (String(user?.role || "").toLowerCase() !== "administrator") return;
+
     DataUI.init();
 });

@@ -7,6 +7,7 @@ require_method(['POST']);
 
 $pdo = db();
 $data = input_json();
+require_role(['Administrator', 'Staff']);
 
 $bookingId = (int)($data['booking_id'] ?? 0);
 $action = trim((string)($data['action'] ?? ''));
@@ -32,6 +33,10 @@ try {
     }
 
     if ($action === 'start') {
+        if ($status !== 'scheduled') {
+            throw new RuntimeException('Only scheduled bookings can be started.');
+        }
+
         $sessionStmt = $pdo->prepare('SELECT session_id FROM mentorship_sessions WHERE booking_id = ? LIMIT 1');
         $sessionStmt->execute([$bookingId]);
         $sessionId = $sessionStmt->fetchColumn();
@@ -54,17 +59,30 @@ try {
     }
 
     if ($action === 'stop') {
-        $pdo->prepare('
+        if ($status !== 'active') {
+            throw new RuntimeException('Only active bookings can be stopped.');
+        }
+
+        $stopStmt = $pdo->prepare('
             UPDATE mentorship_sessions
             SET session_status = "completed", ended_at = NOW(), ended_by_user_id = ?
-            WHERE booking_id = ?
-        ')->execute([$userId, $bookingId]);
+            WHERE booking_id = ? AND session_status = "active"
+        ');
+        $stopStmt->execute([$userId, $bookingId]);
+
+        if ($stopStmt->rowCount() === 0) {
+            throw new RuntimeException('Active session record was not found.');
+        }
 
         $pdo->prepare('UPDATE bookings SET booking_status = "completed" WHERE booking_id = ?')
             ->execute([$bookingId]);
     }
 
     if ($action === 'cancel') {
+        if (!in_array($status, ['scheduled', 'active'], true)) {
+            throw new RuntimeException('Only scheduled or active bookings can be cancelled.');
+        }
+
         $reason = trim((string)($data['reason'] ?? 'Cancelled from booking details.'));
         $pdo->prepare('
             UPDATE bookings

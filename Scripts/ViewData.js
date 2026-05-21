@@ -147,11 +147,11 @@ const ViewData = {
         card.dataset.bookingType = b.bookingType || "scheduled";
 
         card.innerHTML = `
-            <h3>${b.time}</h3>
-            <p class="mentor"><strong>Mentor</strong> ${b.mentor}</p>
-            <p class="student"><strong>Student</strong> ${this.getStudentSummary(students)}</p>
-            <p class="course-summary"><strong>Course:</strong> ${b.course}</p>
-            <p class="location-summary"><strong>Location:</strong> ${b.location}</p>
+            <h3>${this.escapeHtml(b.time)}</h3>
+            <p class="mentor"><strong>Mentor</strong> ${this.escapeHtml(b.mentor)}</p>
+            <p class="student"><strong>Student</strong> ${this.escapeHtml(this.getStudentSummary(students))}</p>
+            <p class="course-summary"><strong>Course:</strong> ${this.escapeHtml(b.course)}</p>
+            <p class="location-summary"><strong>Location:</strong> ${this.escapeHtml(b.location)}</p>
         `;
 
         return card;

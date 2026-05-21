@@ -6,6 +6,7 @@ require_once __DIR__ . '/bootstrap.php';
 require_method(['GET']);
 
 $pdo = db();
+require_admin_user();
 
 function data_param(string $key, string $default = ''): string
 {

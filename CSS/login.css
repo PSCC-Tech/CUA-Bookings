@@ -8,14 +8,59 @@ body {
     box-sizing: border-box;
 }
 
+body.login-page {
+    position: relative;
+    isolation: isolate;
+    overflow-x: hidden;
+    background:
+        linear-gradient(135deg, rgba(255, 244, 191, 0.9) 0%, rgba(245, 247, 242, 0.96) 42%, rgba(221, 231, 215, 0.98) 100%) !important;
+}
+
+body.login-page::before {
+    content: "";
+    position: fixed;
+    right: clamp(-180px, -8vw, -60px);
+    bottom: clamp(-180px, -15vh, -80px);
+    width: min(54vw, 620px);
+    height: min(88vh, 820px);
+    background: url("../Images/LogoUI.png") center / contain no-repeat;
+    opacity: 0.14;
+    filter: drop-shadow(0 28px 42px rgba(0, 75, 56, 0.16));
+    pointer-events: none;
+    z-index: -2;
+}
+
+body.login-page::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(0, 75, 56, 0.08), transparent 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.12));
+    pointer-events: none;
+    z-index: -1;
+}
+
 .login-shell {
     width: min(420px, calc(100vw - 32px));
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 18px 48px rgba(18, 18, 30, 0.16);
-    padding: 32px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(0, 122, 94, 0.13);
+    border-radius: 12px;
+    box-shadow: 0 24px 64px rgba(23, 63, 53, 0.16);
+    padding: 34px;
     box-sizing: border-box;
     text-align: center;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 5px;
+    background: linear-gradient(90deg, var(--inter-green, #007a5e), var(--inter-yellow, #fed141), var(--inter-green, #007a5e));
 }
 
 .login-brand {
@@ -66,8 +111,8 @@ body {
 }
 
 .login-form input:focus {
-    outline: 2px solid rgba(76, 76, 255, 0.25);
-    border-color: #4c4cff;
+    outline: 3px solid rgba(254, 209, 65, 0.36);
+    border-color: var(--inter-green, #007a5e);
 }
 
 .login-form button {
@@ -101,4 +146,29 @@ body {
 
 .login-message[hidden] {
     display: none;
+}
+
+@media (max-width: 760px) {
+    body.login-page {
+        padding: 18px;
+        place-items: center;
+    }
+
+    body.login-page::before {
+        right: 50%;
+        bottom: -220px;
+        width: min(94vw, 440px);
+        height: 620px;
+        opacity: 0.09;
+        transform: translateX(50%);
+    }
+
+    body.login-page::after {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.12));
+    }
+
+    .login-shell {
+        width: min(100%, 420px);
+        padding: 30px 24px;
+    }
 }

@@ -6,8 +6,18 @@ require_once __DIR__ . '/bootstrap.php';
 require_method(['GET', 'PUT']);
 
 $pdo = db();
+$currentUser = require_role(['Administrator', 'Staff']);
 
-function fetch_admin_account(PDO $pdo): array
+function account_permissions_for_role(string $role): array
+{
+    if ($role === 'Administrator') {
+        return ['Bookings', 'Mentors', 'Courses', 'Absences', 'Reports', 'User Access'];
+    }
+
+    return ['Create Bookings', 'Manage Daily Bookings', 'Active Sessions', 'Schedules'];
+}
+
+function fetch_current_account(PDO $pdo, array $currentUser): array
 {
     $stmt = $pdo->prepare("
         SELECT
@@ -25,40 +35,41 @@ function fetch_admin_account(PDO $pdo): array
         FROM users u
         JOIN roles r ON r.role_id = u.role_id
         LEFT JOIN admin_profiles p ON p.user_id = u.user_id
-        WHERE r.role_name = 'Administrator'
-        ORDER BY u.user_id
+        WHERE u.user_id = ?
         LIMIT 1
     ");
-    $stmt->execute();
+    $stmt->execute([(int)$currentUser['user_id']]);
     $row = $stmt->fetch();
 
     if (!$row) {
-        fail('Administrator account was not found.', 404);
+        fail('Account was not found.', 404);
     }
+
+    $role = (string)$row['role_name'];
 
     return [
         'user_id' => (int)$row['user_id'],
         'fullName' => $row['full_name'],
         'email' => $row['email'],
-        'title' => $row['administrative_title'] ?: 'CUA Program Coordinator',
+        'title' => $row['administrative_title'] ?: ($role === 'Administrator' ? 'CUA Program Coordinator' : 'CUA Staff'),
         'phone' => $row['phone'] ?: '',
         'office' => $row['office'] ?: '',
         'preferredContact' => $row['preferred_contact'] ?: 'Email',
-        'role' => $row['role_name'],
-        'accessLevel' => 'Full management',
+        'role' => $role,
+        'accessLevel' => $role === 'Administrator' ? 'Full management' : 'Daily booking management',
         'lastLogin' => $row['last_login_at'] ? date('F j, Y, g:i A', strtotime($row['last_login_at'])) : 'Not recorded',
         'passwordStatus' => $row['password_status'] ?: 'Updated recently',
         'twoStepVerification' => (int)($row['two_step_verification'] ?? 1) === 1 ? 'Enabled' : 'Disabled',
-        'permissions' => ['Bookings', 'Mentors', 'Courses', 'Absences', 'Reports', 'User Access'],
+        'permissions' => account_permissions_for_role($role),
     ];
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
-    ok(['account' => fetch_admin_account($pdo)]);
+    ok(['account' => fetch_current_account($pdo, $currentUser)]);
 }
 
 $data = input_json();
-$account = fetch_admin_account($pdo);
+$account = fetch_current_account($pdo, $currentUser);
 $userId = (int)$account['user_id'];
 
 $fullName = trim((string)($data['fullName'] ?? $data['full_name'] ?? $account['fullName']));
@@ -93,7 +104,7 @@ try {
     ')->execute([$userId, $title ?: null, $phone ?: null, $office ?: null, $preferred]);
 
     $pdo->commit();
-    ok(['account' => fetch_admin_account($pdo)]);
+    ok(['account' => fetch_current_account($pdo, $currentUser)]);
 } catch (Throwable $error) {
     $pdo->rollBack();
     fail($error->getMessage(), 400);

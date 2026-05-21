@@ -137,7 +137,16 @@ const MentorScheduleStore = (() => {
 
   function getWeeklyAvailability(mentor, date) {
     const dayName = dayNames[date.getDay()];
-    return mentor.weeklyAvailability[dayName] || [];
+    const dateKey = getDateKey(date);
+
+    return (mentor.weeklyAvailability[dayName] || []).filter(range => {
+      const effectiveFrom = range.effectiveFrom || range.effective_from || "";
+      const effectiveTo = range.effectiveTo || range.effective_to || "";
+
+      if (effectiveFrom && effectiveFrom > dateKey) return false;
+      if (effectiveTo && effectiveTo < dateKey) return false;
+      return true;
+    });
   }
 
   function getBookingsForDate(mentor, key) {

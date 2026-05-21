@@ -170,6 +170,45 @@ const Autocomplete = {
             getName: (item) => item.topic,
             getInputValue: (item) => item.topic,
             noResultsText: "No matching topics. You can still type a new topic."
+        },
+
+        locations: {
+            getData: async function(query, config = {}) {
+                const normalizedQuery = Autocomplete._normalizeText(query);
+                const htmlItems = typeof config.getLocationOptions === "function"
+                    ? config.getLocationOptions()
+                    : Autocomplete._getDatalistOptions("location");
+
+                let lookupItems = [];
+                try {
+                    const lookups = await Autocomplete.loadLookupData();
+                    lookupItems = Array.isArray(lookups.locations)
+                        ? lookups.locations.map(location => ({
+                            name: String(location.name || location.location_name || "").trim(),
+                            type: location.type || location.location_type || "",
+                            source: "Location"
+                        }))
+                        : [];
+                } catch (error) {
+                    lookupItems = [];
+                }
+
+                const locations = Autocomplete._uniqueByField([...lookupItems, ...htmlItems], "name");
+
+                if (!normalizedQuery) {
+                    return locations;
+                }
+
+                return locations.filter(location =>
+                    Autocomplete._matchesText(normalizedQuery, location.name, location.type)
+                );
+            },
+            formatDisplay: (item) => item.name,
+            formatSecondary: (item) => item.type ? Autocomplete._capitalize(item.type) : item.source || "Location",
+            getId: (item) => item.name,
+            getName: (item) => item.name,
+            getInputValue: (item) => item.name,
+            noResultsText: "No matching locations. You can still type a new one."
         }
     },
 
@@ -553,9 +592,32 @@ const Autocomplete = {
             if (!existing.email && item.email) {
                 existing.email = item.email;
             }
+            if (!existing.type && item.type) {
+                existing.type = item.type;
+            }
+            if ((!existing.source || existing.source === "Location") && item.source) {
+                existing.source = item.source;
+            }
         });
 
         return unique;
+    },
+
+    _getDatalistOptions(listId) {
+        const list = typeof document !== "undefined" ? document.getElementById(listId) : null;
+        if (!list) return [];
+
+        return Array.from(list.options || [])
+            .map(option => ({
+                name: String(option.value || option.textContent || "").trim(),
+                source: "Location"
+            }))
+            .filter(item => item.name);
+    },
+
+    _capitalize(value = "") {
+        const text = String(value || "").trim();
+        return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
     },
 
     /**

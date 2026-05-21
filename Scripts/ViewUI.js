@@ -22,6 +22,18 @@ const ViewUI = {
         this.applyFilters();
     },
 
+    notifyError(message) {
+        window.CUANotify?.error(message) || alert(message);
+    },
+
+    notifySuccess(message) {
+        window.CUANotify?.success(message) || alert(message);
+    },
+
+    confirm(message, options = {}) {
+        return window.CUAConfirm ? window.CUAConfirm(message, options) : Promise.resolve(confirm(message));
+    },
+
     cacheElements() {
         this.modal = document.getElementById("booking-modal");
         this.closeBtn = document.querySelector(".modal-close");
@@ -131,7 +143,7 @@ const ViewUI = {
     setupInlineEditHandlers() {
         this.editBtn.addEventListener("click", async () => {
             if (this.editBtn.disabled) {
-                alert("Cannot edit booking while session is active. Stop the session first.");
+                this.notifyError("Cannot edit booking while session is active. Stop the session first.");
                 return;
             }
             if (window.MentorScheduleStore) {
@@ -706,7 +718,7 @@ const ViewUI = {
         const course = this.getFieldControl("course")?.value || this.activeCard?.dataset.course || "";
 
         if (!mentor) {
-            alert("Please select a mentor before choosing a date and time.");
+            this.notifyError("Please select a mentor before choosing a date and time.");
             this.getFieldControl("mentor")?.focus();
             return;
         }
@@ -798,20 +810,20 @@ const ViewUI = {
         savedValues.mentorNumber = mentorControl?.selectedOptions?.[0]?.dataset.mentorNumber || this.activeCard?.dataset.mentorNumber || "";
 
         if (!savedValues.mentor) {
-            alert("Please select a mentor.");
+            this.notifyError("Please select a mentor.");
             this.getFieldControl("mentor")?.focus();
             return;
         }
 
         if (!savedValues.date || !savedValues.time) {
-            alert("Please choose a valid date and time for the selected mentor.");
+            this.notifyError("Please choose a valid date and time for the selected mentor.");
             return;
         }
 
         try {
             await this.persistInlineEdits(savedValues, students);
         } catch (error) {
-            alert(error.message || "Could not save booking changes.");
+            this.notifyError(error.message || "Could not save booking changes.");
             return;
         }
 
@@ -1107,13 +1119,22 @@ const ViewUI = {
         this.activeCard.dataset.courseCode = this.extractCourseCode(values.course);
 
         this.activeCard.querySelector("h3").textContent = this.activeCard.dataset.time;
-        this.activeCard.querySelector(".mentor").innerHTML = `<strong>Mentor</strong> ${values.mentor}`;
-        this.activeCard.querySelector(".student").innerHTML = `<strong>Student</strong> ${this.getCardStudentSummary(students)}`;
-        this.activeCard.querySelector(".location-summary").innerHTML = `<strong>Location:</strong> ${values.location}`;
-        this.activeCard.querySelector(".course-summary").innerHTML = `<strong>Course:</strong> ${values.course}`;
+        this.setSummaryLine(this.activeCard.querySelector(".mentor"), "Mentor", values.mentor);
+        this.setSummaryLine(this.activeCard.querySelector(".student"), "Student", this.getCardStudentSummary(students));
+        this.setSummaryLine(this.activeCard.querySelector(".location-summary"), "Location:", values.location);
+        this.setSummaryLine(this.activeCard.querySelector(".course-summary"), "Course:", values.course);
 
         this.updateBookingRecord(values, sessionType, students);
         this.moveCardToDateGroup(this.activeCard);
+    },
+
+    setSummaryLine(element, label, value) {
+        if (!element) return;
+
+        element.textContent = "";
+        const strong = document.createElement("strong");
+        strong.textContent = label;
+        element.append(strong, document.createTextNode(` ${value || ""}`));
     },
 
     getCardStudentSummary(students) {
@@ -1342,7 +1363,7 @@ const ViewUI = {
                 try {
                     if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "start");
                 } catch (error) {
-                    alert(error.message || "Could not start the session.");
+                    this.notifyError(error.message || "Could not start the session.");
                     return;
                 }
 
@@ -1353,11 +1374,12 @@ const ViewUI = {
                 this.setBookingActiveState(bookingId, true);
                 this.addToActiveSessions(this.activeCard);
                 this.modal.style.display = "none";
+                this.notifySuccess("Mentorship session started.");
             } else {
                 try {
                     if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "stop");
                 } catch (error) {
-                    alert(error.message || "Could not stop the session.");
+                    this.notifyError(error.message || "Could not stop the session.");
                     return;
                 }
 
@@ -1371,6 +1393,7 @@ const ViewUI = {
                 this.modal.style.display = "none";
                 this.syncFilterOptionsFromCards();
                 this.applyFilters();
+                this.notifySuccess("Mentorship session completed.");
             }
         });
 
@@ -1378,13 +1401,17 @@ const ViewUI = {
             const bookingId = this.activeCard?.dataset.id;
             if (!bookingId) return;
 
-            const confirmed = confirm("Cancel this booking?");
+            const confirmed = await this.confirm("Cancel this booking?", {
+                title: "Cancel booking",
+                confirmText: "Cancel booking",
+                danger: true
+            });
             if (!confirmed) return;
 
             try {
                 if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "cancel");
             } catch (error) {
-                alert(error.message || "Could not cancel the booking.");
+                this.notifyError(error.message || "Could not cancel the booking.");
                 return;
             }
 
@@ -1393,6 +1420,7 @@ const ViewUI = {
             this.modal.style.display = "none";
             this.syncFilterOptionsFromCards();
             this.applyFilters();
+            this.notifySuccess("Booking cancelled.");
         });
     }
 };

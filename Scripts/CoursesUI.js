@@ -27,6 +27,18 @@ const CoursesUI = {
         this.setupPeopleDropdown();
     },
 
+    notifyError(message) {
+        window.CUANotify?.error(message) || alert(message);
+    },
+
+    notifySuccess(message) {
+        window.CUANotify?.success(message) || alert(message);
+    },
+
+    confirm(message, options = {}) {
+        return window.CUAConfirm ? window.CUAConfirm(message, options) : Promise.resolve(confirm(message));
+    },
+
     async loadFromBackend() {
         if (!window.CUAApi) return;
 
@@ -460,20 +472,24 @@ const CoursesUI = {
         this.confirmDeleteBtn.addEventListener("click", async () => {
             if (!this.selected.size) return;
             if (!window.CUAApi?.deleteCourses) {
-                alert("Backend API is not loaded.");
+                this.notifyError("Backend API is not loaded.");
                 return;
             }
 
             const names = [...this.selected.values()].map(item => item.code).join(", ");
-            const confirmed = confirm(`Delete selected course${this.selected.size === 1 ? "" : "s"}: ${names}?`);
+            const confirmed = await this.confirm(`Delete selected course${this.selected.size === 1 ? "" : "s"}: ${names}?`, {
+                title: "Delete courses",
+                confirmText: "Delete",
+                danger: true
+            });
             if (!confirmed) return;
 
             try {
                 await window.CUAApi.deleteCourses([...this.selected.keys()]);
-                alert("Selected course records were deleted.");
+                window.CUANotify?.flash("Selected course records were deleted.", "success");
                 window.location.reload();
             } catch (error) {
-                alert(error.message || "Could not delete selected courses.");
+                this.notifyError(error.message || "Could not delete selected courses.");
             }
         });
 

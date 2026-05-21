@@ -58,7 +58,13 @@
         const logoutControl = event.currentTarget;
         if (logoutControl.classList.contains("is-logging-out")) return;
 
-        const confirmed = window.confirm("Log out of CUA Bookings?");
+        const confirmed = window.CUAConfirm
+            ? await window.CUAConfirm("Log out of CUA Bookings?", {
+                title: "Log out",
+                confirmText: "Log out",
+                cancelText: "Stay signed in"
+            })
+            : window.confirm("Log out of CUA Bookings?");
         if (!confirmed) return;
 
         setProcessing(logoutControl, true);
@@ -66,6 +72,7 @@
         clearStorage();
 
         const redirect = await requestLogout();
+        window.CUANotify?.flash("You have been logged out.", "success");
         window.location.href = redirect;
     }
 

@@ -15,6 +15,18 @@ const MentorsUI = {
         this.updateSectionVisibility();
     },
 
+    notifyError(message) {
+        window.CUANotify?.error(message) || alert(message);
+    },
+
+    notifySuccess(message) {
+        window.CUANotify?.success(message) || alert(message);
+    },
+
+    confirm(message, options = {}) {
+        return window.CUAConfirm ? window.CUAConfirm(message, options) : Promise.resolve(confirm(message));
+    },
+
     async loadFromBackend() {
         if (!window.CUAApi) return;
 
@@ -204,20 +216,24 @@ const MentorsUI = {
         this.confirmDeleteBtn.addEventListener("click", async () => {
             if (!this.selected.size) return;
             if (!window.CUAApi?.deleteMentors) {
-                alert("Backend API is not loaded.");
+                this.notifyError("Backend API is not loaded.");
                 return;
             }
 
             const names = [...this.selected.values()].map(item => item.number).join(", ");
-            const confirmed = confirm(`Delete selected mentor${this.selected.size === 1 ? "" : "s"}: ${names}?`);
+            const confirmed = await this.confirm(`Delete selected mentor${this.selected.size === 1 ? "" : "s"}: ${names}?`, {
+                title: "Delete mentors",
+                confirmText: "Delete",
+                danger: true
+            });
             if (!confirmed) return;
 
             try {
                 await window.CUAApi.deleteMentors([...this.selected.keys()]);
-                alert("Selected mentor records were deleted.");
+                window.CUANotify?.flash("Selected mentor records were deleted.", "success");
                 window.location.reload();
             } catch (error) {
-                alert(error.message || "Could not delete selected mentors.");
+                this.notifyError(error.message || "Could not delete selected mentors.");
             }
         });
 

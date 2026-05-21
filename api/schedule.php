@@ -48,7 +48,7 @@ foreach ($mentorsStmt->fetchAll() as $row) {
 }
 
 $availabilityStmt = $pdo->query("
-    SELECT mentor_id, day_of_week, start_time, end_time
+    SELECT mentor_id, day_of_week, start_time, end_time, effective_from, effective_to
     FROM mentor_weekly_availability
     WHERE is_active = 1
     ORDER BY mentor_id, day_of_week, start_time
@@ -68,6 +68,8 @@ foreach ($availabilityStmt->fetchAll() as $row) {
     $mentors[$mentorId]['weeklyAvailability'][$day][] = [
         'start' => format_time_12($row['start_time']),
         'end' => format_time_12($row['end_time']),
+        'effectiveFrom' => $row['effective_from'] ?? '',
+        'effectiveTo' => $row['effective_to'] ?? '',
     ];
 }
 

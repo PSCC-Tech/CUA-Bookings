@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CUA Bookings</title>
     <!--<link rel="stylesheet" href="styles.css">-->
-    <link rel="stylesheet" href="CSS/base.css">
+    <link rel="stylesheet" href="CSS/base.css?v=20260521-6">
     <link rel="stylesheet" href="CSS/mentors.css">
     <link rel="stylesheet" href="CSS/mentors-details.css">
     <link rel="stylesheet" href="CSS/add-mentors.css">
-    <link rel="stylesheet" href="CSS/theme.css?v=20260519-2">
+    <link rel="stylesheet" href="CSS/theme.css?v=20260521-6">
 </head>
 <body>
 
@@ -366,7 +366,10 @@
 
 <script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/Auth.js?v=20260518-1"></script>
+<script src="Scripts/AppFeedback.js?v=20260521-1"></script>
+<script src="Scripts/RoleUI.js?v=20260521-1"></script>
 <script src="Scripts/Logout.js?v=20260518-1"></script>
+<script src="Scripts/Footer.js?v=20260521-6"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
@@ -386,13 +389,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         courses.slice(i, i + 6).forEach(course => {
             const label = document.createElement("label");
+            const input = document.createElement("input");
+            const code = course.code || course.id;
             label.dataset.code = course.code || course.id;
             label.dataset.name = course.name;
             label.dataset.categories = (course.categories || [course.category]).join(",");
-            label.innerHTML = `
-                <input type="checkbox" value="${course.code || course.id}">
-                ${course.code || course.id} - ${course.name}
-            `;
+            input.type = "checkbox";
+            input.value = code;
+            label.append(input, document.createTextNode(` ${code} - ${course.name}`));
             column.appendChild(label);
         });
 
@@ -408,10 +412,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (validateForm()) {
             try {
                 await window.CUAApi.createMentor(buildMentorPayload());
-                alert('Mentor added successfully!');
+                window.CUANotify?.flash('Mentor added successfully.', "success");
                 window.location = 'mentors.html';
             } catch (error) {
-                alert(error.message || 'Could not save mentor.');
+                window.CUANotify?.error(error.message || 'Could not save mentor.') || alert(error.message || 'Could not save mentor.');
             }
         }
     });
@@ -464,7 +468,7 @@ function validateForm() {
     // Check if at least one course is selected
     const selectedCourses = document.querySelectorAll('.courses-checkboxes input[type="checkbox"]:checked');
     if (selectedCourses.length === 0) {
-        alert('Please select at least one course.');
+        window.CUANotify?.error('Please select at least one course.') || alert('Please select at least one course.');
         valid = false;
     }
     

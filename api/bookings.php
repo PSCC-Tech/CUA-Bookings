@@ -8,6 +8,7 @@ require_method(['GET', 'POST', 'PUT']);
 
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+require_role(['Administrator', 'Staff']);
 
 function fetch_bookings(PDO $pdo): array
 {
@@ -33,7 +34,8 @@ function fetch_bookings(PDO $pdo): array
         LEFT JOIN professors p ON p.professor_id = b.professor_id
         JOIN locations l ON l.location_id = b.location_id
         JOIN users u ON u.user_id = b.made_by_user_id
-        WHERE b.booking_status IN ('scheduled', 'active')
+        WHERE b.booking_status = 'active'
+           OR (b.booking_status = 'scheduled' AND b.start_at >= NOW())
         ORDER BY b.start_at, b.booking_id
     ");
 
@@ -164,6 +166,99 @@ function save_booking_students(PDO $pdo, int $bookingId, array $students): void
     }
 }
 
+function assert_booking_can_be_edited(PDO $pdo, int $bookingId): void
+{
+    $stmt = $pdo->prepare('SELECT booking_status FROM bookings WHERE booking_id = ? FOR UPDATE');
+    $stmt->execute([$bookingId]);
+    $status = $stmt->fetchColumn();
+
+    if (!$status) {
+        throw new RuntimeException('Booking was not found.');
+    }
+
+    if ($status !== 'scheduled') {
+        throw new RuntimeException('Only scheduled bookings can be edited.');
+    }
+}
+
+function assert_booking_slot_is_available(PDO $pdo, int $mentorId, string $startAt, string $endAt, ?int $excludeBookingId = null): void
+{
+    $startTimestamp = strtotime($startAt);
+    $endTimestamp = strtotime($endAt);
+
+    if (!$startTimestamp || !$endTimestamp || $startTimestamp >= $endTimestamp) {
+        throw new RuntimeException('A valid booking start and end time is required.');
+    }
+
+    $date = date('Y-m-d', $startTimestamp);
+    if ($date !== date('Y-m-d', $endTimestamp)) {
+        throw new RuntimeException('Bookings must start and end on the same day.');
+    }
+
+    $dayOfWeek = (int)date('N', $startTimestamp);
+    $startTime = date('H:i:s', $startTimestamp);
+    $endTime = date('H:i:s', $endTimestamp);
+
+    $availability = $pdo->prepare('
+        SELECT 1
+        FROM mentor_weekly_availability
+        WHERE mentor_id = ?
+          AND day_of_week = ?
+          AND is_active = 1
+          AND start_time <= ?
+          AND end_time >= ?
+          AND (effective_from IS NULL OR effective_from <= ?)
+          AND (effective_to IS NULL OR effective_to >= ?)
+        LIMIT 1
+    ');
+    $availability->execute([$mentorId, $dayOfWeek, $startTime, $endTime, $date, $date]);
+
+    if (!$availability->fetchColumn()) {
+        throw new RuntimeException('Selected mentor is not available during that time.');
+    }
+
+    $absence = $pdo->prepare('
+        SELECT 1
+        FROM mentor_schedule_exceptions
+        WHERE mentor_id = ?
+          AND exception_type = "unavailable"
+          AND exception_date = ?
+          AND (
+              is_full_day = 1
+              OR (start_time < ? AND end_time > ?)
+          )
+        LIMIT 1
+    ');
+    $absence->execute([$mentorId, $date, $endTime, $startTime]);
+
+    if ($absence->fetchColumn()) {
+        throw new RuntimeException('Selected mentor has an absence during that time.');
+    }
+
+    $overlapSql = '
+        SELECT booking_id
+        FROM bookings
+        WHERE mentor_id = ?
+          AND booking_status IN ("scheduled", "active")
+          AND start_at < ?
+          AND COALESCE(end_at, DATE_ADD(start_at, INTERVAL 30 MINUTE)) > ?
+    ';
+    $params = [$mentorId, $endAt, $startAt];
+
+    if ($excludeBookingId) {
+        $overlapSql .= ' AND booking_id <> ?';
+        $params[] = $excludeBookingId;
+    }
+
+    $overlapSql .= ' LIMIT 1 FOR UPDATE';
+    $overlap = $pdo->prepare($overlapSql);
+    $overlap->execute($params);
+
+    if ($overlap->fetchColumn()) {
+        throw new RuntimeException('Selected mentor already has a booking during that time.');
+    }
+}
+
 if ($method === 'GET') {
     ok(['bookings' => fetch_bookings($pdo)]);
 }
@@ -209,6 +304,12 @@ $topics = trim((string)($data['topics_notes'] ?? $data['topics'] ?? ''));
 $pdo->beginTransaction();
 
 try {
+    if ($method === 'PUT') {
+        assert_booking_can_be_edited($pdo, $bookingId);
+    }
+
+    assert_booking_slot_is_available($pdo, $mentorId, $startAt, $endAt, $method === 'PUT' ? $bookingId : null);
+
     if ($method === 'POST') {
         $status = $isWalkIn ? 'active' : 'scheduled';
         $stmt = $pdo->prepare('

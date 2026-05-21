@@ -141,6 +141,21 @@ function require_authenticated_user(): array
     return $user;
 }
 
+function require_role(array $allowedRoles): array
+{
+    $user = require_authenticated_user();
+    if (!in_array((string)$user['role'], $allowedRoles, true)) {
+        fail('You do not have permission to perform this action.', 403, ['allowed_roles' => $allowedRoles]);
+    }
+
+    return $user;
+}
+
+function require_admin_user(): array
+{
+    return require_role(['Administrator']);
+}
+
 function normalize_course_code(string $value): string
 {
     return strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($value)) ?? '');

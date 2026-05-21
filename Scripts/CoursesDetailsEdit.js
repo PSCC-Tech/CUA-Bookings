@@ -266,13 +266,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         document.querySelectorAll(".remove-mentor").forEach(btn => {
-            btn.onclick = event => {
+            btn.onclick = async event => {
                 event.stopPropagation();
                 const tab = btn.closest(".mentor-tab");
                 const name = getMentorNameFromTab(tab);
                 const wasActive = tab.classList.contains("active");
 
-                if (confirm(`Remove ${name} from this course?`)) {
+                const confirmed = window.CUAConfirm
+                    ? await window.CUAConfirm(`Remove ${name} from this course?`, {
+                        title: "Remove mentor",
+                        confirmText: "Remove",
+                        danger: true
+                    })
+                    : confirm(`Remove ${name} from this course?`);
+
+                if (confirmed) {
                     tab.remove();
                     if (wasActive) {
                         const nextTab = document.querySelector(".mentor-tab.editable");
@@ -346,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 originalData.activeMentorName;
 
             if (!newCode || !newName) {
-                alert("Course code and course name are required.");
+                window.CUANotify?.error("Course code and course name are required.") || alert("Course code and course name are required.");
                 return;
             }
 
@@ -363,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     mentors: newMentors
                 });
             } catch (error) {
-                alert(error.message || "Could not save course changes.");
+                window.CUANotify?.error(error.message || "Could not save course changes.") || alert(error.message || "Could not save course changes.");
                 return;
             } finally {
                 confirmBtn.disabled = false;
@@ -386,6 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
             renderReadOnlyMentorTabs(savedMentors, activeMentorName);
             window.CUACalendar?.setCourse?.(savedCourse.code || savedCourse.id || newCode, activeMentorName);
             bindReadOnlyMentorTabs();
+            window.CUANotify?.success("Course changes saved.");
         } else {
             renderCourseInfo(originalData);
             renderReadOnlyMentorTabs(originalData.mentors, originalData.activeMentorName);
