@@ -172,8 +172,18 @@ button {
 }
 
 .date-btn.has-selection {
-    background: linear-gradient(135deg, #287d3c 0%, #4caf50 100%);
-    box-shadow: 0 8px 18px rgba(40, 125, 60, 0.22);
+    background: #fff4bf !important;
+    color: #173f35 !important;
+    border-color: #fed141 !important;
+    box-shadow: 0 8px 18px rgba(128, 115, 64, 0.14) !important;
+}
+
+.date-btn.has-selection:hover:not(:disabled),
+.date-btn.has-selection:focus-visible:not(:disabled) {
+    background: #ffe27a !important;
+    color: #173f35 !important;
+    border-color: #b8aa67 !important;
+    box-shadow: 0 10px 22px rgba(128, 115, 64, 0.18) !important;
 }
 
 .date-btn.walk-in-mode:disabled {

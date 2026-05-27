@@ -18,7 +18,7 @@
         const admin = isAdministrator(user);
         document.documentElement.classList.toggle("role-admin", admin);
         document.documentElement.classList.toggle("role-staff", !admin);
-        document.body.dataset.currentRole = admin ? "Administrator" : "Staff";
+        document.body.dataset.currentRole = admin ? "Administrator" : (user?.role || "Limited");
     }
 
     function hideAdminOnlyControls() {
@@ -50,7 +50,7 @@
 
         const note = document.createElement("p");
         note.className = "role-access-note";
-        note.textContent = "Staff access: records can be viewed here, while administrative changes are reserved for administrators.";
+        note.textContent = "Limited access: records can be viewed here, while administrative changes are reserved for administrators.";
         target.appendChild(note);
     }
 

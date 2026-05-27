@@ -239,10 +239,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const topicsInput = document.getElementById("topics-input");
     const professorInput = document.getElementById("professor-input");
     const madeByInput = document.getElementById("made-by-input");
+    const submitButton = bookingForm?.querySelector("button[type='submit']");
 
     let selectedCategory = 'Show All';
     let selectedCourse = null;
     let bookingType = "scheduled";
+    let isSubmitting = false;
 
     function currentUserName() {
         return window.CUAAuth?.user?.fullName || window.CUAAuth?.user?.full_name || "";
@@ -254,6 +256,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function notifySuccess(message) {
         window.CUANotify?.success(message) || alert(message);
+    }
+
+    function setBookingSubmitting(isBusy) {
+        isSubmitting = isBusy;
+
+        if (!submitButton) return;
+
+        submitButton.disabled = isBusy;
+        submitButton.classList.toggle("is-submitting", isBusy);
+        submitButton.textContent = isBusy ? "Submitting..." : "Submit";
+        submitButton.setAttribute("aria-busy", isBusy ? "true" : "false");
     }
 
     if (madeByInput) {
@@ -571,6 +584,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function handleBookingSubmit(event) {
         event.preventDefault();
 
+        if (isSubmitting) return;
+
         if (!ensureCourseSelected()) {
             notifyError("Please select a course before creating the booking.");
             courseCodeInput.focus();
@@ -604,6 +619,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        setBookingSubmitting(true);
+
         try {
             if (!window.CUAApi) throw new Error("Backend API is not loaded.");
             const result = await window.CUAApi.createBooking(payload);
@@ -619,6 +636,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             restoreStudent1();
         } catch (error) {
             notifyError(error.message || "Could not create booking.");
+        } finally {
+            setBookingSubmitting(false);
         }
     }
 

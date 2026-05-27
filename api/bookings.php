@@ -8,7 +8,7 @@ require_method(['GET', 'POST', 'PUT']);
 
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-require_role(['Administrator', 'Staff']);
+require_role(['Administrator', 'Limited', 'Staff']);
 
 function fetch_bookings(PDO $pdo): array
 {

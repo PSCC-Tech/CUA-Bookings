@@ -232,7 +232,7 @@ function find_or_create_user(PDO $pdo, ?string $fullName): int
         return (int)$existing;
     }
 
-    $roleStmt = $pdo->prepare("SELECT role_id FROM roles WHERE role_name = 'Staff' LIMIT 1");
+    $roleStmt = $pdo->prepare("SELECT role_id FROM roles WHERE role_name IN ('Limited', 'Staff') ORDER BY FIELD(role_name, 'Limited', 'Staff') LIMIT 1");
     $roleStmt->execute();
     $roleId = (int)$roleStmt->fetchColumn();
 

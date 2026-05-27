@@ -7,7 +7,7 @@ require_method(['POST']);
 
 $pdo = db();
 $data = input_json();
-require_role(['Administrator', 'Staff']);
+require_role(['Administrator', 'Limited', 'Staff']);
 
 $bookingId = (int)($data['booking_id'] ?? 0);
 $action = trim((string)($data['action'] ?? ''));

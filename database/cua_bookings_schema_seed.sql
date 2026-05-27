@@ -393,12 +393,15 @@ GROUP BY
 
 INSERT INTO roles (role_name, description) VALUES
 ('Administrator', 'Can manage bookings, mentors, courses, schedules, and reference data.'),
-('Staff', 'Can create and manage daily bookings.');
+('Limited', 'Can create bookings and manage daily booking activity.');
 
 INSERT INTO users (role_id, full_name, email, password_hash) VALUES
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'E Perez', 'eperez@aguadilla.inter.edu', '$2y$10$eHZt4l4grnH3AkGzBg9zmuLR.qAYSajDjuV7wqYVCxbCSuTCd5gua'),
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Tutoria CUA', 'tutoriacua@aguadilla.inter.edu', '$2y$10$eHZt4l4grnH3AkGzBg9zmuLR.qAYSajDjuV7wqYVCxbCSuTCd5gua'),
-((SELECT role_id FROM roles WHERE role_name = 'Staff'), 'Staff CUA', 'staffcua@aguadilla.inter.edu', '$2y$10$1fYowzjNc.DfFo0ISzZriOMt5y5DzoNTIyWujoiI81whyG8RbPlBa');
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Edgardo Perez', 'eperez@aguadilla.inter.edu', '$2y$10$0Ccszeo2sEnuKz7ZI1IsmOJ10fGo4shGx007syj8ayR2iFfhCokme'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Nicole Roman', 'nmroman@aguadilla.inter.edu', '$2y$10$kZqsq96Rb82QalmVcMSoRuO.D98Lmp4DGcR/erHy.5x3CzPdJkBlW'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Maribel Gonzalez', 'magonzal@aguadilla.inter.edu', '$2y$10$/Kfi9FdOR3hbYTlDsJekxuiVQIEGjisD7ZHAaX6R/6u5WwOHchY4O'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Brenda Rios', 'blrios@aguadilla.inter.edu', '$2y$10$0k05oS4g6s82ztTpDttia.1Uul8ZNwOXFYLSTxUn2wNe4r4RNzh06'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'CUA Coordinator', 'tutoriacua@aguadilla.inter.edu', '$2y$10$HalIL5nwYTCyEdvriyLQ8One/4yB0Rk4cp6DkKn0jVkhRWLI1NB3a'),
+((SELECT role_id FROM roles WHERE role_name = 'Limited'), 'CUA Staff', 'staffcua@aguadilla.inter.edu', '$2y$10$R3hOHkgY1C1Ox4vPoOpMOuZ4NRgYnlHF.ePwLfVHuyBdCSFoIBzZO');
 
 INSERT INTO admin_profiles (
   user_id,
@@ -413,18 +416,58 @@ INSERT INTO admin_profiles (
 (
   (SELECT user_id FROM users WHERE email = 'eperez@aguadilla.inter.edu'),
   'CUA Program Coordinator',
-  '787-555-2100',
-  'Library 2nd Floor',
+  NULL,
+  NULL,
   'Email',
   '2026-05-11 09:18:00',
   'Updated recently',
   1
 ),
 (
+  (SELECT user_id FROM users WHERE email = 'nmroman@aguadilla.inter.edu'),
+  'CUA Program Coordinator',
+  NULL,
+  NULL,
+  'Email',
+  NULL,
+  'Updated recently',
+  1
+),
+(
+  (SELECT user_id FROM users WHERE email = 'magonzal@aguadilla.inter.edu'),
+  'CUA Program Coordinator',
+  NULL,
+  NULL,
+  'Email',
+  NULL,
+  'Updated recently',
+  1
+),
+(
+  (SELECT user_id FROM users WHERE email = 'blrios@aguadilla.inter.edu'),
+  'CUA Program Coordinator',
+  NULL,
+  NULL,
+  'Email',
+  NULL,
+  'Updated recently',
+  1
+),
+(
   (SELECT user_id FROM users WHERE email = 'tutoriacua@aguadilla.inter.edu'),
   'CUA Program Coordinator',
-  '787-555-2100',
-  'Library 2nd Floor',
+  NULL,
+  NULL,
+  'Email',
+  NULL,
+  'Updated recently',
+  1
+),
+(
+  (SELECT user_id FROM users WHERE email = 'staffcua@aguadilla.inter.edu'),
+  'CUA Staff',
+  NULL,
+  NULL,
   'Email',
   NULL,
   'Updated recently',

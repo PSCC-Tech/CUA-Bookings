@@ -345,6 +345,7 @@ function booking_notification_details(PDO $pdo, int $bookingId): array
             m.email AS mentor_email,
             vc.course_code,
             vc.course_name,
+            vc.category_name,
             p.full_name AS professor_name,
             l.location_name,
             u.full_name AS made_by_name,
@@ -374,20 +375,68 @@ function booking_notification_details(PDO $pdo, int $bookingId): array
     ');
     $studentStmt->execute([$bookingId]);
 
-    $adminStmt = $pdo->query("
-        SELECT u.full_name, u.email
-        FROM users u
-        JOIN roles r ON r.role_id = u.role_id
-        WHERE r.role_name = 'Administrator'
-          AND u.status = 'active'
-        ORDER BY u.full_name
-    ");
-
     return [
         'booking' => $booking,
         'students' => $studentStmt->fetchAll(),
-        'admins' => $adminStmt->fetchAll(),
     ];
+}
+
+function booking_notification_blocked_email(string $email): bool
+{
+    return strtolower(trim($email)) === 'staffcua@aguadilla.inter.edu';
+}
+
+function booking_notification_add_recipient(array &$recipients, string $email, string $name, string $role): void
+{
+    $email = trim($email);
+    if (!booking_mail_is_valid_email($email) || booking_notification_blocked_email($email)) {
+        return;
+    }
+
+    $key = strtolower($email);
+    if (isset($recipients[$key])) {
+        $existingRoles = array_map('trim', explode(',', (string)$recipients[$key]['role']));
+        if (!in_array($role, $existingRoles, true)) {
+            $recipients[$key]['role'] .= ', ' . $role;
+        }
+        return;
+    }
+
+    $recipients[$key] = [
+        'email' => $email,
+        'name' => $name,
+        'role' => $role,
+    ];
+}
+
+function booking_notification_supervisor_routes(string $categoryName): array
+{
+    $category = strtolower(trim($categoryName));
+    $routes = [
+        [
+            'email' => 'tutoriacua@aguadilla.inter.edu',
+            'name' => 'CUA Coordinator',
+            'role' => 'main administrator',
+        ],
+    ];
+
+    if ($category === 'technology') {
+        $routes[] = [
+            'email' => 'eperez@aguadilla.inter.edu',
+            'name' => 'Edgardo Perez',
+            'role' => 'technology supervisor',
+        ];
+    }
+
+    if ($category === 'english') {
+        $routes[] = [
+            'email' => 'nmroman@aguadilla.inter.edu',
+            'name' => 'Nicole Roman',
+            'role' => 'english supervisor',
+        ];
+    }
+
+    return $routes;
 }
 
 function booking_notification_recipients(array $details): array
@@ -395,38 +444,34 @@ function booking_notification_recipients(array $details): array
     $recipients = [];
 
     foreach ($details['students'] as $student) {
-        $email = trim((string)($student['email'] ?? ''));
-        if (booking_mail_is_valid_email($email)) {
-            $recipients[strtolower($email)] = [
-                'email' => $email,
-                'name' => (string)$student['full_name'],
-                'role' => 'student',
-            ];
-        }
+        booking_notification_add_recipient(
+            $recipients,
+            (string)($student['email'] ?? ''),
+            (string)($student['full_name'] ?? ''),
+            'student'
+        );
     }
 
-    $mentorEmail = trim((string)($details['booking']['mentor_email'] ?? ''));
-    if (booking_mail_is_valid_email($mentorEmail)) {
-        $recipients[strtolower($mentorEmail)] = [
-            'email' => $mentorEmail,
-            'name' => (string)$details['booking']['mentor_name'],
-            'role' => 'mentor',
-        ];
+    booking_notification_add_recipient(
+        $recipients,
+        (string)($details['booking']['mentor_email'] ?? ''),
+        (string)($details['booking']['mentor_name'] ?? ''),
+        'mentor'
+    );
+
+    $categoryName = (string)($details['booking']['category_name'] ?? '');
+    foreach (booking_notification_supervisor_routes($categoryName) as $route) {
+        booking_notification_add_recipient(
+            $recipients,
+            (string)$route['email'],
+            (string)$route['name'],
+            (string)$route['role']
+        );
     }
 
-    foreach ($details['admins'] as $admin) {
-        $email = trim((string)($admin['email'] ?? ''));
-        if (booking_mail_is_valid_email($email)) {
-            $key = strtolower($email);
-            if (isset($recipients[$key])) {
-                $recipients[$key]['role'] .= ', administrator';
-            } else {
-                $recipients[$key] = [
-                    'email' => $email,
-                    'name' => (string)$admin['full_name'],
-                    'role' => 'administrator',
-                ];
-            }
+    foreach (array_keys($recipients) as $key) {
+        if (booking_notification_blocked_email($key)) {
+            unset($recipients[$key]);
         }
     }
 
@@ -453,7 +498,7 @@ function booking_notification_role_key(array $recipient): string
     if (strpos($role, 'mentor') !== false) {
         return 'mentor';
     }
-    if (strpos($role, 'administrator') !== false) {
+    if (strpos($role, 'administrator') !== false || strpos($role, 'supervisor') !== false) {
         return 'administrator';
     }
     if (strpos($role, 'student') !== false) {
@@ -759,7 +804,7 @@ function send_booking_email_notifications(PDO $pdo, int $bookingId): array
     $recipients = booking_notification_recipients($details);
 
     if (!$recipients) {
-        $summary['skipped'][] = 'No valid student, mentor, or administrator email addresses were found.';
+        $summary['skipped'][] = 'No valid student or required administrative notification email addresses were found.';
         return $summary;
     }
 

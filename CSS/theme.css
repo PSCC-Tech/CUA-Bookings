@@ -643,6 +643,25 @@ textarea:focus,
     border-color: var(--inter-yellow) !important;
 }
 
+.date-btn.has-selection:hover:not(:disabled),
+.date-btn.has-selection:focus-visible:not(:disabled) {
+    background: #ffe27a !important;
+    color: var(--inter-ink) !important;
+    border-color: var(--inter-gold-light) !important;
+    box-shadow: 0 10px 22px rgba(128, 115, 64, 0.18) !important;
+}
+
+.booking-header .top-option[data-admin-only]:hover,
+.add-course .submit-btn:hover,
+.add-mentor .submit-btn:hover,
+.add-course .add-topic-btn:hover,
+.add-mentor .add-shift-btn:not(.remove-shift-btn):hover {
+    background: #ffe27a !important;
+    color: var(--inter-ink) !important;
+    border-color: var(--inter-gold-light) !important;
+    box-shadow: 0 10px 22px rgba(128, 115, 64, 0.18) !important;
+}
+
 .booking-type-option,
 .booking-type-option.active,
 .booking-type-option:hover {

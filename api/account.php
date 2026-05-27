@@ -6,7 +6,7 @@ require_once __DIR__ . '/bootstrap.php';
 require_method(['GET', 'PUT']);
 
 $pdo = db();
-$currentUser = require_role(['Administrator', 'Staff']);
+$currentUser = require_role(['Administrator', 'Limited', 'Staff']);
 
 function account_permissions_for_role(string $role): array
 {
@@ -56,7 +56,7 @@ function fetch_current_account(PDO $pdo, array $currentUser): array
         'office' => $row['office'] ?: '',
         'preferredContact' => $row['preferred_contact'] ?: 'Email',
         'role' => $role,
-        'accessLevel' => $role === 'Administrator' ? 'Full management' : 'Daily booking management',
+        'accessLevel' => $role === 'Administrator' ? 'Full management' : 'Limited booking management',
         'lastLogin' => $row['last_login_at'] ? date('F j, Y, g:i A', strtotime($row['last_login_at'])) : 'Not recorded',
         'passwordStatus' => $row['password_status'] ?: 'Updated recently',
         'twoStepVerification' => (int)($row['two_step_verification'] ?? 1) === 1 ? 'Enabled' : 'Disabled',

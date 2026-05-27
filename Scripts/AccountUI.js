@@ -101,7 +101,8 @@ const AccountUI = {
         this.setText("account-display-name", account.fullName);
         this.setText("account-id", `ADM-${String(account.user_id || 1).padStart(4, "0")}`);
         this.setText("account-role", account.role || "Administrator");
-        this.setText("account-access-level", account.accessLevel || "Full management");
+        const fallbackAccess = account.role === "Administrator" ? "Full management" : "Limited booking management";
+        this.setText("account-access-level", account.accessLevel || fallbackAccess);
         this.setText("account-last-login", account.lastLogin || "Not recorded");
         this.setText("account-password-status", account.passwordStatus || "Updated recently");
         this.setText("account-two-step", account.twoStepVerification || "Enabled");
