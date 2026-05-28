@@ -651,7 +651,7 @@ INSERT INTO bookings (
   made_by_user_id
 )
 SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-13 09:30:00', '2026-05-13 10:00:00',
+       '2026-05-13 09:30:00', '2026-05-13 10:30:00',
        'Limits and derivative rules', u.user_id
 FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'MATH101'
@@ -661,7 +661,7 @@ JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1001'
 UNION ALL
 SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-14 14:30:00', '2026-05-14 15:00:00',
+       '2026-05-14 14:30:00', '2026-05-14 15:30:00',
        'Linked lists and stack practice', u.user_id
 FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'COMP201'
@@ -671,7 +671,7 @@ JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1002'
 UNION ALL
 SELECT 'scheduled', 'active', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-13 13:00:00', '2026-05-13 13:30:00',
+       '2026-05-13 13:00:00', '2026-05-13 14:00:00',
        'Skeletal system review', u.user_id
 FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'BIO215'
@@ -681,7 +681,7 @@ JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1003'
 UNION ALL
 SELECT 'walk_in', 'completed', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-13 10:15:00', '2026-05-13 10:45:00',
+       '2026-05-13 10:15:00', '2026-05-13 11:15:00',
        'Business model worksheet', u.user_id
 FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'BUS101'
@@ -691,7 +691,7 @@ JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
 WHERE m.mentor_number = 'M1004'
 UNION ALL
 SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-16 11:00:00', '2026-05-16 11:30:00',
+       '2026-05-16 11:00:00', '2026-05-16 12:00:00',
        'Essay outline and thesis statement', u.user_id
 FROM mentors m
 JOIN v_courses_with_categories c ON c.course_code = 'ENGL210'

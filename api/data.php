@@ -117,7 +117,7 @@ function data_fetch_bookings(PDO $pdo): array
     $bookingType = data_param('booking_type');
     $category = data_param('category');
     $mentor = data_param('mentor');
-    $course = normalize_course_code(data_param('course'));
+    $courseValues = course_code_lookup_values(data_param('course'));
     $student = data_param('student');
     $professor = data_param('professor');
     $location = data_param('location');
@@ -150,13 +150,19 @@ function data_fetch_bookings(PDO $pdo): array
     }
 
     if ($mentor !== '' && strtolower($mentor) !== 'all') {
-        $sql .= ' AND (m.mentor_number = ? OR m.full_name = ?)';
-        array_push($params, $mentor, $mentor);
+        $mentorValues = [];
+        try {
+            $mentorValues = person_identifier_lookup_values($mentor, 'Mentor ID');
+        } catch (Throwable $error) {
+            $mentorValues = [];
+        }
+        $sql .= ' AND (m.full_name = ?' . ($mentorValues ? ' OR m.mentor_number IN (' . implode(',', array_fill(0, count($mentorValues), '?')) . ')' : '') . ')';
+        array_push($params, $mentor, ...$mentorValues);
     }
 
-    if ($course !== '') {
-        $sql .= ' AND vc.course_code = ?';
-        $params[] = $course;
+    if ($courseValues) {
+        $sql .= ' AND vc.course_code IN (' . implode(',', array_fill(0, count($courseValues), '?')) . ')';
+        array_push($params, ...$courseValues);
     }
 
     if ($professor !== '' && strtolower($professor) !== 'all') {
@@ -237,7 +243,7 @@ function data_fetch_bookings(PDO $pdo): array
 
     $rows = array_map(static function (array $row): array {
         $start = strtotime($row['start_at']);
-        $end = $row['end_at'] ? strtotime($row['end_at']) : null;
+        $end = $row['end_at'] ? strtotime($row['end_at']) : ($start ? strtotime($row['start_at'] . ' +60 minutes') : null);
 
         return [
             'date' => $start ? date('Y-m-d', $start) : '',
@@ -245,12 +251,12 @@ function data_fetch_bookings(PDO $pdo): array
             'end_time' => $end ? date('g:i A', $end) : '',
             'status' => $row['booking_status'],
             'booking_type' => str_replace('_', '-', $row['booking_type']),
-            'mentor_number' => $row['mentor_number'],
+            'mentor_number' => format_person_identifier($row['mentor_number']),
             'mentor_name' => $row['mentor_name'],
-            'course_code' => $row['course_code'],
+            'course_code' => format_course_code($row['course_code']),
             'course_name' => $row['course_name'],
             'category' => $row['category_name'],
-            'student_numbers' => $row['student_numbers'] ?? '',
+            'student_numbers' => $row['student_numbers'] ? implode(', ', array_map('format_person_identifier', split_csv_names($row['student_numbers']))) : '',
             'student_names' => $row['student_names'] ?? '',
             'student_count' => (int)$row['student_count'],
             'professor' => $row['professor_name'] ?? '',
@@ -322,7 +328,7 @@ function data_fetch_mentors(PDO $pdo): array
     $params = [];
     $query = data_param('q');
     $category = data_param('category');
-    $course = normalize_course_code(data_param('course'));
+    $courseValues = course_code_lookup_values(data_param('course'));
     $active = data_param('active');
 
     if ($active !== '' && strtolower($active) !== 'all') {
@@ -342,16 +348,16 @@ function data_fetch_mentors(PDO $pdo): array
         $params[] = $category;
     }
 
-    if ($course !== '') {
+    if ($courseValues) {
         $sql .= ' AND EXISTS (
             SELECT 1
             FROM mentor_courses mc_course
             JOIN v_courses_with_categories vc_course ON vc_course.course_id = mc_course.course_id
             WHERE mc_course.mentor_id = m.mentor_id
               AND mc_course.is_active = 1
-              AND vc_course.course_code = ?
+              AND vc_course.course_code IN (' . implode(',', array_fill(0, count($courseValues), '?')) . ')
         )';
-        $params[] = $course;
+        array_push($params, ...$courseValues);
     }
 
     if ($query !== '') {
@@ -370,14 +376,14 @@ function data_fetch_mentors(PDO $pdo): array
     $stmt->execute($params);
 
     $rows = array_map(static fn(array $row): array => [
-        'mentor_number' => $row['mentor_number'],
+        'mentor_number' => format_person_identifier($row['mentor_number']),
         'mentor_name' => $row['full_name'],
         'email' => $row['email'] ?? '',
         'phone' => $row['phone'] ?? '',
         'active' => data_yes_no($row['is_active']),
         'categories' => $row['categories'] ?? '',
-        'course_codes' => $row['course_codes'] ?? '',
-        'courses' => $row['courses'] ?? '',
+        'course_codes' => $row['course_codes'] ? implode(', ', array_map('format_course_code', split_csv_names($row['course_codes']))) : '',
+        'courses' => $row['courses'] ? preg_replace_callback('/\\b[A-Z]{2,4}\\d{1,4}\\b/', static fn(array $match): string => format_course_code($match[0]), $row['courses']) : '',
         'weekly_schedule' => $row['weekly_schedule'] ?? '',
         'created_at' => data_format_datetime($row['created_at'] ?? ''),
     ], $stmt->fetchAll());
@@ -476,7 +482,7 @@ function data_fetch_courses(PDO $pdo): array
     $stmt->execute($params);
 
     $rows = array_map(static fn(array $row): array => [
-        'course_code' => $row['course_code'],
+        'course_code' => format_course_code($row['course_code']),
         'course_name' => $row['course_name'],
         'category' => $row['category_name'],
         'subject' => $row['subject_name'],
@@ -527,7 +533,7 @@ function data_fetch_students(PDO $pdo): array
     $dateFrom = data_date_param('date_from');
     $dateTo = data_date_param('date_to');
     $mentor = data_param('mentor');
-    $course = normalize_course_code(data_param('course'));
+    $courseValues = course_code_lookup_values(data_param('course'));
 
     if ($dateFrom !== '') {
         $sql .= ' AND DATE(b.start_at) >= ?';
@@ -540,13 +546,19 @@ function data_fetch_students(PDO $pdo): array
     }
 
     if ($mentor !== '' && strtolower($mentor) !== 'all') {
-        $sql .= ' AND (m.mentor_number = ? OR m.full_name = ?)';
-        array_push($params, $mentor, $mentor);
+        $mentorValues = [];
+        try {
+            $mentorValues = person_identifier_lookup_values($mentor, 'Mentor ID');
+        } catch (Throwable $error) {
+            $mentorValues = [];
+        }
+        $sql .= ' AND (m.full_name = ?' . ($mentorValues ? ' OR m.mentor_number IN (' . implode(',', array_fill(0, count($mentorValues), '?')) . ')' : '') . ')';
+        array_push($params, $mentor, ...$mentorValues);
     }
 
-    if ($course !== '') {
-        $sql .= ' AND vc.course_code = ?';
-        $params[] = $course;
+    if ($courseValues) {
+        $sql .= ' AND vc.course_code IN (' . implode(',', array_fill(0, count($courseValues), '?')) . ')';
+        array_push($params, ...$courseValues);
     }
 
     if ($query !== '') {
@@ -565,13 +577,13 @@ function data_fetch_students(PDO $pdo): array
     $stmt->execute($params);
 
     $rows = array_map(static fn(array $row): array => [
-        'student_number' => $row['student_number'],
+        'student_number' => format_person_identifier($row['student_number']),
         'student_name' => $row['full_name'],
         'email' => $row['email'] ?? '',
         'phone' => $row['phone'] ?? '',
         'total_bookings' => (int)$row['total_bookings'],
         'last_booking_at' => data_format_datetime($row['last_booking_at'] ?? ''),
-        'courses' => $row['courses'] ?? '',
+        'courses' => $row['courses'] ? implode(', ', array_map('format_course_code', split_csv_names($row['courses']))) : '',
         'mentors' => $row['mentors'] ?? '',
     ], $stmt->fetchAll());
 
@@ -627,8 +639,14 @@ function data_fetch_absences(PDO $pdo): array
     }
 
     if ($mentor !== '' && strtolower($mentor) !== 'all') {
-        $sql .= ' AND (m.mentor_number = ? OR m.full_name = ?)';
-        array_push($params, $mentor, $mentor);
+        $mentorValues = [];
+        try {
+            $mentorValues = person_identifier_lookup_values($mentor, 'Mentor ID');
+        } catch (Throwable $error) {
+            $mentorValues = [];
+        }
+        $sql .= ' AND (m.full_name = ?' . ($mentorValues ? ' OR m.mentor_number IN (' . implode(',', array_fill(0, count($mentorValues), '?')) . ')' : '') . ')';
+        array_push($params, $mentor, ...$mentorValues);
     }
 
     if ($query !== '') {
@@ -644,7 +662,7 @@ function data_fetch_absences(PDO $pdo): array
 
     $rows = array_map(static fn(array $row): array => [
         'date' => $row['exception_date'],
-        'mentor_number' => $row['mentor_number'],
+        'mentor_number' => format_person_identifier($row['mentor_number']),
         'mentor_name' => $row['mentor_name'],
         'absence_type' => (int)$row['is_full_day'] === 1 ? 'Full day' : 'Specific time',
         'start_time' => (int)$row['is_full_day'] === 1 ? 'All day' : format_time_12($row['start_time']),

@@ -499,7 +499,9 @@ function booking_notification_recipients(array $details): array
 function booking_notification_format_datetime(array $booking): array
 {
     $start = strtotime((string)$booking['start_at']);
-    $end = !empty($booking['end_at']) ? strtotime((string)$booking['end_at']) : false;
+    $end = !empty($booking['end_at'])
+        ? strtotime((string)$booking['end_at'])
+        : ($start ? strtotime((string)$booking['start_at'] . ' +60 minutes') : false);
 
     return [
         'date' => $start ? date('l, F j, Y', $start) : (string)$booking['start_at'],
@@ -648,7 +650,7 @@ function booking_notification_build_message(array $details, array $recipient): a
     $copy = booking_notification_role_copy($roleKey);
     $recipientName = trim((string)($recipient['name'] ?? ''));
     $greetingName = $recipientName !== '' ? $recipientName : 'recipient';
-    $course = trim((string)$booking['course_code'] . ' - ' . (string)$booking['course_name']);
+    $course = trim(format_course_code((string)$booking['course_code']) . ' - ' . (string)$booking['course_name']);
     $sessionType = count($details['students']) > 1 ? 'Grouped (' . count($details['students']) . ' students)' : 'Single';
     $contactText = booking_notification_contact_text();
     $contactHtml = booking_notification_contact_html();
@@ -674,7 +676,7 @@ function booking_notification_build_message(array $details, array $recipient): a
     $studentLines = array_map(static function (array $student): string {
         $parts = [
             trim((string)$student['full_name']),
-            trim((string)$student['student_number']),
+            format_person_identifier($student['student_number'] ?? ''),
         ];
         $line = implode(' - ', array_filter($parts));
         $email = trim((string)($student['email'] ?? ''));
@@ -690,7 +692,7 @@ function booking_notification_build_message(array $details, array $recipient): a
 
     $subject = sprintf(
         'CUA Mentorship: %s | %s at %s',
-        $booking['course_code'],
+        format_course_code((string)$booking['course_code']),
         $dateTime['subject_date'],
         $dateTime['time']
     );

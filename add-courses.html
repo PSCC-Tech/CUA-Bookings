@@ -49,7 +49,7 @@
             <div class="form-group">
                 <label for="course-code">Course Code</label>
                 <div class="autocomplete-input-wrapper">
-                    <input type="text" id="course-code" placeholder="e.g., MATH 101">
+                    <input type="text" id="course-code" placeholder="MATH 1500">
                 </div>
             </div>
 
@@ -179,6 +179,7 @@
 <script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/Auth.js?v=20260518-1"></script>
 <script src="Scripts/AppFeedback.js?v=20260521-1"></script>
+<script src="Scripts/InputFormatters.js?v=20260528-3"></script>
 <script src="Scripts/RoleUI.js?v=20260527-2"></script>
 <script src="Scripts/Logout.js?v=20260518-1"></script>
 <script src="Scripts/Footer.js?v=20260521-6"></script>
@@ -354,6 +355,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (!payload.course_code || !payload.course_name) {
             window.CUANotify?.error("Please enter a course code and course name.") || alert("Please enter a course code and course name.");
+            return;
+        }
+
+        if (!/^[A-Z]{4}\s\d{4}$/.test(payload.course_code)) {
+            window.CUANotify?.error("Course code must use four letters, a space, and four numbers, like MATH 1500.") || alert("Course code must use four letters, a space, and four numbers, like MATH 1500.");
             return;
         }
 

@@ -35,9 +35,9 @@ $dayNames = [
 
 foreach ($mentorsStmt->fetchAll() as $row) {
     $mentors[(int)$row['mentor_id']] = [
-        'id' => $row['mentor_number'],
+        'id' => format_person_identifier($row['mentor_number']),
         'mentor_id' => (int)$row['mentor_id'],
-        'mentor_number' => $row['mentor_number'],
+        'mentor_number' => format_person_identifier($row['mentor_number']),
         'name' => $row['full_name'],
         'categories' => $row['categories'] ? split_csv_names($row['categories']) : [],
         'weeklyAvailability' => [],
@@ -84,7 +84,7 @@ $coursesStmt = $pdo->query("
 foreach ($coursesStmt->fetchAll() as $row) {
     $mentorId = (int)$row['mentor_id'];
     if (isset($mentors[$mentorId])) {
-        $mentors[$mentorId]['courseCodes'][] = $row['course_code'];
+        $mentors[$mentorId]['courseCodes'][] = format_course_code($row['course_code']);
     }
 }
 
@@ -93,7 +93,7 @@ $bookingsStmt = $pdo->query("
         b.mentor_id,
         DATE(b.start_at) AS booking_date,
         TIME(b.start_at) AS start_time,
-        TIME(COALESCE(b.end_at, DATE_ADD(b.start_at, INTERVAL 30 MINUTE))) AS end_time,
+        TIME(COALESCE(b.end_at, DATE_ADD(b.start_at, INTERVAL 60 MINUTE))) AS end_time,
         vc.course_code,
         vc.course_name,
         l.location_name,
@@ -119,7 +119,7 @@ foreach ($bookingsStmt->fetchAll() as $row) {
         'start' => format_time_12($row['start_time']),
         'end' => format_time_12($row['end_time']),
         'student' => $row['students'] ?: 'No students',
-        'course' => $row['course_code'] . ' - ' . $row['course_name'],
+        'course' => format_course_code($row['course_code']) . ' - ' . $row['course_name'],
         'location' => $row['location_name'],
     ];
 }

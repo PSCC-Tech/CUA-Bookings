@@ -43,20 +43,28 @@ if ($method === 'GET') {
     }
 
     if ($mentorNumber !== '') {
-        $sql .= ' AND m.mentor_number = ?';
-        $params[] = $mentorNumber;
+        $values = [];
+        try {
+            $values = person_identifier_lookup_values($mentorNumber, 'Mentor ID');
+        } catch (Throwable $error) {
+            $values = [$mentorNumber];
+        }
+
+        $sql .= ' AND m.mentor_number IN (' . implode(',', array_fill(0, count($values), '?')) . ')';
+        array_push($params, ...$values);
     }
 
     if ($courseCode !== '') {
+        $values = course_code_lookup_values($courseCode);
         $sql .= ' AND EXISTS (
             SELECT 1
             FROM mentor_courses mc_filter
             JOIN v_courses_with_categories vc_filter ON vc_filter.course_id = mc_filter.course_id
             WHERE mc_filter.mentor_id = m.mentor_id
               AND mc_filter.is_active = 1
-              AND vc_filter.course_code = ?
+              AND vc_filter.course_code IN (' . implode(',', array_fill(0, max(1, count($values)), '?')) . ')
         )';
-        $params[] = normalize_course_code($courseCode);
+        array_push($params, ...($values ?: ['']));
     }
 
     if ($category !== '' && strtolower($category) !== 'all' && strtolower($category) !== 'show all') {
@@ -72,9 +80,25 @@ if ($method === 'GET') {
     }
 
     if ($search !== '') {
-        $sql .= ' AND (m.mentor_number LIKE ? OR m.full_name LIKE ? OR m.email LIKE ?)';
+        $identifierValues = [];
+        if (preg_match('/^[A-Za-z][A-Za-z0-9-]*$/', $search)) {
+            try {
+                $identifierValues = person_identifier_lookup_values($search, 'Mentor ID');
+            } catch (Throwable $error) {
+                $identifierValues = [];
+            }
+        }
+
+        $sql .= ' AND (m.mentor_number LIKE ? OR m.full_name LIKE ? OR m.email LIKE ?';
         $like = '%' . $search . '%';
         array_push($params, $like, $like, $like);
+
+        if ($identifierValues) {
+            $sql .= ' OR m.mentor_number IN (' . implode(',', array_fill(0, count($identifierValues), '?')) . ')';
+            array_push($params, ...$identifierValues);
+        }
+
+        $sql .= ')';
     }
 
     $sql .= '
@@ -92,7 +116,7 @@ if ($method === 'GET') {
     if ($mentorIds) {
         $placeholders = implode(',', array_fill(0, count($mentorIds), '?'));
         $scheduleStmt = $pdo->prepare("
-            SELECT mentor_id, day_of_week, start_time, end_time
+            SELECT mentor_id, day_of_week, start_time, end_time, effective_from, effective_to
             FROM mentor_weekly_availability
             WHERE is_active = 1 AND mentor_id IN ($placeholders)
             ORDER BY mentor_id, day_of_week, start_time
@@ -106,6 +130,10 @@ if ($method === 'GET') {
                 'end_time' => $schedule['end_time'],
                 'start' => format_time_12($schedule['start_time']),
                 'end' => format_time_12($schedule['end_time']),
+                'effective_from' => $schedule['effective_from'] ?? '',
+                'effective_to' => $schedule['effective_to'] ?? '',
+                'effectiveFrom' => $schedule['effective_from'] ?? '',
+                'effectiveTo' => $schedule['effective_to'] ?? '',
             ];
         }
     }
@@ -116,20 +144,21 @@ if ($method === 'GET') {
         return [
             'mentor_id' => (int)$row['mentor_id'],
             'id' => (int)$row['mentor_id'],
-            'mentor_number' => $row['mentor_number'],
-            'number' => $row['mentor_number'],
+            'mentor_number' => format_person_identifier($row['mentor_number']),
+            'number' => format_person_identifier($row['mentor_number']),
             'name' => $row['full_name'],
             'full_name' => $row['full_name'],
             'email' => $row['email'] ?? '',
             'phone' => $row['phone'] ?? '',
             'contact' => $row['email'] ?: ($row['phone'] ?? ''),
             'categories' => $row['categories'] ? split_csv_names($row['categories']) : [],
-            'course_codes' => $row['course_codes'] ? split_csv_names($row['course_codes']) : [],
+            'course_codes' => $row['course_codes'] ? array_map('format_course_code', split_csv_names($row['course_codes'])) : [],
             'courses' => array_map(static function (string $course): array {
                 $parts = explode(' - ', $course, 2);
+                $code = format_course_code($parts[0] ?? $course);
                 return [
-                    'id' => $parts[0] ?? $course,
-                    'code' => $parts[0] ?? $course,
+                    'id' => $code,
+                    'code' => $code,
                     'name' => $parts[1] ?? '',
                 ];
             }, $courses),
@@ -142,8 +171,9 @@ if ($method === 'GET') {
 
 function mentor_id_from_number(PDO $pdo, string $mentorNumber): ?int
 {
-    $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? LIMIT 1');
-    $stmt->execute([$mentorNumber]);
+    $values = person_identifier_lookup_values($mentorNumber, 'Mentor ID');
+    $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number IN (' . implode(',', array_fill(0, count($values), '?')) . ') LIMIT 1');
+    $stmt->execute($values);
     $id = $stmt->fetchColumn();
 
     return $id ? (int)$id : null;
@@ -194,6 +224,49 @@ function mentor_delete_ids(PDO $pdo, array $data): array
     return array_values(array_unique(array_filter($ids)));
 }
 
+function mentor_schedule_date($value, string $label): string
+{
+    $date = trim((string)$value);
+    if ($date === '') {
+        return '';
+    }
+
+    $parsed = DateTime::createFromFormat('Y-m-d', $date);
+    if (!$parsed || $parsed->format('Y-m-d') !== $date) {
+        fail($label . ' must be a valid date.');
+    }
+
+    return $date;
+}
+
+function mentor_schedule_range(array $data): array
+{
+    $from = mentor_schedule_date($data['schedule_effective_from'] ?? $data['effective_from'] ?? '', 'Schedule start date');
+    $to = mentor_schedule_date($data['schedule_effective_to'] ?? $data['effective_to'] ?? '', 'Schedule end date');
+
+    if ($from === '') {
+        $from = date('Y-m-d');
+    }
+
+    if ($to !== '' && $to < $from) {
+        fail('Schedule end date must be on or after the schedule start date.');
+    }
+
+    return [$from, $to ?: null];
+}
+
+function mentor_schedule_block_range(array $block, string $globalFrom, ?string $globalTo): array
+{
+    $from = mentor_schedule_date($block['effective_from'] ?? $block['effectiveFrom'] ?? '', 'Schedule start date') ?: $globalFrom;
+    $to = mentor_schedule_date($block['effective_to'] ?? $block['effectiveTo'] ?? '', 'Schedule end date') ?: $globalTo;
+
+    if ($to !== null && $to < $from) {
+        fail('Schedule end date must be on or after the schedule start date.');
+    }
+
+    return [$from, $to];
+}
+
 $data = input_json();
 
 if ($method === 'DELETE') {
@@ -222,9 +295,7 @@ if ($method === 'PUT') {
     $currentMentorNumber = trim((string)($_GET['mentor_number'] ?? $data['current_mentor_number'] ?? $data['original_mentor_number'] ?? ''));
 
     if (!$mentorId && $currentMentorNumber !== '') {
-        $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? LIMIT 1');
-        $stmt->execute([$currentMentorNumber]);
-        $mentorId = (int)$stmt->fetchColumn();
+        $mentorId = mentor_id_from_number($pdo, $currentMentorNumber) ?? 0;
     }
 
     if (!$mentorId) {
@@ -238,32 +309,35 @@ if ($method === 'PUT') {
     $mentorNumber = trim((string)($data['mentor_number'] ?? $data['mentor_id_number'] ?? ''));
     $fullName = trim((string)($data['full_name'] ?? $data['name'] ?? ''));
     $contact = trim((string)($data['contact'] ?? ''));
-    $email = trim((string)($data['email'] ?? ''));
-    $phone = trim((string)($data['phone'] ?? ''));
+    $email = normalize_email_address($data['email'] ?? '', 'Mentor email');
+    $phone = normalize_phone_number($data['phone'] ?? '', 'Mentor phone number');
     $courseCodesProvided = array_key_exists('course_codes', $data);
     $courseCodes = is_array($data['course_codes'] ?? null)
         ? array_values(array_filter(array_map('trim', $data['course_codes'])))
         : [];
     $scheduleProvided = array_key_exists('schedule', $data);
     $schedule = is_array($data['schedule'] ?? null) ? $data['schedule'] : [];
+    [$scheduleEffectiveFrom, $scheduleEffectiveTo] = mentor_schedule_range($data);
 
     if ($contact !== '' && $email === '' && $phone === '') {
         if (filter_var($contact, FILTER_VALIDATE_EMAIL)) {
-            $email = $contact;
+            $email = normalize_email_address($contact, 'Mentor email');
         } else {
-            $phone = $contact;
+            $phone = normalize_phone_number($contact, 'Mentor phone number');
         }
     }
 
     if ($mentorNumber === '' || $fullName === '') {
         fail('Mentor number and mentor name are required.');
     }
+    $mentorNumber = normalize_person_identifier($mentorNumber, 'Mentor ID');
 
     $pdo->beginTransaction();
 
     try {
-        $duplicate = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? AND mentor_id <> ? LIMIT 1');
-        $duplicate->execute([$mentorNumber, $mentorId]);
+        $mentorNumberValues = person_identifier_lookup_values($mentorNumber, 'Mentor ID');
+        $duplicate = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number IN (' . implode(',', array_fill(0, count($mentorNumberValues), '?')) . ') AND mentor_id <> ? LIMIT 1');
+        $duplicate->execute([...$mentorNumberValues, $mentorId]);
         if ($duplicate->fetchColumn()) {
             throw new RuntimeException('Another mentor already uses that mentor number.');
         }
@@ -293,20 +367,21 @@ if ($method === 'PUT') {
         if ($scheduleProvided) {
             $pdo->prepare('DELETE FROM mentor_weekly_availability WHERE mentor_id = ?')->execute([$mentorId]);
             $availabilityInsert = $pdo->prepare('
-                INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from)
-                VALUES (?, ?, ?, ?, CURDATE())
+                INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from, effective_to)
+                VALUES (?, ?, ?, ?, ?, ?)
             ');
 
             foreach ($schedule as $block) {
                 $day = (int)($block['day_of_week'] ?? 0);
                 $start = trim((string)($block['start_time'] ?? ''));
                 $end = trim((string)($block['end_time'] ?? ''));
+                [$effectiveFrom, $effectiveTo] = mentor_schedule_block_range($block, $scheduleEffectiveFrom, $scheduleEffectiveTo);
 
                 if ($day < 1 || $day > 7 || $start === '' || $end === '') {
                     continue;
                 }
 
-                $availabilityInsert->execute([$mentorId, $day, $start, $end]);
+                $availabilityInsert->execute([$mentorId, $day, $start, $end, $effectiveFrom, $effectiveTo]);
             }
         }
 
@@ -320,22 +395,34 @@ if ($method === 'PUT') {
 
 $mentorNumber = trim((string)($data['mentor_number'] ?? $data['mentor_id'] ?? ''));
 $fullName = trim((string)($data['full_name'] ?? $data['name'] ?? ''));
-$email = trim((string)($data['email'] ?? $data['contact'] ?? ''));
-$phone = trim((string)($data['phone'] ?? ''));
+$contact = trim((string)($data['contact'] ?? ''));
+$email = normalize_email_address($data['email'] ?? '', 'Mentor email');
+$phone = normalize_phone_number($data['phone'] ?? '', 'Mentor phone number');
 $courseCodes = is_array($data['course_codes'] ?? null)
     ? array_values(array_filter(array_map('trim', $data['course_codes'])))
     : [];
 $schedule = is_array($data['schedule'] ?? null) ? $data['schedule'] : [];
+[$scheduleEffectiveFrom, $scheduleEffectiveTo] = mentor_schedule_range($data);
 
 if ($mentorNumber === '' || $fullName === '') {
     fail('Mentor ID and mentor name are required.');
+}
+$mentorNumber = normalize_person_identifier($mentorNumber, 'Mentor ID');
+
+if ($contact !== '' && $email === '' && $phone === '') {
+    if (filter_var($contact, FILTER_VALIDATE_EMAIL)) {
+        $email = normalize_email_address($contact, 'Mentor email');
+    } else {
+        $phone = normalize_phone_number($contact, 'Mentor phone number');
+    }
 }
 
 $pdo->beginTransaction();
 
 try {
-    $existing = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? LIMIT 1');
-    $existing->execute([$mentorNumber]);
+    $mentorNumberValues = person_identifier_lookup_values($mentorNumber, 'Mentor ID');
+    $existing = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number IN (' . implode(',', array_fill(0, count($mentorNumberValues), '?')) . ') LIMIT 1');
+    $existing->execute($mentorNumberValues);
     $mentorId = $existing->fetchColumn();
 
     if ($mentorId) {
@@ -359,20 +446,21 @@ try {
 
     $pdo->prepare('DELETE FROM mentor_weekly_availability WHERE mentor_id = ?')->execute([$mentorId]);
     $availabilityInsert = $pdo->prepare('
-        INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from)
-        VALUES (?, ?, ?, ?, CURDATE())
+        INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from, effective_to)
+        VALUES (?, ?, ?, ?, ?, ?)
     ');
 
     foreach ($schedule as $block) {
         $day = (int)($block['day_of_week'] ?? 0);
         $start = trim((string)($block['start_time'] ?? ''));
         $end = trim((string)($block['end_time'] ?? ''));
+        [$effectiveFrom, $effectiveTo] = mentor_schedule_block_range($block, $scheduleEffectiveFrom, $scheduleEffectiveTo);
 
         if ($day < 1 || $day > 7 || $start === '' || $end === '') {
             continue;
         }
 
-        $availabilityInsert->execute([$mentorId, $day, $start, $end]);
+        $availabilityInsert->execute([$mentorId, $day, $start, $end, $effectiveFrom, $effectiveTo]);
     }
 
     $pdo->commit();

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="CSS/base.css?v=20260521-6">
     <link rel="stylesheet" href="CSS/mentors.css?v=20260527-1">
     <link rel="stylesheet" href="CSS/mentors-details.css">
-    <link rel="stylesheet" href="CSS/add-mentors.css?v=20260528-2">
+    <link rel="stylesheet" href="CSS/add-mentors.css?v=20260528-4">
     <link rel="stylesheet" href="CSS/theme.css?v=20260527-2">
 </head>
 <body>
@@ -61,7 +61,22 @@
         <div class="form-group">
             <!-- Contact -->
                 <label for="contact">Contact</label>
-                <input type="text" id="contact" placeholder="e.g., jodo3456@agu.inter.edu" oninput="this.className = ''">
+                <input type="text" id="contact" placeholder="email@example.edu or 787-555-5555" oninput="this.className = ''">
+        </div>
+
+        <div class="form-group">
+            <label>Schedule Date Range</label>
+            <div class="schedule-range-fields">
+                <label for="schedule-effective-from">
+                    Starts
+                    <input type="date" id="schedule-effective-from">
+                </label>
+                <label for="schedule-effective-to">
+                    Ends
+                    <input type="date" id="schedule-effective-to">
+                </label>
+            </div>
+            <small class="hint">Leave the end date blank if the weekly schedule should stay active until changed.</small>
         </div>
 
         <div class="form-group">
@@ -367,12 +382,17 @@
 <script src="Scripts/BackendAPI.js"></script>
 <script src="Scripts/Auth.js?v=20260518-1"></script>
 <script src="Scripts/AppFeedback.js?v=20260521-1"></script>
+<script src="Scripts/InputFormatters.js?v=20260528-3"></script>
 <script src="Scripts/RoleUI.js?v=20260527-2"></script>
 <script src="Scripts/Logout.js?v=20260518-1"></script>
 <script src="Scripts/Footer.js?v=20260521-6"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
+    const scheduleStartInput = document.getElementById('schedule-effective-from');
+    if (scheduleStartInput && !scheduleStartInput.value) {
+        scheduleStartInput.value = new Date().toISOString().slice(0, 10);
+    }
 
     /* ============================
        COURSE CHECKBOX COLUMNS
@@ -454,13 +474,19 @@ function validateForm() {
     const mentorId = document.getElementById('mentor-id');
     const mentorName = document.getElementById('mentor-name');
     const contact = document.getElementById('contact');
+    const scheduleFrom = document.getElementById('schedule-effective-from');
+    const scheduleTo = document.getElementById('schedule-effective-to');
     
     // Reset previous invalid classes
-    [mentorId, mentorName, contact].forEach(field => field.classList.remove('invalid'));
+    [mentorId, mentorName, contact, scheduleFrom, scheduleTo].forEach(field => field?.classList.remove('invalid'));
     
     // Check required fields
     if (!mentorId.value.trim()) {
         mentorId.classList.add('invalid');
+        valid = false;
+    } else if (!/^[A-Z]00\d{6}$/.test(mentorId.value.trim())) {
+        mentorId.classList.add('invalid');
+        window.CUANotify?.error('Mentor ID must use the format A00123456.') || alert('Mentor ID must use the format A00123456.');
         valid = false;
     }
     if (!mentorName.value.trim()) {
@@ -469,6 +495,16 @@ function validateForm() {
     }
     if (!contact.value.trim()) {
         contact.classList.add('invalid');
+        valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.value.trim()) && !/^\d{3}-\d{3}-\d{4}$/.test(contact.value.trim())) {
+        contact.classList.add('invalid');
+        window.CUANotify?.error('Contact must be a valid email or phone number like 787-555-5555.') || alert('Contact must be a valid email or phone number like 787-555-5555.');
+        valid = false;
+    }
+
+    if (scheduleFrom?.value && scheduleTo?.value && scheduleTo.value < scheduleFrom.value) {
+        scheduleTo.classList.add('invalid');
+        window.CUANotify?.error('Schedule end date must be on or after the start date.') || alert('Schedule end date must be on or after the start date.');
         valid = false;
     }
     
@@ -505,7 +541,9 @@ function buildMentorPayload() {
                 schedule.push({
                     day_of_week: index + 1,
                     start_time: start,
-                    end_time: end
+                    end_time: end,
+                    effective_from: document.getElementById('schedule-effective-from')?.value || '',
+                    effective_to: document.getElementById('schedule-effective-to')?.value || ''
                 });
             }
         }
@@ -515,6 +553,8 @@ function buildMentorPayload() {
         mentor_number: document.getElementById('mentor-id').value.trim(),
         full_name: document.getElementById('mentor-name').value.trim(),
         contact: document.getElementById('contact').value.trim(),
+        schedule_effective_from: document.getElementById('schedule-effective-from')?.value || '',
+        schedule_effective_to: document.getElementById('schedule-effective-to')?.value || '',
         course_codes: [...document.querySelectorAll('.courses-checkboxes input[type="checkbox"]:checked')]
             .map(input => input.value),
         schedule

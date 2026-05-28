@@ -114,6 +114,74 @@ document.addEventListener("DOMContentLoaded", () => {
         }).join("");
     }
 
+    function todayIso() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatDateText(value) {
+        const [year, month, day] = String(value || "").split("-");
+        if (!year || !month || !day) return value || "";
+
+        const date = new Date(Number(year), Number(month) - 1, Number(day));
+        if (Number.isNaN(date.getTime())) return value;
+
+        return date.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
+    }
+
+    function deriveScheduleRange(schedule = []) {
+        const starts = schedule
+            .map(block => block.effectiveFrom || block.effective_from || "")
+            .filter(Boolean)
+            .sort();
+        const ends = schedule
+            .map(block => block.effectiveTo || block.effective_to || "")
+            .filter(Boolean)
+            .sort();
+
+        return {
+            from: starts[0] || todayIso(),
+            to: ends.length ? ends[ends.length - 1] : ""
+        };
+    }
+
+    function renderScheduleRangeText(range) {
+        if (range.from && range.to) {
+            return `Schedule active from ${formatDateText(range.from)} to ${formatDateText(range.to)}.`;
+        }
+
+        if (range.from) {
+            return `Schedule active from ${formatDateText(range.from)} until changed.`;
+        }
+
+        if (range.to) {
+            return `Schedule active until ${formatDateText(range.to)}.`;
+        }
+
+        return "Schedule active until changed.";
+    }
+
+    function replaceScheduleRangeWithText(range) {
+        const rangeEl = document.getElementById("schedule-range");
+        if (!rangeEl) return;
+
+        const text = document.createElement("p");
+        text.id = "schedule-range";
+        text.className = "schedule-range";
+        text.textContent = renderScheduleRangeText(range);
+        rangeEl.replaceWith(text);
+    }
+
+    function getEditedScheduleRange() {
+        return {
+            from: document.getElementById("edit-schedule-effective-from")?.value || "",
+            to: document.getElementById("edit-schedule-effective-to")?.value || ""
+        };
+    }
+
     function parseTimeForApi(value) {
         if (!value || value === "---") return "";
 
@@ -144,13 +212,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }));
     }
 
-    function getSchedulePayload(scheduleItems) {
+    function getSchedulePayload(scheduleItems, range) {
         return scheduleItems.flatMap(item =>
             item.shifts
                 .map(shift => ({
                     day_of_week: item.dayOfWeek,
                     start_time: parseTimeForApi(shift.start),
                     end_time: parseTimeForApi(shift.end),
+                    effective_from: range.from,
+                    effective_to: range.to,
                 }))
                 .filter(shift => shift.start_time && shift.end_time)
         );
@@ -166,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
         input.replaceWith(span);
     }
 
-    async function persistMentorEdits({ newID, newName, newContact, schedulePayload }) {
+    async function persistMentorEdits({ newID, newName, newContact, scheduleRange, schedulePayload }) {
         if (!window.CUAApi?.updateMentor) return;
 
         const identifier = originalData.mentorDbId || originalData.id;
@@ -183,6 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
             contact: newContact,
             email,
             phone,
+            schedule_effective_from: scheduleRange.from,
+            schedule_effective_to: scheduleRange.to,
             schedule: schedulePayload
         });
 
@@ -194,7 +266,14 @@ document.addEventListener("DOMContentLoaded", () => {
             full_name: newName,
             contact: newContact,
             email,
-            phone
+            phone,
+            scheduleEffectiveFrom: scheduleRange.from,
+            scheduleEffectiveTo: scheduleRange.to,
+            schedule: schedulePayload.map(block => ({
+                ...block,
+                effectiveFrom: scheduleRange.from,
+                effectiveTo: scheduleRange.to
+            }))
         };
     }
 
@@ -231,13 +310,28 @@ document.addEventListener("DOMContentLoaded", () => {
             id: idSpan.textContent,
             name: nameSpan.textContent,
             contact: contactSpan.textContent,
+            scheduleRange: deriveScheduleRange(window.CUACurrentMentor?.schedule || []),
             scheduleList: readScheduleList(scheduleList),
         };
 
         // Replace id + name with inputs
-        idSpan.outerHTML = `<input id="edit-id" value="${escapeAttribute(originalData.id)}">`;
+        idSpan.outerHTML = `<input id="edit-id" data-format="person-id" value="${escapeAttribute(originalData.id)}">`;
         nameSpan.outerHTML = `<input id="edit-name" value="${escapeAttribute(originalData.name)}">`;
-        contactSpan.outerHTML = `<input id="edit-contact" value="${escapeAttribute(originalData.contact)}">`;
+        contactSpan.outerHTML = `<input id="edit-contact" data-format="contact" value="${escapeAttribute(originalData.contact)}">`;
+
+        const scheduleRangeEl = document.getElementById("schedule-range");
+        if (scheduleRangeEl) {
+            scheduleRangeEl.outerHTML = `
+                <div id="schedule-range" class="schedule-range-edit">
+                    <label>Starts
+                        <input type="date" id="edit-schedule-effective-from" value="${escapeAttribute(originalData.scheduleRange.from)}">
+                    </label>
+                    <label>Ends
+                        <input type="date" id="edit-schedule-effective-to" value="${escapeAttribute(originalData.scheduleRange.to)}">
+                    </label>
+                </div>
+            `;
+        }
 
         // Replace schedule with editable list
         scheduleList.innerHTML = originalData.scheduleList
@@ -257,25 +351,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 const newID = document.getElementById("edit-id").value.trim();
                 const newName = document.getElementById("edit-name").value.trim();
                 const newContact = document.getElementById("edit-contact").value.trim();
+                const scheduleRange = getEditedScheduleRange();
                 const newSchedule = getEditedSchedule(scheduleList);
-                const schedulePayload = getSchedulePayload(newSchedule);
+                const schedulePayload = getSchedulePayload(newSchedule, scheduleRange);
 
                 if (!newID || !newName || !newContact) {
                     window.CUANotify?.error("Mentor number, name, and contact are required.") || alert("Mentor number, name, and contact are required.");
                     return;
                 }
 
-                await persistMentorEdits({ newID, newName, newContact, schedulePayload });
+                if (scheduleRange.from && scheduleRange.to && scheduleRange.to < scheduleRange.from) {
+                    window.CUANotify?.error("Schedule end date must be on or after the start date.") || alert("Schedule end date must be on or after the start date.");
+                    return;
+                }
+
+                await persistMentorEdits({ newID, newName, newContact, scheduleRange, schedulePayload });
 
                 replaceInputWithSpan("edit-id", "mentor-id", newID);
                 replaceInputWithSpan("edit-name", "mentor-name", newName);
                 replaceInputWithSpan("edit-contact", "mentor-contact", newContact);
+                replaceScheduleRangeWithText(scheduleRange);
 
                 scheduleList.innerHTML = renderScheduleItems(newSchedule);
             } else {
                 replaceInputWithSpan("edit-id", "mentor-id", originalData.id);
                 replaceInputWithSpan("edit-name", "mentor-name", originalData.name);
                 replaceInputWithSpan("edit-contact", "mentor-contact", originalData.contact);
+                replaceScheduleRangeWithText(originalData.scheduleRange);
 
                 scheduleList.innerHTML = renderScheduleItems(originalData.scheduleList);
             }

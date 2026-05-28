@@ -862,6 +862,7 @@ const ViewUI = {
             made_by: values.madeBy,
             date: values.date || this.activeCard.dataset.date,
             time: values.time || this.activeCard.dataset.time,
+            duration_minutes: 60,
             topics: values.topics,
             students: students.map(student => ({
                 student_number: student.studentId,

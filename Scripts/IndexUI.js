@@ -1,13 +1,15 @@
 // Confirmation Script
-function openConfirmation(dateStr, timeStr) {
+function openConfirmation(dateStr, timeStr, endTimeStr = "") {
     const confirmModal = document.getElementById("confirm-selection");
     const confirmText = document.getElementById("confirm-text");
 
-    confirmText.textContent = `Confirm booking on ${dateStr} at ${timeStr}?`;
+    confirmText.textContent = endTimeStr
+        ? `Confirm booking on ${dateStr} from ${timeStr} to ${endTimeStr}?`
+        : `Confirm booking on ${dateStr} at ${timeStr}?`;
     confirmModal.classList.remove("hidden");
 
     document.getElementById("confirm-yes").onclick = () => {
-        setSelectedDateTime(dateStr, timeStr);
+        setSelectedDateTime(dateStr, timeStr, endTimeStr);
         confirmModal.classList.add("hidden");
     };
 
@@ -27,14 +29,17 @@ document.getElementById("close-calendar").addEventListener("click", () => {
     document.getElementById("calendar-modal").style.display = "none";
 });
 
-function setSelectedDateTime(dateString, timeString) {
+function setSelectedDateTime(dateString, timeString, endTimeString = "") {
     const btn = document.getElementById("open-calendar-btn");
     const hidden = document.getElementById("selected-datetime");
 
     hidden.value = `${dateString} ${timeString}`;
     hidden.dataset.date = dateString;
     hidden.dataset.time = timeString;
-    btn.textContent = `${dateString} - ${timeString}`;
+    hidden.dataset.endTime = endTimeString;
+    btn.textContent = endTimeString
+        ? `${dateString} - ${timeString} to ${endTimeString}`
+        : `${dateString} - ${timeString}`;
     btn.classList.add("has-selection");
 
     document.getElementById("calendar-modal").style.display = "none";
@@ -150,7 +155,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <input type="text" name="student_${i}_name" placeholder="Name">
                 </div>
                 <div class="student-field">
-                    <input type="text" name="student_${i}_id" placeholder="Student ID">
+                    <input type="text" name="student_${i}_id" placeholder="A00123456">
                 </div>
             `;
             extraStudentsContainer.appendChild(row1);
@@ -159,10 +164,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             row2.classList.add("extra-student-row");
             row2.innerHTML = `
                 <div class="student-field">
-                    <input type="email" name="student_${i}_email" placeholder="Email">
+                    <input type="email" name="student_${i}_email" placeholder="student@example.edu">
                 </div>
                 <div class="student-field">
-                    <input type="text" name="student_${i}_phone" placeholder="Phone Number">
+                    <input type="tel" name="student_${i}_phone" placeholder="787-555-5555">
                 </div>
             `;
             extraStudentsContainer.appendChild(row2);
@@ -525,7 +530,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function validateStudents(students) {
-        return students.every(student => student.student_number && student.full_name);
+        return students.every(student =>
+            /^[A-Z]00\d{6}$/.test(student.student_number)
+            && student.full_name
+            && (!student.email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
+            && (!student.phone || /^\d{3}-\d{3}-\d{4}$/.test(student.phone))
+        );
     }
 
     function buildBookingPayload() {
@@ -544,6 +554,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             topics: topicsInput?.value.trim() || "",
             date: toISODate(dateLabel),
             time: timeLabel,
+            duration_minutes: 60,
             students: collectStudents()
         };
     }
@@ -615,7 +626,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (!validateStudents(payload.students)) {
-            notifyError("Please enter the student ID and name for every student.");
+            notifyError("Use Student ID A00123456, phone 787-555-5555, and a valid email for every student.");
             return;
         }
 

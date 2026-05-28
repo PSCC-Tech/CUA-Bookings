@@ -185,17 +185,23 @@ const MentorScheduleStore = (() => {
     return date.getHours() * 60 + date.getMinutes();
   }
 
+  function getSlotDurationMinutes() {
+    const configured = Number(window.CUACalendarSlotDurationMinutes || 60);
+    return Number.isFinite(configured) && configured >= 30 ? configured : 60;
+  }
+
   function generateSlots(ranges) {
     const slots = [];
+    const duration = getSlotDurationMinutes();
 
     ranges.forEach(range => {
       let current = parseTime(range.start);
       const end = parseTime(range.end);
 
-      while (current !== null && end !== null && current + 30 <= end) {
+      while (current !== null && end !== null && current + duration <= end) {
         slots.push({
           start: formatTime(current),
-          end: formatTime(current + 30)
+          end: formatTime(current + duration)
         });
         current += 30;
       }
@@ -700,7 +706,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        window.openConfirmation(dateLabel, slot.start);
+        window.openConfirmation(dateLabel, slot.start, slot.end);
       });
     }
 

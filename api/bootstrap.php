@@ -161,24 +161,122 @@ function normalize_course_code(string $value): string
     return strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($value)) ?? '');
 }
 
+function course_code_lookup_values(string $value): array
+{
+    $normalized = normalize_course_code($value);
+    $values = $normalized !== '' ? [$normalized] : [];
+
+    if (preg_match('/^([A-Z]{4})0+([0-9]{1,3})$/', $normalized, $matches)) {
+        $values[] = $matches[1] . $matches[2];
+    }
+
+    return array_values(array_unique($values));
+}
+
+function format_course_code(string $value): string
+{
+    $normalized = normalize_course_code($value);
+
+    if (preg_match('/^([A-Z]{4})([0-9]{1,4})$/', $normalized, $matches)) {
+        return $matches[1] . ' ' . str_pad($matches[2], 4, '0', STR_PAD_LEFT);
+    }
+
+    return $value;
+}
+
 function parse_course_code(string $value): array
 {
     $normalized = normalize_course_code($value);
-    if (!preg_match('/^([A-Z]+)([0-9]+)([A-Z]*)$/', $normalized, $matches)) {
-        fail('Course code must include a subject prefix and number, like MATH101.');
+    if (!preg_match('/^([A-Z]{4})([0-9]{4})$/', $normalized, $matches)) {
+        fail('Course code must use four letters, a space, and four numbers, like MATH 1500.');
     }
 
     return [
         'normalized' => $normalized,
         'subject_code' => $matches[1],
         'course_number' => $matches[2],
-        'course_suffix' => $matches[3] ?? '',
+        'course_suffix' => '',
     ];
 }
 
 function course_display_code(array $course): string
 {
-    return ($course['course_code'] ?? '') ?: normalize_course_code(($course['subject_code'] ?? '') . ($course['course_number'] ?? '') . ($course['course_suffix'] ?? ''));
+    $code = ($course['course_code'] ?? '') ?: normalize_course_code(($course['subject_code'] ?? '') . ($course['course_number'] ?? '') . ($course['course_suffix'] ?? ''));
+    return format_course_code($code);
+}
+
+function normalize_person_identifier(string $value, string $label): string
+{
+    $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($value)) ?? '');
+
+    if (preg_match('/^([A-Z])00([0-9]{6})$/', $clean, $matches)) {
+        return $matches[1] . '00' . $matches[2];
+    }
+
+    if (preg_match('/^([A-Z])([0-9]{1,6})$/', $clean, $matches)) {
+        return $matches[1] . '00' . str_pad($matches[2], 6, '0', STR_PAD_LEFT);
+    }
+
+    fail($label . ' must use one uppercase letter, two zeros, and six numbers, like A00123456.');
+}
+
+function person_identifier_lookup_values(string $value, string $label): array
+{
+    $normalized = normalize_person_identifier($value, $label);
+    $values = [$normalized];
+
+    if (preg_match('/^([A-Z])00([0-9]{6})$/', $normalized, $matches)) {
+        $legacy = $matches[1] . (string)(int)$matches[2];
+        if ($legacy !== $matches[1] . '0') {
+            $values[] = $legacy;
+        }
+    }
+
+    return array_values(array_unique($values));
+}
+
+function format_person_identifier(?string $value): string
+{
+    $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim((string)$value)) ?? '');
+    if (preg_match('/^([A-Z])00([0-9]{6})$/', $clean, $matches)) {
+        return $matches[1] . '00' . $matches[2];
+    }
+
+    if (preg_match('/^([A-Z])([0-9]{1,6})$/', $clean, $matches)) {
+        return $matches[1] . '00' . str_pad($matches[2], 6, '0', STR_PAD_LEFT);
+    }
+
+    return (string)$value;
+}
+
+function normalize_phone_number(?string $value, string $label = 'Phone number'): string
+{
+    $digits = preg_replace('/\D/', '', trim((string)$value)) ?? '';
+
+    if ($digits === '') {
+        return '';
+    }
+
+    if (strlen($digits) !== 10) {
+        fail($label . ' must use the format 787-555-5555.');
+    }
+
+    return substr($digits, 0, 3) . '-' . substr($digits, 3, 3) . '-' . substr($digits, 6, 4);
+}
+
+function normalize_email_address(?string $value, string $label = 'Email'): string
+{
+    $email = strtolower(trim((string)$value));
+
+    if ($email === '') {
+        return '';
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        fail($label . ' must be a valid email address.');
+    }
+
+    return $email;
 }
 
 function format_time_12(?string $time): string
@@ -283,9 +381,10 @@ function find_or_create_location(PDO $pdo, string $locationName): int
 function resolve_course_id(PDO $pdo, string $courseCode): int
 {
     $displayParts = preg_split('/\s+-\s+/', $courseCode, 2);
-    $normalized = normalize_course_code($displayParts[0] ?? $courseCode);
-    $stmt = $pdo->prepare('SELECT course_id FROM v_courses_with_categories WHERE course_code = ? LIMIT 1');
-    $stmt->execute([$normalized]);
+    $values = course_code_lookup_values($displayParts[0] ?? $courseCode);
+    $placeholders = implode(',', array_fill(0, max(1, count($values)), '?'));
+    $stmt = $pdo->prepare("SELECT course_id FROM v_courses_with_categories WHERE course_code IN ($placeholders) LIMIT 1");
+    $stmt->execute($values ?: ['']);
     $id = $stmt->fetchColumn();
     if (!$id) {
         fail('Course was not found.', 404, ['course_code' => $courseCode]);
@@ -300,8 +399,9 @@ function resolve_mentor_id(PDO $pdo, array $data): int
     $mentorName = trim((string)($data['mentor_name'] ?? $data['mentor'] ?? ''));
 
     if ($mentorNumber !== '') {
-        $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? LIMIT 1');
-        $stmt->execute([$mentorNumber]);
+        $values = person_identifier_lookup_values($mentorNumber, 'Mentor ID');
+        $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number IN (' . implode(',', array_fill(0, count($values), '?')) . ') LIMIT 1');
+        $stmt->execute($values);
     } else {
         $stmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE full_name = ? LIMIT 1');
         $stmt->execute([$mentorName]);
@@ -326,21 +426,25 @@ function find_or_create_student(PDO $pdo, array $student): int
 {
     $studentNumber = trim((string)($student['student_number'] ?? $student['studentId'] ?? ''));
     $name = trim((string)($student['full_name'] ?? $student['name'] ?? ''));
+    $email = normalize_email_address($student['email'] ?? '', 'Student email');
+    $phone = normalize_phone_number($student['phone'] ?? '', 'Student phone number');
 
     if ($studentNumber === '' || $name === '') {
         fail('Every student needs a student ID and name.');
     }
+    $studentNumber = normalize_person_identifier($studentNumber, 'Student ID');
+    $studentNumberValues = person_identifier_lookup_values($studentNumber, 'Student ID');
 
-    $stmt = $pdo->prepare('SELECT student_id FROM students WHERE student_number = ? LIMIT 1');
-    $stmt->execute([$studentNumber]);
+    $stmt = $pdo->prepare('SELECT student_id FROM students WHERE student_number IN (' . implode(',', array_fill(0, count($studentNumberValues), '?')) . ') LIMIT 1');
+    $stmt->execute($studentNumberValues);
     $existing = $stmt->fetchColumn();
 
     if ($existing) {
         $update = $pdo->prepare('UPDATE students SET full_name = ?, email = ?, phone = ? WHERE student_id = ?');
         $update->execute([
             $name,
-            trim((string)($student['email'] ?? '')) ?: null,
-            trim((string)($student['phone'] ?? '')) ?: null,
+            $email ?: null,
+            $phone ?: null,
             (int)$existing,
         ]);
         return (int)$existing;
@@ -350,8 +454,8 @@ function find_or_create_student(PDO $pdo, array $student): int
     $insert->execute([
         $studentNumber,
         $name,
-        trim((string)($student['email'] ?? '')) ?: null,
-        trim((string)($student['phone'] ?? '')) ?: null,
+        $email ?: null,
+        $phone ?: null,
     ]);
 
     return (int)$pdo->lastInsertId();

@@ -46,7 +46,7 @@ function fetch_bookings(PDO $pdo): array
         $bookingId = (int)$row['booking_id'];
         $bookingIds[] = $bookingId;
         $startTimestamp = strtotime($row['start_at']);
-        $endTimestamp = $row['end_at'] ? strtotime($row['end_at']) : strtotime($row['start_at'] . ' +30 minutes');
+        $endTimestamp = $row['end_at'] ? strtotime($row['end_at']) : strtotime($row['start_at'] . ' +60 minutes');
 
         $bookings[$bookingId] = [
             'id' => $bookingId,
@@ -59,9 +59,9 @@ function fetch_bookings(PDO $pdo): array
             'time' => date('g:i A', $startTimestamp),
             'endTime' => date('g:i A', $endTimestamp),
             'mentor' => $row['mentor_name'],
-            'mentorNumber' => $row['mentor_number'],
-            'course' => $row['course_code'] . ' - ' . $row['course_name'],
-            'courseCode' => $row['course_code'],
+            'mentorNumber' => format_person_identifier($row['mentor_number']),
+            'course' => format_course_code($row['course_code']) . ' - ' . $row['course_name'],
+            'courseCode' => format_course_code($row['course_code']),
             'category' => $row['category_name'],
             'location' => $row['location_name'],
             'topics' => $row['topics_notes'] ?? '',
@@ -99,8 +99,8 @@ function fetch_bookings(PDO $pdo): array
     foreach ($studentStmt->fetchAll() as $student) {
         $bookingId = (int)$student['booking_id'];
         $bookings[$bookingId]['students'][] = [
-            'studentId' => $student['student_number'],
-            'student_number' => $student['student_number'],
+            'studentId' => format_person_identifier($student['student_number']),
+            'student_number' => format_person_identifier($student['student_number']),
             'name' => $student['full_name'],
             'full_name' => $student['full_name'],
             'email' => $student['email'] ?? '',
@@ -241,7 +241,7 @@ function assert_booking_slot_is_available(PDO $pdo, int $mentorId, string $start
         WHERE mentor_id = ?
           AND booking_status IN ("scheduled", "active")
           AND start_at < ?
-          AND COALESCE(end_at, DATE_ADD(start_at, INTERVAL 30 MINUTE)) > ?
+          AND COALESCE(end_at, DATE_ADD(start_at, INTERVAL 60 MINUTE)) > ?
     ';
     $params = [$mentorId, $endAt, $startAt];
 
@@ -296,7 +296,7 @@ if (!$isWalkIn && strtotime($startAt) <= time()) {
 $professorId = find_or_create_professor($pdo, (string)($data['professor_name'] ?? $data['professor'] ?? ''));
 $locationId = find_or_create_location($pdo, (string)($data['location_name'] ?? $data['location'] ?? ''));
 $madeById = find_or_create_user($pdo, (string)($data['made_by'] ?? $data['madeBy'] ?? 'Front Desk Staff'));
-$durationMinutes = max(15, min(180, (int)($data['duration_minutes'] ?? 30)));
+$durationMinutes = max(15, min(180, (int)($data['duration_minutes'] ?? 60)));
 $endAt = date('Y-m-d H:i:s', strtotime($startAt . " +$durationMinutes minutes"));
 $students = is_array($data['students'] ?? null) ? $data['students'] : [];
 $topics = trim((string)($data['topics_notes'] ?? $data['topics'] ?? ''));

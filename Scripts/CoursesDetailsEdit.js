@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .filter(mentor => mentor.id && mentor.name && mentor.name !== "No mentors")
         };
 
-        codeSpan.outerHTML = `<input id="edit-code" value="${escapeAttribute(originalData.code)}">`;
+        codeSpan.outerHTML = `<input id="edit-code" data-format="course-code" value="${escapeAttribute(originalData.code)}">`;
         nameSpan.outerHTML = `<input id="edit-name" value="${escapeAttribute(originalData.name)}">`;
 
         professorList.innerHTML = originalData.professors

@@ -96,9 +96,9 @@ $account = fetch_current_account($pdo, $currentUser);
 $userId = (int)$account['user_id'];
 
 $fullName = trim((string)($data['fullName'] ?? $data['full_name'] ?? $account['fullName']));
-$email = trim((string)($data['email'] ?? $account['email']));
+$email = normalize_email_address($data['email'] ?? $account['email'], 'Account email');
 $title = trim((string)($data['title'] ?? $account['title']));
-$phone = trim((string)($data['phone'] ?? $account['phone']));
+$phone = normalize_phone_number($data['phone'] ?? $account['phone'], 'Account phone number');
 $office = trim((string)($data['office'] ?? $account['office']));
 $preferred = trim((string)($data['preferredContact'] ?? $account['preferredContact']));
 $teamsMeetingLink = trim((string)($data['teamsMeetingLink'] ?? $account['teamsMeetingLink'] ?? ''));

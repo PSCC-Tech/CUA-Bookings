@@ -27,7 +27,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
         ORDER BY e.exception_date DESC, m.full_name
     ");
 
-    ok(['absences' => $stmt->fetchAll()]);
+    ok(['absences' => array_map(static function (array $row): array {
+        $row['mentor_number'] = format_person_identifier($row['mentor_number']);
+        return $row;
+    }, $stmt->fetchAll())]);
 }
 
 $data = input_json();

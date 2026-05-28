@@ -211,6 +211,27 @@
     margin-bottom: 20px;
 }
 
+#mentor-info .schedule-range {
+    margin: 0 0 12px;
+    color: #5f6d67;
+    font-size: 15px;
+}
+
+#mentor-info .schedule-range-edit {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+#mentor-info .schedule-range-edit label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
 #mentor-info .schedule-list li {
     margin-bottom: 8px;
     font-size: 18px;

@@ -31,6 +31,7 @@ const MentorDetailsData = {
         this.setText("mentor-id", mentor.mentor_number);
         this.setText("mentor-name", mentor.name);
         this.setText("mentor-contact", mentor.contact || mentor.email || mentor.phone || "");
+        this.setText("schedule-range", this.formatScheduleRange(mentor.schedule || []));
 
         const scheduleList = document.getElementById("schedule-list");
         if (scheduleList) {
@@ -52,6 +53,41 @@ const MentorDetailsData = {
                 return `<li><strong>${day}:</strong>${html}</li>`;
             }).join("");
         }
+    },
+
+    formatScheduleRange(schedule) {
+        if (!schedule.length) return "No active weekly schedule.";
+
+        const starts = schedule
+            .map(block => block.effectiveFrom || block.effective_from || "")
+            .filter(Boolean)
+            .sort();
+        const ends = schedule
+            .map(block => block.effectiveTo || block.effective_to || "")
+            .filter(Boolean)
+            .sort();
+
+        const start = starts[0] || "";
+        const end = ends.length ? ends[ends.length - 1] : "";
+
+        if (!start && !end) return "Schedule active until changed.";
+        if (start && end) return `Schedule active from ${this.formatDate(start)} to ${this.formatDate(end)}.`;
+        if (start) return `Schedule active from ${this.formatDate(start)} until changed.`;
+        return `Schedule active until ${this.formatDate(end)}.`;
+    },
+
+    formatDate(value) {
+        const [year, month, day] = String(value).split("-");
+        if (!year || !month || !day) return value;
+
+        const date = new Date(Number(year), Number(month) - 1, Number(day));
+        if (Number.isNaN(date.getTime())) return value;
+
+        return date.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
     },
 
     publishCourses(courses) {

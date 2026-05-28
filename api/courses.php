@@ -48,8 +48,9 @@ function fetch_courses(PDO $pdo): array
     }
 
     if ($courseCode !== '') {
-        $sql .= ' AND vc.course_code = ?';
-        $params[] = normalize_course_code($courseCode);
+        $values = course_code_lookup_values($courseCode);
+        $sql .= ' AND vc.course_code IN (' . implode(',', array_fill(0, max(1, count($values)), '?')) . ')';
+        array_push($params, ...($values ?: ['']));
     }
 
     if ($category !== '' && strtolower($category) !== 'all' && strtolower($category) !== 'show all') {
@@ -58,9 +59,11 @@ function fetch_courses(PDO $pdo): array
     }
 
     if ($search !== '') {
-        $sql .= ' AND (vc.course_code LIKE ? OR vc.course_name LIKE ? OR vc.category_name LIKE ?)';
+        $normalizedSearch = normalize_course_code($search);
+        $sql .= ' AND (vc.course_code LIKE ? OR vc.course_code LIKE ? OR vc.course_name LIKE ? OR vc.category_name LIKE ?)';
         $like = '%' . $search . '%';
-        array_push($params, $like, $like, $like);
+        $normalizedLike = '%' . $normalizedSearch . '%';
+        array_push($params, $like, $normalizedLike, $like, $like);
     }
 
     if ($mentor !== '' && strtolower($mentor) !== 'all') {
@@ -86,8 +89,9 @@ function fetch_courses(PDO $pdo): array
     return array_map(static function (array $row): array {
         return [
             'course_id' => (int)$row['course_id'],
-            'id' => $row['course_code'],
-            'code' => $row['course_code'],
+            'id' => course_display_code($row),
+            'code' => course_display_code($row),
+            'course_code_normalized' => $row['course_code'],
             'name' => $row['course_name'],
             'category' => $row['category_name'],
             'description' => $row['description'] ?? '',
@@ -153,8 +157,9 @@ function course_subject_id(PDO $pdo, string $subjectCode, string $categoryName):
 
 function course_id_from_code(PDO $pdo, string $courseCode): ?int
 {
-    $stmt = $pdo->prepare('SELECT course_id FROM v_courses_with_categories WHERE course_code = ? LIMIT 1');
-    $stmt->execute([normalize_course_code($courseCode)]);
+    $values = course_code_lookup_values($courseCode);
+    $stmt = $pdo->prepare('SELECT course_id FROM v_courses_with_categories WHERE course_code IN (' . implode(',', array_fill(0, max(1, count($values)), '?')) . ') LIMIT 1');
+    $stmt->execute($values ?: ['']);
     $id = $stmt->fetchColumn();
 
     return $id ? (int)$id : null;
@@ -213,7 +218,6 @@ function sync_course_relations(PDO $pdo, int $courseId, array $data, bool $syncM
         return;
     }
 
-    $mentorStmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE mentor_number = ? OR full_name = ? LIMIT 1');
     $assign = $pdo->prepare('
         INSERT INTO mentor_courses (mentor_id, course_id, assigned_by_user_id, is_active)
         VALUES (?, ?, ?, 1)
@@ -222,7 +226,15 @@ function sync_course_relations(PDO $pdo, int $courseId, array $data, bool $syncM
     $userId = find_or_create_user($pdo, (string)($data['made_by'] ?? 'Front Desk Staff'));
 
     foreach ($mentorNumbers as $mentorNumber) {
-        $mentorStmt->execute([$mentorNumber, $mentorNumber]);
+        $mentorValues = [];
+        try {
+            $mentorValues = person_identifier_lookup_values($mentorNumber, 'Mentor ID');
+        } catch (Throwable $error) {
+            $mentorValues = [];
+        }
+
+        $mentorStmt = $pdo->prepare('SELECT mentor_id FROM mentors WHERE full_name = ?' . ($mentorValues ? ' OR mentor_number IN (' . implode(',', array_fill(0, count($mentorValues), '?')) . ')' : '') . ' LIMIT 1');
+        $mentorStmt->execute([$mentorNumber, ...$mentorValues]);
         $mentorId = $mentorStmt->fetchColumn();
         if ($mentorId) {
             $assign->execute([(int)$mentorId, $courseId, $userId]);
@@ -241,13 +253,17 @@ function save_course(PDO $pdo, array $data, ?int $targetCourseId = null): array
     }
 
     $subjectId = course_subject_id($pdo, $parsed['subject_code'], course_category_name_from_payload($data));
+    $courseNumberValues = array_values(array_unique([
+        $parsed['course_number'],
+        ltrim($parsed['course_number'], '0') ?: '0',
+    ]));
     $existingStmt = $pdo->prepare('
         SELECT course_id
         FROM courses
-        WHERE subject_id = ? AND course_number = ? AND course_suffix = ?
+        WHERE subject_id = ? AND course_number IN (' . implode(',', array_fill(0, count($courseNumberValues), '?')) . ') AND course_suffix = ?
         LIMIT 1
     ');
-    $existingStmt->execute([$subjectId, $parsed['course_number'], $parsed['course_suffix']]);
+    $existingStmt->execute([$subjectId, ...$courseNumberValues, $parsed['course_suffix']]);
     $existingId = $existingStmt->fetchColumn();
 
     if ($targetCourseId) {
@@ -284,7 +300,7 @@ function save_course(PDO $pdo, array $data, ?int $targetCourseId = null): array
     $syncMentors = !$targetCourseId || array_key_exists('mentor_numbers', $data);
     sync_course_relations($pdo, $courseId, $data, $syncMentors);
 
-    return ['course_id' => $courseId, 'course_code' => $parsed['normalized']];
+    return ['course_id' => $courseId, 'course_code' => format_course_code($parsed['normalized'])];
 }
 
 function course_delete_ids(PDO $pdo, array $data): array
