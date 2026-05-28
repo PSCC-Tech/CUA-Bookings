@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="CSS/base.css?v=20260521-6">
     <link rel="stylesheet" href="CSS/courses.css?v=20260527-1"> <!-- For filter button -->
     <link rel="stylesheet" href="CSS/courses-details.css"> <!-- For return to courses button -->
-    <link rel="stylesheet" href="CSS/add-courses.css?v=20260527-1">
+    <link rel="stylesheet" href="CSS/add-courses.css?v=20260528-2">
     <link rel="stylesheet" href="CSS/theme.css?v=20260527-2">
 </head>
 <body>
@@ -59,6 +59,24 @@
                 <input type="text" id="course-name" placeholder="e.g., College Algebra">
             </div>
 
+            <div class="form-group">
+                <label for="course-category">Course Category</label>
+                <select id="course-category">
+                    <option>Mathematics</option>
+                    <option>Sciences</option>
+                    <option>Spanish</option>
+                    <option>English</option>
+                    <option>Stadistics</option>
+                    <option>Accounting</option>
+                    <option>Finances</option>
+                    <option>Microeconomics</option>
+                    <option>Quantitative Methods</option>
+                    <option>Technology</option>
+                    <option selected>Others</option>
+                </select>
+                <small class="hint">Used when the course prefix is new.</small>
+            </div>
+
             <!-- Professors -->
             <div class="form-group">
                 <label for="course-professors">Professor(s)</label>
@@ -68,7 +86,7 @@
 
         <!-- Mentor Selection (Checkbox List) -->
         <div class="form-group">
-            <label>Select Mentors</label>
+            <label>Select Mentors <span class="optional-label">Optional</span></label>
 
             <div class="mentor-controls">
 
@@ -106,7 +124,7 @@
                     <!-- Mentors added by script -->
                 </div>
 
-                <small class="hint">Select all mentors who teach this course.</small>
+                <small class="hint">Optional. Mentors can be assigned later from the course details page.</small>
         </div>
 
             <!-- Topics Covered (Dynamic List) -->
@@ -198,6 +216,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         mentorContainer.appendChild(column);
+    }
+
+    if (mentors.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-selection-note";
+        empty.textContent = "No mentors are available yet. You can still add the course and assign mentors later.";
+        mentorContainer.appendChild(empty);
     }
 
     TableManager.registerTable("mentors", mentorContainer);
@@ -320,6 +345,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const payload = {
             course_code: document.getElementById("course-code").value.trim(),
             course_name: document.getElementById("course-name").value.trim(),
+            category_name: document.getElementById("course-category").value.trim(),
             professors: document.getElementById("course-professors").value.trim(),
             mentor_numbers: selectedMentors,
             topics,

@@ -49,7 +49,8 @@
 
 /* Inputs, textareas, selects */
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     padding: 12px 14px;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -60,7 +61,8 @@
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
     outline: none;
     border-color: #007bff;
     background: white;
@@ -70,6 +72,12 @@
 .hint {
     font-size: 13px;
     color: #666;
+}
+
+.optional-label {
+    color: #5f6d67;
+    font-size: 12px;
+    font-weight: 700;
 }
 
 /* ================================
@@ -103,6 +111,13 @@
     width: 18px;
     height: 18px;
     cursor: pointer;
+}
+
+.empty-selection-note {
+    margin: 0;
+    color: #5f6d67;
+    font-size: 14px;
+    line-height: 1.5;
 }
 .mentor-controls {
     display: flex;

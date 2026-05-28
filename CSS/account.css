@@ -109,6 +109,10 @@
     gap: 16px;
 }
 
+.field-grid .full-width {
+    grid-column: 1 / -1;
+}
+
 label {
     display: flex;
     flex-direction: column;

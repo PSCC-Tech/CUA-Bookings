@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS courses;
 DROP TABLE IF EXISTS professors;
 DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS admin_profiles;
+DROP TABLE IF EXISTS app_settings;
 DROP TABLE IF EXISTS course_subjects;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS users;
@@ -52,6 +53,16 @@ CREATE TABLE users (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_users_role
     FOREIGN KEY (role_id) REFERENCES roles(role_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE app_settings (
+  setting_key VARCHAR(80) PRIMARY KEY,
+  setting_value TEXT NULL,
+  updated_by_user_id INT UNSIGNED NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_app_settings_updated_by
+    FOREIGN KEY (updated_by_user_id) REFERENCES users(user_id)
+    ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE admin_profiles (
@@ -402,6 +413,9 @@ INSERT INTO users (role_id, full_name, email, password_hash) VALUES
 ((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Brenda Rios', 'blrios@aguadilla.inter.edu', '$2y$10$0k05oS4g6s82ztTpDttia.1Uul8ZNwOXFYLSTxUn2wNe4r4RNzh06'),
 ((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'CUA Coordinator', 'tutoriacua@aguadilla.inter.edu', '$2y$10$HalIL5nwYTCyEdvriyLQ8One/4yB0Rk4cp6DkKn0jVkhRWLI1NB3a'),
 ((SELECT role_id FROM roles WHERE role_name = 'Limited'), 'CUA Staff', 'staffcua@aguadilla.inter.edu', '$2y$10$R3hOHkgY1C1Ox4vPoOpMOuZ4NRgYnlHF.ePwLfVHuyBdCSFoIBzZO');
+
+INSERT INTO app_settings (setting_key, setting_value, updated_by_user_id) VALUES
+('teams_meeting_link', NULL, NULL);
 
 INSERT INTO admin_profiles (
   user_id,

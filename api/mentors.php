@@ -331,10 +331,6 @@ if ($mentorNumber === '' || $fullName === '') {
     fail('Mentor ID and mentor name are required.');
 }
 
-if (!$courseCodes) {
-    fail('Select at least one course for this mentor.');
-}
-
 $pdo->beginTransaction();
 
 try {

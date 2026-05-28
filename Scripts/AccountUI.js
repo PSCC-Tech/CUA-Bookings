@@ -1,5 +1,6 @@
 const AccountUI = {
     originalValues: {},
+    canManageOnlineMeetingLink: false,
 
     init() {
         this.form = document.getElementById("admin-profile-form");
@@ -70,7 +71,8 @@ const AccountUI = {
 
     setFieldsDisabled(disabled) {
         this.editableFields.forEach(field => {
-            field.disabled = disabled;
+            const adminSetting = field.hasAttribute("data-admin-setting");
+            field.disabled = disabled || (adminSetting && !this.canManageOnlineMeetingLink);
         });
     },
 
@@ -97,6 +99,9 @@ const AccountUI = {
         this.setValue("phone", account.phone);
         this.setValue("office", account.office);
         this.setValue("preferredContact", account.preferredContact);
+        this.setValue("teamsMeetingLink", account.teamsMeetingLink);
+        this.canManageOnlineMeetingLink = Boolean(account.canManageOnlineMeetingLink);
+        this.setFieldsDisabled(true);
 
         this.setText("account-display-name", account.fullName);
         this.setText("account-id", `ADM-${String(account.user_id || 1).padStart(4, "0")}`);

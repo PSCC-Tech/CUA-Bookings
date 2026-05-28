@@ -99,17 +99,56 @@ function fetch_courses(PDO $pdo): array
     }, $stmt->fetchAll());
 }
 
-function course_subject_id(PDO $pdo, string $subjectCode): int
+function course_category_name_from_payload(array $data): string
 {
+    $category = trim((string)($data['category_name'] ?? $data['category'] ?? ''));
+    if ($category === '' || strtolower($category) === 'all' || strtolower($category) === 'show all') {
+        return 'Others';
+    }
+
+    return $category;
+}
+
+function course_category_id(PDO $pdo, string $categoryName): int
+{
+    $stmt = $pdo->prepare('SELECT category_id FROM categories WHERE category_name = ? LIMIT 1');
+    $stmt->execute([$categoryName]);
+    $categoryId = $stmt->fetchColumn();
+
+    if ($categoryId) {
+        return (int)$categoryId;
+    }
+
+    $fallback = $pdo->prepare("SELECT category_id FROM categories WHERE category_name = 'Others' LIMIT 1");
+    $fallback->execute();
+    $fallbackId = $fallback->fetchColumn();
+
+    if (!$fallbackId) {
+        throw new RuntimeException('Course category was not found.');
+    }
+
+    return (int)$fallbackId;
+}
+
+function course_subject_id(PDO $pdo, string $subjectCode, string $categoryName): int
+{
+    $subjectCode = strtoupper(trim($subjectCode));
     $subjectStmt = $pdo->prepare('SELECT subject_id FROM course_subjects WHERE subject_code = ? LIMIT 1');
     $subjectStmt->execute([$subjectCode]);
     $subjectId = $subjectStmt->fetchColumn();
 
-    if (!$subjectId) {
-        throw new RuntimeException('Unknown course subject prefix: ' . $subjectCode);
+    if ($subjectId) {
+        return (int)$subjectId;
     }
 
-    return (int)$subjectId;
+    $categoryId = course_category_id($pdo, $categoryName);
+    $insert = $pdo->prepare('
+        INSERT INTO course_subjects (subject_code, subject_name, category_id)
+        VALUES (?, ?, ?)
+    ');
+    $insert->execute([$subjectCode, $subjectCode, $categoryId]);
+
+    return (int)$pdo->lastInsertId();
 }
 
 function course_id_from_code(PDO $pdo, string $courseCode): ?int
@@ -201,7 +240,7 @@ function save_course(PDO $pdo, array $data, ?int $targetCourseId = null): array
         fail('Course name is required.');
     }
 
-    $subjectId = course_subject_id($pdo, $parsed['subject_code']);
+    $subjectId = course_subject_id($pdo, $parsed['subject_code'], course_category_name_from_payload($data));
     $existingStmt = $pdo->prepare('
         SELECT course_id
         FROM courses

@@ -17,6 +17,27 @@ function account_permissions_for_role(string $role): array
     return ['Create Bookings', 'Manage Daily Bookings', 'Active Sessions', 'Schedules'];
 }
 
+function account_get_setting(PDO $pdo, string $key): string
+{
+    $stmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = ? LIMIT 1');
+    $stmt->execute([$key]);
+    $value = $stmt->fetchColumn();
+
+    return is_string($value) ? $value : '';
+}
+
+function account_save_setting(PDO $pdo, string $key, string $value, int $userId): void
+{
+    $stmt = $pdo->prepare('
+        INSERT INTO app_settings (setting_key, setting_value, updated_by_user_id)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            updated_by_user_id = VALUES(updated_by_user_id)
+    ');
+    $stmt->execute([$key, $value !== '' ? $value : null, $userId]);
+}
+
 function fetch_current_account(PDO $pdo, array $currentUser): array
 {
     $stmt = $pdo->prepare("
@@ -61,6 +82,8 @@ function fetch_current_account(PDO $pdo, array $currentUser): array
         'passwordStatus' => $row['password_status'] ?: 'Updated recently',
         'twoStepVerification' => (int)($row['two_step_verification'] ?? 1) === 1 ? 'Enabled' : 'Disabled',
         'permissions' => account_permissions_for_role($role),
+        'teamsMeetingLink' => account_get_setting($pdo, 'teams_meeting_link'),
+        'canManageOnlineMeetingLink' => $role === 'Administrator',
     ];
 }
 
@@ -78,6 +101,8 @@ $title = trim((string)($data['title'] ?? $account['title']));
 $phone = trim((string)($data['phone'] ?? $account['phone']));
 $office = trim((string)($data['office'] ?? $account['office']));
 $preferred = trim((string)($data['preferredContact'] ?? $account['preferredContact']));
+$teamsMeetingLink = trim((string)($data['teamsMeetingLink'] ?? $account['teamsMeetingLink'] ?? ''));
+$canManageTeamsMeetingLink = ($account['role'] ?? '') === 'Administrator';
 
 if ($fullName === '' || $email === '') {
     fail('Full name and email are required.');
@@ -85,6 +110,10 @@ if ($fullName === '' || $email === '') {
 
 if (!in_array($preferred, ['Email', 'Phone', 'Microsoft Teams'], true)) {
     $preferred = 'Email';
+}
+
+if ($canManageTeamsMeetingLink && $teamsMeetingLink !== '' && filter_var($teamsMeetingLink, FILTER_VALIDATE_URL) === false) {
+    fail('The Microsoft Teams meeting link must be a valid URL.');
 }
 
 $pdo->beginTransaction();
@@ -102,6 +131,10 @@ try {
             office = VALUES(office),
             preferred_contact = VALUES(preferred_contact)
     ')->execute([$userId, $title ?: null, $phone ?: null, $office ?: null, $preferred]);
+
+    if ($canManageTeamsMeetingLink) {
+        account_save_setting($pdo, 'teams_meeting_link', $teamsMeetingLink, $userId);
+    }
 
     $pdo->commit();
     ok(['account' => fetch_current_account($pdo, $currentUser)]);

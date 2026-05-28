@@ -348,6 +348,7 @@ function booking_notification_details(PDO $pdo, int $bookingId): array
             vc.category_name,
             p.full_name AS professor_name,
             l.location_name,
+            l.location_type,
             u.full_name AS made_by_name,
             u.email AS made_by_email
         FROM bookings b
@@ -375,10 +376,27 @@ function booking_notification_details(PDO $pdo, int $bookingId): array
     ');
     $studentStmt->execute([$bookingId]);
 
+    $settingStmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = ? LIMIT 1');
+    $settingStmt->execute(['teams_meeting_link']);
+    $teamsMeetingLink = $settingStmt->fetchColumn();
+
     return [
         'booking' => $booking,
         'students' => $studentStmt->fetchAll(),
+        'settings' => [
+            'teams_meeting_link' => is_string($teamsMeetingLink) ? $teamsMeetingLink : '',
+        ],
     ];
+}
+
+function booking_notification_is_teams_location(array $booking): bool
+{
+    $locationName = strtolower((string)($booking['location_name'] ?? ''));
+    $locationType = strtolower((string)($booking['location_type'] ?? ''));
+
+    return strpos($locationName, 'microsoft teams') !== false
+        || strpos($locationName, 'teams') !== false
+        || ($locationType === 'online' && strpos($locationName, 'online') !== false);
 }
 
 function booking_notification_blocked_email(string $email): bool
@@ -677,12 +695,22 @@ function booking_notification_build_message(array $details, array $recipient): a
         $dateTime['time']
     );
 
+    $teamsMeetingLink = trim((string)($details['settings']['teams_meeting_link'] ?? ''));
+    $includeTeamsMeetingLink = $teamsMeetingLink !== '' && booking_notification_is_teams_location($booking);
+
     $rows = [
         'Type' => $booking['booking_type'] === 'walk_in' ? 'Walk-in' : 'Scheduled',
         'Mentor' => (string)$booking['mentor_name'],
         'Date' => $dateTime['date'],
         'Time' => $timeLine,
         'Location' => (string)$booking['location_name'],
+    ];
+
+    if ($includeTeamsMeetingLink) {
+        $rows['Teams meeting'] = $teamsMeetingLink;
+    }
+
+    $rows += [
         'Course' => $course,
         'Topics' => (string)($booking['topics_notes'] ?? ''),
         'Professor' => (string)($booking['professor_name'] ?? ''),
@@ -707,12 +735,21 @@ function booking_notification_build_message(array $details, array $recipient): a
 
     $htmlRows = '';
     foreach ($rows as $label => $value) {
+        $displayValue = $value !== '' ? $value : 'N/A';
+        $isTeamsMeetingLink = $label === 'Teams meeting' && filter_var($displayValue, FILTER_VALIDATE_URL) !== false;
+        $htmlValue = $isTeamsMeetingLink
+            ? '<a href="' . htmlspecialchars($displayValue, ENT_QUOTES, 'UTF-8') . '" style="color:#007a5e;font-weight:700;text-decoration:underline;">Join Microsoft Teams meeting</a>'
+                . '<div style="margin-top:6px;color:#5f6d67;font-size:12px;line-height:1.4;word-break:break-word;">'
+                . htmlspecialchars($displayValue, ENT_QUOTES, 'UTF-8')
+                . '</div>'
+            : htmlspecialchars($displayValue, ENT_QUOTES, 'UTF-8');
+
         $htmlRows .= '<tr><th align="left" style="width:34%;padding:12px 14px;border-bottom:1px solid #dfe6dc;'
             . 'background:#f5f7f2;color:#173f35;font-size:14px;line-height:1.4;">'
             . htmlspecialchars($label, ENT_QUOTES, 'UTF-8')
             . '</th><td style="padding:12px 14px;border-bottom:1px solid #dfe6dc;color:#173f35;'
             . 'font-size:14px;line-height:1.4;">'
-            . htmlspecialchars($value !== '' ? $value : 'N/A', ENT_QUOTES, 'UTF-8')
+            . $htmlValue
             . '</td></tr>';
     }
 
