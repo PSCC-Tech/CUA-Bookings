@@ -407,15 +407,15 @@ INSERT INTO roles (role_name, description) VALUES
 ('Limited', 'Can create bookings and manage daily booking activity.');
 
 INSERT INTO users (role_id, full_name, email, password_hash) VALUES
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Edgardo Perez', 'eperez@aguadilla.inter.edu', '$2y$10$0Ccszeo2sEnuKz7ZI1IsmOJ10fGo4shGx007syj8ayR2iFfhCokme'),
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Nicole Roman', 'nmroman@aguadilla.inter.edu', '$2y$10$kZqsq96Rb82QalmVcMSoRuO.D98Lmp4DGcR/erHy.5x3CzPdJkBlW'),
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Maribel Gonzalez', 'magonzal@aguadilla.inter.edu', '$2y$10$/Kfi9FdOR3hbYTlDsJekxuiVQIEGjisD7ZHAaX6R/6u5WwOHchY4O'),
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Brenda Rios', 'blrios@aguadilla.inter.edu', '$2y$10$0k05oS4g6s82ztTpDttia.1Uul8ZNwOXFYLSTxUn2wNe4r4RNzh06'),
-((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'CUA Coordinator', 'tutoriacua@aguadilla.inter.edu', '$2y$10$HalIL5nwYTCyEdvriyLQ8One/4yB0Rk4cp6DkKn0jVkhRWLI1NB3a'),
-((SELECT role_id FROM roles WHERE role_name = 'Limited'), 'CUA Staff', 'staffcua@aguadilla.inter.edu', '$2y$10$R3hOHkgY1C1Ox4vPoOpMOuZ4NRgYnlHF.ePwLfVHuyBdCSFoIBzZO');
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Edgardo Perez', 'eperez@aguadilla.inter.edu', '$2y$10$PKHhX3y9FmZErgwUz4iDuu7rMPtmY/G3Z3mXp/VudJ/eDzakDhIm6'),
+((SELECT role_id FROM roles WHERE role_name = 'Limited'), 'CUA Staff', 'staffcua@aguadilla.inter.edu', '$2y$10$IYbLnp7vYkNvLECjxI/RROe.ZFP1TUrKgZNY8c2LSgbqrt7eXtIqS'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'CUA Coordinator', 'tutoriacua@aguadilla.inter.edu', '$2y$10$LWtNG9M2evHIcroPky74IuJTgtHVI7Wa/1wLViMcYZNeFGNXYRNp6'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Nicole Roman', 'nmroman@aguadilla.inter.edu', '$2y$10$6aUQESPjlaEaWwfU3wEFDODRHEWdakmTS36HSHU/AKzlRRiHzrrdC'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Maribel Gonzalez', 'magonzal@aguadilla.inter.edu', '$2y$10$sFD0imWzIN24onpSZIJeKu4HlGyalhzvMKYERs8ch/5AJKa1KLBse'),
+((SELECT role_id FROM roles WHERE role_name = 'Administrator'), 'Brenda Rios', 'blrios@aguadilla.inter.edu', '$2y$10$oqqLeIycvdTJaXEZNgDGrO67nskxHlSl7q62NDrY9u4w61Y1tj3sW');
 
 INSERT INTO app_settings (setting_key, setting_value, updated_by_user_id) VALUES
-('teams_meeting_link', NULL, NULL);
+('teams_meeting_link', 'https://teams.microsoft.com/meet/270017024739113?p=goEFdCJi6Fcmy1jYNA', NULL);
 
 INSERT INTO admin_profiles (
   user_id,
@@ -429,41 +429,11 @@ INSERT INTO admin_profiles (
 ) VALUES
 (
   (SELECT user_id FROM users WHERE email = 'eperez@aguadilla.inter.edu'),
-  'CUA Program Coordinator',
-  NULL,
-  NULL,
+  'CS Specialist',
+  '787-891-0927',
+  'PC & Mac Lab',
   'Email',
-  '2026-05-11 09:18:00',
-  'Updated recently',
-  1
-),
-(
-  (SELECT user_id FROM users WHERE email = 'nmroman@aguadilla.inter.edu'),
-  'CUA Program Coordinator',
-  NULL,
-  NULL,
-  'Email',
-  NULL,
-  'Updated recently',
-  1
-),
-(
-  (SELECT user_id FROM users WHERE email = 'magonzal@aguadilla.inter.edu'),
-  'CUA Program Coordinator',
-  NULL,
-  NULL,
-  'Email',
-  NULL,
-  'Updated recently',
-  1
-),
-(
-  (SELECT user_id FROM users WHERE email = 'blrios@aguadilla.inter.edu'),
-  'CUA Program Coordinator',
-  NULL,
-  NULL,
-  'Email',
-  NULL,
+  '2026-06-01 08:07:56',
   'Updated recently',
   1
 ),
@@ -473,7 +443,7 @@ INSERT INTO admin_profiles (
   NULL,
   NULL,
   'Email',
-  NULL,
+  '2026-05-27 08:58:14',
   'Updated recently',
   1
 ),
@@ -483,275 +453,113 @@ INSERT INTO admin_profiles (
   NULL,
   NULL,
   'Email',
+  '2026-05-28 10:28:37',
+  'Updated recently',
+  1
+),
+(
+  (SELECT user_id FROM users WHERE email = 'nmroman@aguadilla.inter.edu'),
+  'CUA Program Coordinator',
   NULL,
+  NULL,
+  'Email',
+  '2026-05-28 10:27:55',
+  'Updated recently',
+  1
+),
+(
+  (SELECT user_id FROM users WHERE email = 'magonzal@aguadilla.inter.edu'),
+  'CUA Program Coordinator',
+  NULL,
+  NULL,
+  'Email',
+  '2026-05-27 08:58:14',
+  'Updated recently',
+  1
+),
+(
+  (SELECT user_id FROM users WHERE email = 'blrios@aguadilla.inter.edu'),
+  'CUA Program Coordinator',
+  NULL,
+  NULL,
+  'Email',
+  '2026-05-27 08:58:14',
   'Updated recently',
   1
 );
 
 INSERT INTO categories (category_name) VALUES
 ('Mathematics'),
-('Sciences'),
+('Science'),
 ('Spanish'),
 ('English'),
-('Stadistics'),
+('Statistics'),
 ('Accounting'),
-('Finances'),
+('Finance'),
 ('Microeconomics'),
 ('Quantitative Methods'),
 ('Technology'),
-('Others');
+('Other');
 
 INSERT INTO course_subjects (subject_code, subject_name, category_id) VALUES
-('MATH', 'Mathematics', (SELECT category_id FROM categories WHERE category_name = 'Mathematics')),
-('BIOL', 'Biology', (SELECT category_id FROM categories WHERE category_name = 'Sciences')),
-('BIO', 'Biology', (SELECT category_id FROM categories WHERE category_name = 'Sciences')),
-('CHEM', 'Chemistry', (SELECT category_id FROM categories WHERE category_name = 'Sciences')),
-('SPAN', 'Spanish', (SELECT category_id FROM categories WHERE category_name = 'Spanish')),
-('ESPA', 'Spanish', (SELECT category_id FROM categories WHERE category_name = 'Spanish')),
-('ENGL', 'English', (SELECT category_id FROM categories WHERE category_name = 'English')),
-('STAT', 'Stadistics', (SELECT category_id FROM categories WHERE category_name = 'Stadistics')),
-('STAD', 'Stadistics', (SELECT category_id FROM categories WHERE category_name = 'Stadistics')),
-('ACCT', 'Accounting', (SELECT category_id FROM categories WHERE category_name = 'Accounting')),
-('ACC', 'Accounting', (SELECT category_id FROM categories WHERE category_name = 'Accounting')),
-('FIN', 'Finances', (SELECT category_id FROM categories WHERE category_name = 'Finances')),
-('FINA', 'Finances', (SELECT category_id FROM categories WHERE category_name = 'Finances')),
-('ECON', 'Microeconomics', (SELECT category_id FROM categories WHERE category_name = 'Microeconomics')),
-('MICRO', 'Microeconomics', (SELECT category_id FROM categories WHERE category_name = 'Microeconomics')),
-('QUME', 'Quantitative Methods', (SELECT category_id FROM categories WHERE category_name = 'Quantitative Methods')),
-('QM', 'Quantitative Methods', (SELECT category_id FROM categories WHERE category_name = 'Quantitative Methods')),
-('COMP', 'Computer Science', (SELECT category_id FROM categories WHERE category_name = 'Technology')),
-('CS', 'Computer Science', (SELECT category_id FROM categories WHERE category_name = 'Technology')),
-('TECH', 'Technology', (SELECT category_id FROM categories WHERE category_name = 'Technology')),
-('BUS', 'Business', (SELECT category_id FROM categories WHERE category_name = 'Others')),
-('BUSS', 'Business', (SELECT category_id FROM categories WHERE category_name = 'Others'));
+('GEMA', 'GEMA', (SELECT category_id FROM categories WHERE category_name = 'Mathematics')),
+('PHYS', 'PHYS', (SELECT category_id FROM categories WHERE category_name = 'Science'));
 
 INSERT INTO locations (location_name, location_type, address) VALUES
 ('CUA (Library 2nd Floor)', 'physical', 'Library 2nd Floor'),
-('Online (Microsoft Teams)', 'online', NULL),
-('PC & Mac Lab (C234-C235)', 'physical', 'C234-C235'),
-('Grad. Department Office (Old)', 'physical', 'Old Graduate Department Office');
+('Online (Microsoft Teams)', 'online', NULL);
 
 INSERT INTO professors (full_name, email) VALUES
-('Dr. Elaine Parker', 'elaine.parker@cua.local'),
-('Prof. Luis Medina', 'luis.medina@cua.local'),
-('Dr. Carla Rivera', 'carla.rivera@cua.local'),
-('Prof. Martin Blake', 'martin.blake@cua.local'),
-('Dr. Sofia Reyes', 'sofia.reyes@cua.local'),
-('Dr. Helen Moore', 'helen.moore@cua.local');
+('Israel Mendez', NULL),
+('Braulio Cortes', NULL),
+('Rosana Ortiz', NULL);
 
 INSERT INTO courses (subject_id, course_number, course_name, description) VALUES
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'MATH'), '101', 'Calculus I', 'Limits, derivatives, and introductory applications.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'MATH'), '102', 'Calculus II', 'Integrals, series, and applications.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'MATH'), '201', 'Linear Algebra', 'Vectors, matrices, linear transformations, and systems.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'COMP'), '101', 'Intro to Computer Science', 'Programming fundamentals and computational thinking.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'COMP'), '201', 'Data Structures I', 'Lists, stacks, queues, trees, and algorithm analysis.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'COMP'), '301', 'Algorithms', 'Algorithm design techniques and complexity.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'BIOL'), '110', 'General Biology', 'Cell biology, genetics, and ecology fundamentals.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'BIO'), '215', 'Human Anatomy', 'Human body systems, organs, and structures.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'BIO'), '320', 'Microbiology', 'Microorganisms, lab methods, and immune response.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'BUS'), '101', 'Introduction to Business', 'Business functions, strategy, and organizations.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'BUS'), '210', 'Marketing Principles', 'Markets, customers, positioning, and campaigns.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'CHEM'), '110', 'General Chemistry', 'Atomic structure, bonding, reactions, and stoichiometry.'),
-((SELECT subject_id FROM course_subjects WHERE subject_code = 'ENGL'), '210', 'Essay Writing', 'Argument structure, revision, and academic writing.');
+((SELECT subject_id FROM course_subjects WHERE subject_code = 'GEMA'), '1000', 'Quantitative Reasoning', 'Study of the set of real numbers, measuring systems, geometry (length, area and volume), equation solving for linear variables that include ratios, proportions, mathematical financial formulas and literal equations. Basic concepts of statistics: frequency distribution, graphs, measures of central tendency, dispersion and probability principles. Requires additional hours of virtual open laboratory.'),
+((SELECT subject_id FROM course_subjects WHERE subject_code = 'GEMA'), '1200', 'Fundamentals of Algebra', 'Application of algebra to problem solving, including graphic and symbolic representations. Study of algebraic expressions with whole and rational exponents; and of polynomials, operations, and factoring. Solution of first and second degrees equations, of equations with rational and radical expressions, and of linear inequations. Requires additional hours of virtual open laboratory.'),
+((SELECT subject_id FROM course_subjects WHERE subject_code = 'PHYS'), '3001', 'General Physics I', 'Logical and unified presentation of physics at the introductory level, emphasizing the basic ideas constituting its foundations: laws of motion and the conservation and interaction between particles and fields. Students are exposed to different experiences in the fields of mechanics and heat in the teaching-learning process. Emphasis on the integration and application of concepts throughout the experimentation. Requires 45 hours of lecture and 45 hours of lab.');
 
 INSERT INTO course_topics (course_id, topic_name, sort_order)
 SELECT c.course_id, x.topic_name, x.sort_order
 FROM v_courses_with_categories c
 JOIN (
-  SELECT 'MATH101' AS course_code, 'Limits' AS topic_name, 1 AS sort_order UNION ALL
-  SELECT 'MATH101', 'Derivatives', 2 UNION ALL
-  SELECT 'MATH102', 'Integrals', 1 UNION ALL
-  SELECT 'MATH201', 'Matrices', 1 UNION ALL
-  SELECT 'COMP101', 'Variables and Control Flow', 1 UNION ALL
-  SELECT 'COMP201', 'Linked Lists', 1 UNION ALL
-  SELECT 'COMP301', 'Graph Algorithms', 1 UNION ALL
-  SELECT 'BIOL110', 'Cell Structure', 1 UNION ALL
-  SELECT 'BIO215', 'Skeletal System', 1 UNION ALL
-  SELECT 'BIO320', 'Bacteria and Viruses', 1 UNION ALL
-  SELECT 'BUS101', 'Business Models', 1 UNION ALL
-  SELECT 'BUS210', 'Market Segmentation', 1 UNION ALL
-  SELECT 'CHEM110', 'Stoichiometry', 1 UNION ALL
-  SELECT 'ENGL210', 'Thesis Statements', 1
+  SELECT 'GEMA1000' AS course_code, 'Geometry' AS topic_name, 1 AS sort_order UNION ALL
+  SELECT 'GEMA1000', 'Frequency distribution', 2 UNION ALL
+  SELECT 'GEMA1200', 'Algebraic expressions', 1 UNION ALL
+  SELECT 'GEMA1200', 'Linear inequations', 2 UNION ALL
+  SELECT 'PHYS3001', 'Vectors', 1 UNION ALL
+  SELECT 'PHYS3001', 'Laws of motion', 2
 ) x ON x.course_code = c.course_code;
 
 INSERT INTO course_professors (course_id, professor_id)
 SELECT c.course_id, p.professor_id
 FROM v_courses_with_categories c
 JOIN professors p ON (
-  (c.course_code IN ('MATH101', 'MATH102', 'MATH201') AND p.full_name = 'Dr. Elaine Parker')
-  OR (c.course_code IN ('COMP101', 'COMP201', 'COMP301') AND p.full_name = 'Prof. Luis Medina')
-  OR (c.course_code IN ('BIOL110', 'BIO215', 'BIO320') AND p.full_name = 'Dr. Carla Rivera')
-  OR (c.course_code IN ('BUS101', 'BUS210') AND p.full_name = 'Prof. Martin Blake')
-  OR (c.course_code = 'CHEM110' AND p.full_name = 'Dr. Sofia Reyes')
-  OR (c.course_code = 'ENGL210' AND p.full_name = 'Dr. Helen Moore')
+  (c.course_code IN ('GEMA1000', 'GEMA1200') AND p.full_name IN ('Israel Mendez', 'Braulio Cortes'))
+  OR (c.course_code = 'PHYS3001' AND p.full_name = 'Rosana Ortiz')
 );
 
 INSERT INTO mentors (mentor_number, full_name, email, phone) VALUES
-('M1001', 'Alice Johnson', 'alice.johnson@cua.local', '555-0101'),
-('M1002', 'Michael Chen', 'michael.chen@cua.local', '555-0102'),
-('M1003', 'Sofia Martinez', 'sofia.martinez@cua.local', '555-0103'),
-('M1004', 'Daniel Ruiz', 'daniel.ruiz@cua.local', '555-0104'),
-('M1005', 'Priya Patel', 'priya.patel@cua.local', '555-0105'),
-('M1006', 'Olivia Bennett', 'olivia.bennett@cua.local', '555-0106');
+('A00631877', 'Clarian Perez', 'clpe1877@agu.inter.edu', NULL),
+('A00635439', 'Gynelis Lamberty', 'gyla5439@agu.inter.edu', NULL);
 
 INSERT INTO mentor_courses (mentor_id, course_id, assigned_by_user_id)
 SELECT m.mentor_id, c.course_id, u.user_id
 FROM mentors m
 JOIN v_courses_with_categories c ON (
-  (m.mentor_number = 'M1001' AND c.course_code IN ('MATH101', 'MATH102', 'MATH201'))
-  OR (m.mentor_number = 'M1002' AND c.course_code IN ('COMP101', 'COMP201', 'COMP301'))
-  OR (m.mentor_number = 'M1003' AND c.course_code IN ('BIOL110', 'BIO215', 'BIO320'))
-  OR (m.mentor_number = 'M1004' AND c.course_code IN ('BUS101', 'BUS210'))
-  OR (m.mentor_number = 'M1005' AND c.course_code IN ('ENGL210', 'COMP101'))
-  OR (m.mentor_number = 'M1006' AND c.course_code IN ('CHEM110', 'MATH101'))
+  (m.mentor_number = 'A00631877' AND c.course_code IN ('GEMA1000', 'GEMA1200', 'PHYS3001'))
+  OR (m.mentor_number = 'A00635439' AND c.course_code IN ('GEMA1000', 'GEMA1200'))
 )
 JOIN users u ON u.email = 'eperez@aguadilla.inter.edu';
 
-INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from)
-SELECT mentor_id, 1, '09:00:00', '12:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1001'
-UNION ALL SELECT mentor_id, 3, '13:00:00', '16:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1001'
-UNION ALL SELECT mentor_id, 2, '10:00:00', '12:30:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1002'
-UNION ALL SELECT mentor_id, 4, '14:00:00', '17:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1002'
-UNION ALL SELECT mentor_id, 1, '11:00:00', '14:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1003'
-UNION ALL SELECT mentor_id, 3, '09:00:00', '12:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1003'
-UNION ALL SELECT mentor_id, 2, '13:00:00', '16:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1004'
-UNION ALL SELECT mentor_id, 5, '09:00:00', '12:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1004'
-UNION ALL SELECT mentor_id, 3, '10:00:00', '13:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1005'
-UNION ALL SELECT mentor_id, 5, '11:00:00', '15:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1005'
-UNION ALL SELECT mentor_id, 1, '10:00:00', '12:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1006'
-UNION ALL SELECT mentor_id, 3, '12:00:00', '15:00:00', '2026-01-01' FROM mentors WHERE mentor_number = 'M1006';
-
-INSERT INTO mentor_schedule_exceptions (mentor_id, exception_date, start_time, end_time, is_full_day, exception_type, reason, created_by_user_id)
-SELECT m.mentor_id, '2026-05-20', '12:00:00', '15:00:00', 0, 'unavailable', 'Approved absence', u.user_id
-FROM mentors m JOIN users u ON u.email = 'eperez@aguadilla.inter.edu'
-WHERE m.mentor_number = 'M1001'
-UNION ALL
-SELECT m.mentor_id, '2026-05-22', NULL, NULL, 1, 'unavailable', 'Full day absence', u.user_id
-FROM mentors m JOIN users u ON u.email = 'eperez@aguadilla.inter.edu'
-WHERE m.mentor_number = 'M1002';
-
-INSERT INTO students (student_number, full_name, email, phone) VALUES
-('S1001', 'John Doe', 'john.doe@student.cua.local', '555-1101'),
-('S1002', 'Ana Torres', 'ana.torres@student.cua.local', '555-1102'),
-('S1003', 'Carlos Vega', 'carlos.vega@student.cua.local', '555-1103'),
-('S1004', 'Jane Rivera', 'jane.rivera@student.cua.local', '555-1104'),
-('S1005', 'Miguel Ramos', 'miguel.ramos@student.cua.local', '555-1105'),
-('S1006', 'Laura Ortiz', 'laura.ortiz@student.cua.local', '555-1106');
-
-INSERT INTO bookings (
-  booking_type,
-  booking_status,
-  mentor_id,
-  course_id,
-  professor_id,
-  location_id,
-  start_at,
-  end_at,
-  topics_notes,
-  made_by_user_id
-)
-SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-13 09:30:00', '2026-05-13 10:30:00',
-       'Limits and derivative rules', u.user_id
-FROM mentors m
-JOIN v_courses_with_categories c ON c.course_code = 'MATH101'
-JOIN professors p ON p.full_name = 'Dr. Elaine Parker'
-JOIN locations l ON l.location_name = 'CUA (Library 2nd Floor)'
-JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
-WHERE m.mentor_number = 'M1001'
-UNION ALL
-SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-14 14:30:00', '2026-05-14 15:30:00',
-       'Linked lists and stack practice', u.user_id
-FROM mentors m
-JOIN v_courses_with_categories c ON c.course_code = 'COMP201'
-JOIN professors p ON p.full_name = 'Prof. Luis Medina'
-JOIN locations l ON l.location_name = 'Online (Microsoft Teams)'
-JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
-WHERE m.mentor_number = 'M1002'
-UNION ALL
-SELECT 'scheduled', 'active', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-13 13:00:00', '2026-05-13 14:00:00',
-       'Skeletal system review', u.user_id
-FROM mentors m
-JOIN v_courses_with_categories c ON c.course_code = 'BIO215'
-JOIN professors p ON p.full_name = 'Dr. Carla Rivera'
-JOIN locations l ON l.location_name = 'PC & Mac Lab (C234-C235)'
-JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
-WHERE m.mentor_number = 'M1003'
-UNION ALL
-SELECT 'walk_in', 'completed', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-13 10:15:00', '2026-05-13 11:15:00',
-       'Business model worksheet', u.user_id
-FROM mentors m
-JOIN v_courses_with_categories c ON c.course_code = 'BUS101'
-JOIN professors p ON p.full_name = 'Prof. Martin Blake'
-JOIN locations l ON l.location_name = 'CUA (Library 2nd Floor)'
-JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
-WHERE m.mentor_number = 'M1004'
-UNION ALL
-SELECT 'scheduled', 'scheduled', m.mentor_id, c.course_id, p.professor_id, l.location_id,
-       '2026-05-16 11:00:00', '2026-05-16 12:00:00',
-       'Essay outline and thesis statement', u.user_id
-FROM mentors m
-JOIN v_courses_with_categories c ON c.course_code = 'ENGL210'
-JOIN professors p ON p.full_name = 'Dr. Helen Moore'
-JOIN locations l ON l.location_name = 'Grad. Department Office (Old)'
-JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
-WHERE m.mentor_number = 'M1005';
-
-INSERT INTO booking_students (booking_id, student_id, student_order, is_primary)
-SELECT b.booking_id, s.student_id, 1, 1
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN students s ON s.student_number = 'S1001'
-WHERE bd.course_code = 'MATH101' AND b.start_at = '2026-05-13 09:30:00'
-UNION ALL
-SELECT b.booking_id, s.student_id, 1, 1
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN students s ON s.student_number = 'S1002'
-WHERE bd.course_code = 'COMP201' AND b.start_at = '2026-05-14 14:30:00'
-UNION ALL
-SELECT b.booking_id, s.student_id, 2, 0
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN students s ON s.student_number = 'S1003'
-WHERE bd.course_code = 'COMP201' AND b.start_at = '2026-05-14 14:30:00'
-UNION ALL
-SELECT b.booking_id, s.student_id, 1, 1
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN students s ON s.student_number = 'S1004'
-WHERE bd.course_code = 'BIO215' AND b.start_at = '2026-05-13 13:00:00'
-UNION ALL
-SELECT b.booking_id, s.student_id, 1, 1
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN students s ON s.student_number = 'S1005'
-WHERE bd.course_code = 'BUS101' AND b.start_at = '2026-05-13 10:15:00'
-UNION ALL
-SELECT b.booking_id, s.student_id, 1, 1
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN students s ON s.student_number = 'S1006'
-WHERE bd.course_code = 'ENGL210' AND b.start_at = '2026-05-16 11:00:00';
-
-INSERT INTO mentorship_sessions (booking_id, session_status, started_at, ended_at, started_by_user_id, ended_by_user_id)
-SELECT b.booking_id, 'active', '2026-05-13 13:00:00', NULL, u.user_id, NULL
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
-WHERE bd.course_code = 'BIO215' AND b.start_at = '2026-05-13 13:00:00'
-UNION ALL
-SELECT b.booking_id, 'completed', '2026-05-13 10:15:00', '2026-05-13 10:45:00', u.user_id, u.user_id
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-JOIN users u ON u.email = 'staffcua@aguadilla.inter.edu'
-WHERE bd.course_code = 'BUS101' AND b.start_at = '2026-05-13 10:15:00';
-
-INSERT INTO booking_online_meetings (booking_id, provider, external_event_id, join_url, organizer_email)
-SELECT b.booking_id, 'teams', 'dummy-teams-event-comp201-20260514', 'https://teams.microsoft.com/l/meetup-join/dummy-comp201', 'staffcua@aguadilla.inter.edu'
-FROM bookings b
-JOIN v_booking_details bd ON bd.booking_id = b.booking_id
-WHERE bd.course_code = 'COMP201' AND b.start_at = '2026-05-14 14:30:00';
+INSERT INTO mentor_weekly_availability (mentor_id, day_of_week, start_time, end_time, effective_from, effective_to)
+SELECT mentor_id, 1, '13:00:00', '17:00:00', '2026-06-01', '2026-06-30' FROM mentors WHERE mentor_number = 'A00631877'
+UNION ALL SELECT mentor_id, 2, '13:00:00', '17:00:00', '2026-06-01', '2026-06-30' FROM mentors WHERE mentor_number = 'A00631877'
+UNION ALL SELECT mentor_id, 3, '13:00:00', '17:00:00', '2026-06-01', '2026-06-30' FROM mentors WHERE mentor_number = 'A00631877'
+UNION ALL SELECT mentor_id, 4, '13:00:00', '17:00:00', '2026-06-01', '2026-06-30' FROM mentors WHERE mentor_number = 'A00631877'
+UNION ALL SELECT mentor_id, 5, '13:00:00', '17:00:00', '2026-06-01', '2026-06-30' FROM mentors WHERE mentor_number = 'A00631877'
+UNION ALL SELECT mentor_id, 1, '08:00:00', '12:00:00', '2026-05-28', NULL FROM mentors WHERE mentor_number = 'A00635439'
+UNION ALL SELECT mentor_id, 2, '08:00:00', '12:00:00', '2026-05-28', NULL FROM mentors WHERE mentor_number = 'A00635439'
+UNION ALL SELECT mentor_id, 3, '08:00:00', '12:00:00', '2026-05-28', NULL FROM mentors WHERE mentor_number = 'A00635439'
+UNION ALL SELECT mentor_id, 4, '08:00:00', '12:00:00', '2026-05-28', NULL FROM mentors WHERE mentor_number = 'A00635439'
+UNION ALL SELECT mentor_id, 5, '08:00:00', '12:00:00', '2026-05-28', NULL FROM mentors WHERE mentor_number = 'A00635439';

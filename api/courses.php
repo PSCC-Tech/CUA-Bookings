@@ -107,7 +107,7 @@ function course_category_name_from_payload(array $data): string
 {
     $category = trim((string)($data['category_name'] ?? $data['category'] ?? ''));
     if ($category === '' || strtolower($category) === 'all' || strtolower($category) === 'show all') {
-        return 'Others';
+        return 'Other';
     }
 
     return $category;
@@ -123,7 +123,7 @@ function course_category_id(PDO $pdo, string $categoryName): int
         return (int)$categoryId;
     }
 
-    $fallback = $pdo->prepare("SELECT category_id FROM categories WHERE category_name = 'Others' LIMIT 1");
+    $fallback = $pdo->prepare("SELECT category_id FROM categories WHERE category_name = 'Other' LIMIT 1");
     $fallback->execute();
     $fallbackId = $fallback->fetchColumn();
 

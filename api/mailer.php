@@ -586,7 +586,7 @@ function booking_notification_contact_info(): array
             ],
             [
                 'contact' => 'Ext. 2259 or (787) 931-0730',
-                'label' => 'Mathematics, Spanish, and Sciences Laboratory',
+                'label' => 'Mathematics, Spanish, and Science Laboratory',
             ],
             [
                 'contact' => 'Ext. 2261 or (787) 931-0732',

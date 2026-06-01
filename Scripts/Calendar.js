@@ -89,7 +89,7 @@ const MentorScheduleStore = (() => {
       return directMatches;
     }
 
-    if (normalized.startsWith("math")) {
+    if (normalized.startsWith("math") || normalized.startsWith("gema")) {
       return listMentors().filter(mentor => mentor.categories.includes("Mathematics"));
     }
 
@@ -97,8 +97,8 @@ const MentorScheduleStore = (() => {
       return listMentors().filter(mentor => mentor.categories.includes("Technology"));
     }
 
-    if (normalized.startsWith("bio") || normalized.startsWith("biol") || normalized.startsWith("chem")) {
-      return listMentors().filter(mentor => mentor.categories.includes("Sciences"));
+    if (normalized.startsWith("bio") || normalized.startsWith("biol") || normalized.startsWith("chem") || normalized.startsWith("phys")) {
+      return listMentors().filter(mentor => mentor.categories.includes("Science"));
     }
 
     if (normalized.startsWith("engl")) {

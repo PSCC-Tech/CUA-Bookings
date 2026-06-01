@@ -12,30 +12,30 @@ $categories = $pdo->query("
     FROM categories
     WHERE category_name IN (
         'Mathematics',
-        'Sciences',
+        'Science',
         'Spanish',
         'English',
-        'Stadistics',
+        'Statistics',
         'Accounting',
-        'Finances',
+        'Finance',
         'Microeconomics',
         'Quantitative Methods',
         'Technology',
-        'Others'
+        'Other'
     )
     ORDER BY FIELD(
         category_name,
         'Mathematics',
-        'Sciences',
+        'Science',
         'Spanish',
         'English',
-        'Stadistics',
+        'Statistics',
         'Accounting',
-        'Finances',
+        'Finance',
         'Microeconomics',
         'Quantitative Methods',
         'Technology',
-        'Others'
+        'Other'
     ), category_name
 ")
     ->fetchAll();

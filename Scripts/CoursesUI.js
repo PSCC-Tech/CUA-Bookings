@@ -2,16 +2,16 @@ const CoursesUI = {
     selected: new Map(), // Stores selected courses for deletion
     categorySections: [
         { name: "Mathematics", title: "Mathematics Courses", icon: "fa-solid fa-square-root-variable" },
-        { name: "Sciences", title: "Sciences Courses", icon: "fa-solid fa-flask" },
+        { name: "Science", title: "Science Courses", icon: "fa-solid fa-flask" },
         { name: "Spanish", title: "Spanish Courses", icon: "fa-solid fa-book-open" },
         { name: "English", title: "English Courses", icon: "fa-solid fa-book" },
-        { name: "Stadistics", title: "Stadistics Courses", icon: "fa-solid fa-chart-column" },
+        { name: "Statistics", title: "Statistics Courses", icon: "fa-solid fa-chart-column" },
         { name: "Accounting", title: "Accounting Courses", icon: "fa-solid fa-calculator" },
-        { name: "Finances", title: "Finances Courses", icon: "fa-solid fa-coins" },
+        { name: "Finance", title: "Finance Courses", icon: "fa-solid fa-coins" },
         { name: "Microeconomics", title: "Microeconomics Courses", icon: "fa-solid fa-chart-line" },
         { name: "Quantitative Methods", title: "Quantitative Methods Courses", icon: "fa-solid fa-percent" },
         { name: "Technology", title: "Technology Courses", icon: "fa-solid fa-computer" },
-        { name: "Others", title: "Other Courses", icon: "fa-solid fa-layer-group" }
+        { name: "Other", title: "Other Courses", icon: "fa-solid fa-layer-group" }
     ],
 
     init() {
