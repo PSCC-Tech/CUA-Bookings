@@ -663,7 +663,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const skipped = Array.isArray(notifications.skipped) ? notifications.skipped : [];
 
         if (failed > 0) {
-            return `Booking created successfully, but ${failed} email notification${failed === 1 ? "" : "s"} could not be sent. ${sent} sent. Check the mail configuration.`;
+            console.warn("Email notification failures:", notifications.failed);
+            const firstError = String(notifications.failed.find(item => item?.error)?.error || "").trim();
+            const errorDetails = firstError ? ` First error: ${firstError}` : " Check the mail configuration.";
+            return `Booking created successfully, but ${failed} email notification${failed === 1 ? "" : "s"} could not be sent. ${sent} sent.${errorDetails}`;
         }
 
         if (sent > 0) {

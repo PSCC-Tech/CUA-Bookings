@@ -258,6 +258,14 @@ function booking_mail_smtp_expect($socket, array $allowedCodes): string
         }
     }
 
+    if ($response === '') {
+        $meta = stream_get_meta_data($socket);
+        $reason = !empty($meta['timed_out'])
+            ? 'timed out waiting for an SMTP response'
+            : 'connection closed without an SMTP response';
+        throw new RuntimeException('SMTP error: ' . $reason . '.');
+    }
+
     $code = (int)substr($response, 0, 3);
     if (!in_array($code, $allowedCodes, true)) {
         throw new RuntimeException('SMTP error: ' . trim($response));
@@ -291,6 +299,7 @@ function booking_mail_send_smtp(array $message, array $config): void
         throw new RuntimeException('SMTP sender address is not configured.');
     }
 
+    $usesStartTls = in_array($encryption, ['tls', 'starttls'], true);
     $remote = $encryption === 'ssl' ? "ssl://{$host}:{$port}" : "{$host}:{$port}";
     $socket = @stream_socket_client($remote, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT);
 
@@ -303,7 +312,7 @@ function booking_mail_send_smtp(array $message, array $config): void
         booking_mail_smtp_expect($socket, [220]);
         booking_mail_smtp_command($socket, 'EHLO localhost', [250]);
 
-        if ($encryption === 'tls') {
+        if ($usesStartTls) {
             booking_mail_smtp_command($socket, 'STARTTLS', [220]);
             $cryptoOk = @stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
             if ($cryptoOk !== true) {
