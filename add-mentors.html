@@ -61,7 +61,7 @@
         <div class="form-group">
             <!-- Contact -->
                 <label for="contact">Contact</label>
-                <input type="text" id="contact" placeholder="email@example.edu or 787-555-5555" oninput="this.className = ''">
+                <input type="text" id="contact" placeholder="email@example.edu" oninput="this.className = ''">
         </div>
 
         <div class="form-group">
@@ -476,29 +476,40 @@ function validateForm() {
     const contact = document.getElementById('contact');
     const scheduleFrom = document.getElementById('schedule-effective-from');
     const scheduleTo = document.getElementById('schedule-effective-to');
+    const mentorIdValue = mentorId.value.trim();
+    const mentorNameValue = mentorName.value.trim();
+    const contactValue = contact.value.trim();
     
     // Reset previous invalid classes
     [mentorId, mentorName, contact, scheduleFrom, scheduleTo].forEach(field => field?.classList.remove('invalid'));
     
     // Check required fields
-    if (!mentorId.value.trim()) {
+    if (!mentorIdValue || !mentorNameValue || !contactValue) {
+        if (!mentorIdValue) mentorId.classList.add('invalid');
+        if (!mentorNameValue) mentorName.classList.add('invalid');
+        if (!contactValue) contact.classList.add('invalid');
+        window.CUANotify?.error('Please enter mentor ID, mentor name, and contact.') || alert('Please enter mentor ID, mentor name, and contact.');
+        return false;
+    }
+
+    if (!mentorIdValue) {
         mentorId.classList.add('invalid');
         valid = false;
-    } else if (!/^[A-Z]00\d{6}$/.test(mentorId.value.trim())) {
+    } else if (!/^[A-Z]00\d{6}$/.test(mentorIdValue)) {
         mentorId.classList.add('invalid');
         window.CUANotify?.error('Mentor ID must use the format A00123456.') || alert('Mentor ID must use the format A00123456.');
         valid = false;
     }
-    if (!mentorName.value.trim()) {
+    if (!mentorNameValue) {
         mentorName.classList.add('invalid');
         valid = false;
     }
-    if (!contact.value.trim()) {
+    if (!contactValue) {
         contact.classList.add('invalid');
         valid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.value.trim()) && !/^\d{3}-\d{3}-\d{4}$/.test(contact.value.trim())) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactValue) && !/^\d{3}-\d{3}-\d{4}$/.test(contactValue)) {
         contact.classList.add('invalid');
-        window.CUANotify?.error('Contact must be a valid email or phone number like 787-555-5555.') || alert('Contact must be a valid email or phone number like 787-555-5555.');
+        window.CUANotify?.error('Contact must be a valid email.') || alert('Contact must be a valid email.');
         valid = false;
     }
 

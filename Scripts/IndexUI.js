@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         for (let i = 2; i <= size; i++) {
 
             const label = document.createElement("h4");
-            label.textContent = `Student ${i}`;
+            label.textContent = `Student ${i} (optional)`;
             extraStudentsContainer.appendChild(label);
 
             const row1 = document.createElement("div");
@@ -518,15 +518,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const size = parseInt(groupSizeEl.textContent, 10);
         for (let i = 2; i <= size; i++) {
-            students.push({
+            const student = {
                 student_number: document.querySelector(`[name="student_${i}_id"]`)?.value.trim() || "",
                 full_name: document.querySelector(`[name="student_${i}_name"]`)?.value.trim() || "",
                 email: document.querySelector(`[name="student_${i}_email"]`)?.value.trim() || "",
                 phone: document.querySelector(`[name="student_${i}_phone"]`)?.value.trim() || ""
-            });
+            };
+
+            if (studentHasAnyValue(student)) {
+                students.push(student);
+            }
         }
 
         return students;
+    }
+
+    function collectGroupSize() {
+        const isGroup = document.querySelector("input[name='session-type']:checked")?.value === "group";
+        if (!isGroup) return 1;
+
+        const size = parseInt(groupSizeEl.textContent, 10);
+        return Number.isFinite(size) ? Math.max(2, size) : 2;
+    }
+
+    function studentHasAnyValue(student) {
+        return Boolean(student.student_number || student.full_name || student.email || student.phone);
     }
 
     function validateStudents(students) {
@@ -542,6 +558,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selectedMentorOption = mentorSelect.options[mentorSelect.selectedIndex];
         const dateLabel = selectedDateTimeInput.dataset.date || "";
         const timeLabel = selectedDateTimeInput.dataset.time || "";
+        const groupSize = collectGroupSize();
 
         return {
             booking_type: bookingType === "walk-in" ? "walk_in" : "scheduled",
@@ -555,6 +572,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             date: toISODate(dateLabel),
             time: timeLabel,
             duration_minutes: 60,
+            session_type: groupSize > 1 ? "group" : "single",
+            group_size: groupSize,
             students: collectStudents()
         };
     }
@@ -626,7 +645,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (!validateStudents(payload.students)) {
-            notifyError("Use Student ID A00123456, phone 787-555-5555, and a valid email for every student.");
+            notifyError("Student 1 needs a valid ID and name. Extra students can be left blank, but any extra student entered needs a valid ID, name, phone, and email.");
             return;
         }
 

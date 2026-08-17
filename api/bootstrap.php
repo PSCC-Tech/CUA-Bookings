@@ -466,6 +466,29 @@ function split_csv_names(string $value): array
     return array_values(array_filter(array_map(static fn($item) => trim($item), explode(',', $value))));
 }
 
+function ensure_booking_group_size_column(PDO $pdo): void
+{
+    static $checked = false;
+
+    if ($checked) {
+        return;
+    }
+
+    $stmt = $pdo->query("
+        SELECT COUNT(*)
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'bookings'
+          AND COLUMN_NAME = 'group_size'
+    ");
+
+    if ((int)$stmt->fetchColumn() === 0) {
+        $pdo->exec('ALTER TABLE bookings ADD COLUMN group_size TINYINT UNSIGNED NOT NULL DEFAULT 1 AFTER booking_status');
+    }
+
+    $checked = true;
+}
+
 function read_id(): ?int
 {
     if (isset($_GET['id']) && ctype_digit((string)$_GET['id'])) {

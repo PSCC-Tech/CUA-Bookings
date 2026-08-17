@@ -10,6 +10,8 @@ $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 require_role(['Administrator', 'Limited', 'Staff']);
 
+ensure_booking_group_size_column($pdo);
+
 function fetch_bookings(PDO $pdo): array
 {
     $stmt = $pdo->query("
@@ -17,6 +19,7 @@ function fetch_bookings(PDO $pdo): array
             b.booking_id,
             b.booking_type,
             b.booking_status,
+            b.group_size,
             b.start_at,
             b.end_at,
             b.topics_notes,
@@ -68,8 +71,8 @@ function fetch_bookings(PDO $pdo): array
             'professor' => $row['professor_name'] ?? '',
             'madeBy' => $row['made_by'],
             'students' => [],
-            'sessionType' => 'Single',
-            'groupSize' => 1,
+            'sessionType' => (int)$row['group_size'] > 1 ? 'Grouped' : 'Single',
+            'groupSize' => max(1, (int)$row['group_size']),
             'studentId' => '',
             'name' => '',
             'email' => '',
@@ -115,8 +118,8 @@ function fetch_bookings(PDO $pdo): array
             $booking['name'] = $primary['name'];
             $booking['email'] = $primary['email'];
             $booking['phone'] = $primary['phone'];
-            $booking['groupSize'] = count($booking['students']);
-            $booking['sessionType'] = count($booking['students']) > 1 ? 'Grouped' : 'Single';
+            $booking['groupSize'] = max($booking['groupSize'], count($booking['students']));
+            $booking['sessionType'] = $booking['groupSize'] > 1 ? 'Grouped' : 'Single';
         }
     }
     unset($booking);
@@ -164,6 +167,43 @@ function save_booking_students(PDO $pdo, int $bookingId, array $students): void
         $studentId = find_or_create_student($pdo, $student);
         $insert->execute([$bookingId, $studentId, $index + 1, $index === 0 ? 1 : 0]);
     }
+}
+
+function booking_student_has_any_value(array $student): bool
+{
+    return trim((string)($student['student_number'] ?? $student['studentId'] ?? '')) !== ''
+        || trim((string)($student['full_name'] ?? $student['name'] ?? '')) !== ''
+        || trim((string)($student['email'] ?? '')) !== ''
+        || trim((string)($student['phone'] ?? '')) !== '';
+}
+
+function booking_filter_students(array $students): array
+{
+    $filtered = [];
+
+    foreach ($students as $index => $student) {
+        if (!is_array($student)) {
+            continue;
+        }
+
+        if ($index === 0 || booking_student_has_any_value($student)) {
+            $filtered[] = $student;
+        }
+    }
+
+    return $filtered;
+}
+
+function normalize_booking_group_size(array $data, array $students): int
+{
+    $requested = (int)($data['group_size'] ?? $data['groupSize'] ?? 1);
+    $sessionType = strtolower(trim((string)($data['session_type'] ?? $data['sessionType'] ?? '')));
+
+    if (strpos($sessionType, 'group') !== false) {
+        $requested = max($requested, 2);
+    }
+
+    return max(1, min(6, max($requested, count($students))));
 }
 
 function assert_booking_can_be_edited(PDO $pdo, int $bookingId): void
@@ -298,7 +338,8 @@ $locationId = find_or_create_location($pdo, (string)($data['location_name'] ?? $
 $madeById = find_or_create_user($pdo, (string)($data['made_by'] ?? $data['madeBy'] ?? 'Front Desk Staff'));
 $durationMinutes = max(15, min(180, (int)($data['duration_minutes'] ?? 60)));
 $endAt = date('Y-m-d H:i:s', strtotime($startAt . " +$durationMinutes minutes"));
-$students = is_array($data['students'] ?? null) ? $data['students'] : [];
+$students = booking_filter_students(is_array($data['students'] ?? null) ? $data['students'] : []);
+$groupSize = normalize_booking_group_size($data, $students);
 $topics = trim((string)($data['topics_notes'] ?? $data['topics'] ?? ''));
 
 $pdo->beginTransaction();
@@ -314,14 +355,15 @@ try {
         $status = $isWalkIn ? 'active' : 'scheduled';
         $stmt = $pdo->prepare('
             INSERT INTO bookings (
-                booking_type, booking_status, mentor_id, course_id, professor_id,
+                booking_type, booking_status, group_size, mentor_id, course_id, professor_id,
                 location_id, start_at, end_at, topics_notes, made_by_user_id
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
         $stmt->execute([
             $bookingType,
             $status,
+            $groupSize,
             $mentorId,
             $courseId,
             $professorId,
@@ -346,6 +388,7 @@ try {
             SET mentor_id = ?,
                 course_id = ?,
                 professor_id = ?,
+                group_size = ?,
                 location_id = ?,
                 start_at = ?,
                 end_at = ?,
@@ -357,6 +400,7 @@ try {
             $mentorId,
             $courseId,
             $professorId,
+            $groupSize,
             $locationId,
             $startAt,
             $endAt,

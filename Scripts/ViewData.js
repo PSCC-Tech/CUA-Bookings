@@ -122,6 +122,7 @@ const ViewData = {
         const students = this.getBookingStudents(b);
         const primaryStudent = students[0];
         const sessionType = this.normalizeSessionType(b.sessionType);
+        const groupSize = Math.max(Number(b.groupSize) || students.length, students.length, sessionType === "Grouped" ? 2 : 1);
 
         // Required for ViewUI.js
         card.dataset.id = b.id;
@@ -130,7 +131,7 @@ const ViewData = {
         card.dataset.email = primaryStudent.email;
         card.dataset.phone = primaryStudent.phone;
         card.dataset.sessionType = sessionType;
-        card.dataset.groupSize = String(students.length);
+        card.dataset.groupSize = String(groupSize);
         card.dataset.students = JSON.stringify(students);
         card.dataset.course = b.course;
         card.dataset.category = b.category;
@@ -149,7 +150,7 @@ const ViewData = {
         card.innerHTML = `
             <h3>${this.escapeHtml(b.time)}</h3>
             <p class="mentor"><strong>Mentor</strong> ${this.escapeHtml(b.mentor)}</p>
-            <p class="student"><strong>Student</strong> ${this.escapeHtml(this.getStudentSummary(students))}</p>
+            <p class="student"><strong>Student</strong> ${this.escapeHtml(this.getStudentSummary(students, groupSize))}</p>
             <p class="course-summary"><strong>Course:</strong> ${this.escapeHtml(b.course)}</p>
             <p class="location-summary"><strong>Location:</strong> ${this.escapeHtml(b.location)}</p>
         `;
@@ -185,9 +186,9 @@ const ViewData = {
         return /group/i.test(value || "") ? "Grouped" : "Single";
     },
 
-    getStudentSummary(students) {
+    getStudentSummary(students, groupSize = students.length) {
         const primaryName = students[0]?.name || "Unnamed student";
-        return students.length > 1 ? `${primaryName} + ${students.length - 1}` : primaryName;
+        return groupSize > 1 ? `${primaryName} + ${groupSize - 1}` : primaryName;
     },
 
     /* -----------------------------

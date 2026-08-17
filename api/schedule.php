@@ -6,6 +6,7 @@ require_once __DIR__ . '/bootstrap.php';
 require_method(['GET']);
 
 $pdo = db();
+ensure_booking_group_size_column($pdo);
 
 $mentorsStmt = $pdo->query("
     SELECT
@@ -97,6 +98,7 @@ $bookingsStmt = $pdo->query("
         vc.course_code,
         vc.course_name,
         l.location_name,
+        GREATEST(b.group_size, COUNT(bs.student_id)) AS student_count,
         GROUP_CONCAT(s.full_name ORDER BY bs.student_order SEPARATOR ', ') AS students
     FROM bookings b
     JOIN v_courses_with_categories vc ON vc.course_id = b.course_id
@@ -104,7 +106,7 @@ $bookingsStmt = $pdo->query("
     LEFT JOIN booking_students bs ON bs.booking_id = b.booking_id
     LEFT JOIN students s ON s.student_id = bs.student_id
     WHERE b.booking_status IN ('scheduled', 'active')
-    GROUP BY b.booking_id, b.mentor_id, b.start_at, b.end_at, vc.course_code, vc.course_name, l.location_name
+    GROUP BY b.booking_id, b.mentor_id, b.group_size, b.start_at, b.end_at, vc.course_code, vc.course_name, l.location_name
     ORDER BY b.start_at
 ");
 
@@ -114,11 +116,17 @@ foreach ($bookingsStmt->fetchAll() as $row) {
         continue;
     }
 
+    $studentNames = split_csv_names((string)($row['students'] ?? ''));
+    $studentLabel = $studentNames[0] ?? 'No students';
+    if ((int)$row['student_count'] > 1) {
+        $studentLabel .= ' +' . ((int)$row['student_count'] - 1);
+    }
+
     $mentors[$mentorId]['bookings'][] = [
         'date' => $row['booking_date'],
         'start' => format_time_12($row['start_time']),
         'end' => format_time_12($row['end_time']),
-        'student' => $row['students'] ?: 'No students',
+        'student' => $studentLabel,
         'course' => format_course_code($row['course_code']) . ' - ' . $row['course_name'],
         'location' => $row['location_name'],
     ];

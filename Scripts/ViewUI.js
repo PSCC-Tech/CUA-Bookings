@@ -784,6 +784,7 @@ const ViewUI = {
         }
 
         const students = this.editStudents.map(student => this.sanitizeStudent(student));
+        const groupSize = this.getDisplayGroupSize(sessionType, students, Number(this.activeCard?.dataset.groupSize) || 0);
         const savedValues = {};
         const fieldUpdates = [];
 
@@ -798,7 +799,7 @@ const ViewUI = {
                 savedValues.time = input?.dataset.time || "";
                 savedValues[field] = this.formatDateTimeDisplay(savedValues.date, savedValues.time);
             } else if (field === "sessionType") {
-                savedValues[field] = this.getSessionTypeDisplay(sessionType, students);
+                savedValues[field] = this.getSessionTypeDisplay(sessionType, students, groupSize);
             } else {
                 savedValues[field] = input?.value || "";
             }
@@ -863,6 +864,8 @@ const ViewUI = {
             date: values.date || this.activeCard.dataset.date,
             time: values.time || this.activeCard.dataset.time,
             duration_minutes: 60,
+            session_type: values.sessionType,
+            group_size: this.getDisplayGroupSize(values.sessionType, students, Number(this.activeCard.dataset.groupSize) || 0),
             topics: values.topics,
             students: students.map(student => ({
                 student_number: student.studentId,
@@ -921,7 +924,8 @@ const ViewUI = {
         if (field === "sessionType") {
             return this.getSessionTypeDisplay(
                 this.getCardSessionType(this.activeCard),
-                this.originalStudents
+                this.originalStudents,
+                Number(this.activeCard?.dataset.groupSize) || 0
             );
         }
 
@@ -995,7 +999,7 @@ const ViewUI = {
         if (this.nextStudentBtn) this.nextStudentBtn.disabled = disableCycle;
 
         if (this.groupSizeBadge) {
-            this.groupSizeBadge.textContent = String(Math.max(students.length, isGrouped ? 2 : 1));
+            this.groupSizeBadge.textContent = String(this.getDisplayGroupSize(sessionType, students));
             this.groupSizeBadge.classList.add("hidden");
         }
     },
@@ -1043,9 +1047,24 @@ const ViewUI = {
         return /group/i.test(value || "") ? "Grouped" : "Single";
     },
 
-    getSessionTypeDisplay(sessionType, students) {
+    getDisplayGroupSize(sessionType, students, fallbackSize = 0) {
+        const normalized = this.normalizeSessionType(sessionType);
+        if (normalized !== "Grouped") return 1;
+
+        return Math.max(Number(fallbackSize) || 0, students.length, 2);
+    },
+
+    getCardGroupSize(card, students = []) {
+        return this.getDisplayGroupSize(
+            this.getCardSessionType(card),
+            students,
+            Number(card?.dataset.groupSize) || 0
+        );
+    },
+
+    getSessionTypeDisplay(sessionType, students, fallbackSize = 0) {
         return this.normalizeSessionType(sessionType) === "Grouped"
-            ? `Grouped ${Math.max(students.length, 2)}`
+            ? `Grouped ${this.getDisplayGroupSize(sessionType, students, fallbackSize)}`
             : "Single";
     },
 
@@ -1078,7 +1097,8 @@ const ViewUI = {
             })];
         }
 
-        if (this.getCardSessionType(card) === "Grouped" && students.length < 2) {
+        const groupSize = this.getCardGroupSize(card, students);
+        while (this.getCardSessionType(card) === "Grouped" && students.length < groupSize) {
             students.push(this.createBlankStudent());
         }
 
@@ -1100,6 +1120,7 @@ const ViewUI = {
 
     writeCardData(values, sessionType, students) {
         const primaryStudent = students[0] || this.createBlankStudent();
+        const groupSize = this.getDisplayGroupSize(sessionType, students, Number(this.activeCard.dataset.groupSize) || 0);
 
         this.activeCard.dataset.mentor = values.mentor;
         this.activeCard.dataset.mentorNumber = values.mentorNumber || this.activeCard.dataset.mentorNumber || "";
@@ -1110,7 +1131,7 @@ const ViewUI = {
         this.activeCard.dataset.email = primaryStudent.email;
         this.activeCard.dataset.phone = primaryStudent.phone;
         this.activeCard.dataset.sessionType = sessionType;
-        this.activeCard.dataset.groupSize = String(students.length);
+        this.activeCard.dataset.groupSize = String(groupSize);
         this.activeCard.dataset.students = JSON.stringify(students);
         this.activeCard.dataset.location = values.location;
         this.activeCard.dataset.course = values.course;
@@ -1121,7 +1142,7 @@ const ViewUI = {
 
         this.activeCard.querySelector("h3").textContent = this.activeCard.dataset.time;
         this.setSummaryLine(this.activeCard.querySelector(".mentor"), "Mentor", values.mentor);
-        this.setSummaryLine(this.activeCard.querySelector(".student"), "Student", this.getCardStudentSummary(students));
+        this.setSummaryLine(this.activeCard.querySelector(".student"), "Student", this.getCardStudentSummary(students, groupSize));
         this.setSummaryLine(this.activeCard.querySelector(".location-summary"), "Location:", values.location);
         this.setSummaryLine(this.activeCard.querySelector(".course-summary"), "Course:", values.course);
 
@@ -1138,9 +1159,9 @@ const ViewUI = {
         element.append(strong, document.createTextNode(` ${value || ""}`));
     },
 
-    getCardStudentSummary(students) {
+    getCardStudentSummary(students, groupSize = students.length) {
         const primaryName = students[0]?.name || "Unnamed student";
-        return students.length > 1 ? `${primaryName} + ${students.length - 1}` : primaryName;
+        return groupSize > 1 ? `${primaryName} + ${groupSize - 1}` : primaryName;
     },
 
     updateBookingRecord(values, sessionType, students) {
@@ -1158,7 +1179,7 @@ const ViewUI = {
             email: students[0]?.email || "",
             phone: students[0]?.phone || "",
             sessionType,
-            groupSize: students.length,
+            groupSize,
             students: students.map(student => ({ ...student })),
             date: this.toISODate(values.date) || record.date,
             time: values.time || record.time,
@@ -1361,6 +1382,12 @@ const ViewUI = {
             const bookingId = this.activeCard.dataset.id;
 
             if (!active) {
+                const confirmed = await this.confirm("You are about to start this mentorship session. This will mark the booking as active and move it to Active Sessions.", {
+                    title: "Start session",
+                    confirmText: "Start session"
+                });
+                if (!confirmed) return;
+
                 try {
                     if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "start");
                 } catch (error) {
@@ -1377,6 +1404,12 @@ const ViewUI = {
                 this.modal.style.display = "none";
                 this.notifySuccess("Mentorship session started.");
             } else {
+                const confirmed = await this.confirm("You are about to stop this mentorship session. This will mark the session as completed and remove it from Active Sessions.", {
+                    title: "Stop session",
+                    confirmText: "Stop session"
+                });
+                if (!confirmed) return;
+
                 try {
                     if (window.CUAApi) await window.CUAApi.updateSession(bookingId, "stop");
                 } catch (error) {
@@ -1402,7 +1435,7 @@ const ViewUI = {
             const bookingId = this.activeCard?.dataset.id;
             if (!bookingId) return;
 
-            const confirmed = await this.confirm("Cancel this booking?", {
+            const confirmed = await this.confirm("You are about to cancel this booking. This will remove it from the schedule and it will no longer appear as scheduled or active.", {
                 title: "Cancel booking",
                 confirmText: "Cancel booking",
                 danger: true

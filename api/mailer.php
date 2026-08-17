@@ -17,6 +17,12 @@ function booking_mail_default_config(): array
             'encryption' => 'tls',
             'timeout' => 20,
         ],
+        'api' => [
+            'provider' => '',
+            'api_key' => '',
+            'endpoint' => '',
+            'timeout' => 20,
+        ],
     ];
 }
 
@@ -135,6 +141,10 @@ function booking_mail_send(array $message, array $config): array
     try {
         if ($transport === 'smtp') {
             booking_mail_send_smtp($message, $config);
+        } elseif (in_array($transport, ['brevo', 'brevo_api'], true)) {
+            booking_mail_send_brevo_api($message, $config);
+        } elseif (in_array($transport, ['resend', 'resend_api'], true)) {
+            booking_mail_send_resend_api($message, $config);
         } else {
             booking_mail_send_native($message, $config);
         }
@@ -247,6 +257,235 @@ function booking_mail_send_native(array $message, array $config): void
     }
 }
 
+function booking_mail_api_config(array $config): array
+{
+    return is_array($config['api'] ?? null) ? $config['api'] : [];
+}
+
+function booking_mail_api_key(array $config): string
+{
+    $api = booking_mail_api_config($config);
+    return trim((string)($api['api_key'] ?? ''));
+}
+
+function booking_mail_api_timeout(array $config): int
+{
+    $api = booking_mail_api_config($config);
+    return max(1, (int)($api['timeout'] ?? 20));
+}
+
+function booking_mail_api_endpoint(array $config, string $default): string
+{
+    $api = booking_mail_api_config($config);
+    $endpoint = trim((string)($api['endpoint'] ?? ''));
+    return $endpoint !== '' ? $endpoint : $default;
+}
+
+function booking_mail_api_address_object(string $email, string $name = ''): array
+{
+    $address = ['email' => booking_mail_clean_header($email)];
+    $name = booking_mail_clean_header($name);
+
+    if ($name !== '') {
+        $address['name'] = $name;
+    }
+
+    return $address;
+}
+
+function booking_mail_api_html_body(array $message): string
+{
+    $html = (string)($message['html'] ?? '');
+    $images = is_array($message['inline_images'] ?? null) ? $message['inline_images'] : [];
+
+    foreach ($images as $image) {
+        if (!is_array($image)) {
+            continue;
+        }
+
+        $contentId = booking_mail_clean_header((string)($image['content_id'] ?? ''));
+        if ($contentId === '') {
+            continue;
+        }
+
+        $pattern = '/<img\b[^>]*\bsrc=(["\'])cid:' . preg_quote($contentId, '/') . '\1[^>]*>/i';
+        $html = preg_replace($pattern, '', $html) ?? $html;
+    }
+
+    return $html;
+}
+
+function booking_mail_http_post_json(string $url, array $headers, array $payload, int $timeout): array
+{
+    $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (!is_string($json)) {
+        throw new RuntimeException('Could not encode mail API request.');
+    }
+
+    $headers[] = 'Content-Type: application/json';
+    $headers[] = 'Accept: application/json';
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        if ($ch === false) {
+            throw new RuntimeException('Could not initialize HTTP request for mail API.');
+        }
+
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $json,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $timeout,
+        ]);
+
+        $body = curl_exec($ch);
+        $error = curl_error($ch);
+        $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+
+        if ($body === false) {
+            throw new RuntimeException('Mail API request failed: ' . $error);
+        }
+
+        return [
+            'status' => $status,
+            'body' => (string)$body,
+        ];
+    }
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => implode("\r\n", $headers),
+            'content' => $json,
+            'ignore_errors' => true,
+            'timeout' => $timeout,
+        ],
+    ]);
+
+    $body = @file_get_contents($url, false, $context);
+    if ($body === false) {
+        $error = error_get_last();
+        throw new RuntimeException('Mail API request failed: ' . (string)($error['message'] ?? 'unknown HTTP error'));
+    }
+
+    $status = 0;
+    if (isset($http_response_header[0]) && preg_match('/\s([0-9]{3})\s/', $http_response_header[0], $matches)) {
+        $status = (int)$matches[1];
+    }
+
+    return [
+        'status' => $status,
+        'body' => (string)$body,
+    ];
+}
+
+function booking_mail_api_error_message(string $provider, array $response): string
+{
+    $status = (int)($response['status'] ?? 0);
+    $body = trim((string)($response['body'] ?? ''));
+    $decoded = json_decode($body, true);
+    $message = '';
+
+    if (is_array($decoded)) {
+        foreach (['message', 'error', 'name', 'code'] as $key) {
+            if (!empty($decoded[$key]) && is_scalar($decoded[$key])) {
+                $message .= ($message !== '' ? ' ' : '') . (string)$decoded[$key];
+            }
+        }
+    }
+
+    if ($message === '') {
+        $message = $body !== '' ? $body : 'empty response body';
+    }
+
+    if (strlen($message) > 500) {
+        $message = substr($message, 0, 500) . '...';
+    }
+
+    return $provider . ' API returned HTTP ' . $status . ': ' . $message;
+}
+
+function booking_mail_send_brevo_api(array $message, array $config): void
+{
+    $apiKey = booking_mail_api_key($config);
+    $endpoint = booking_mail_api_endpoint($config, 'https://api.brevo.com/v3/smtp/email');
+    $fromEmail = trim((string)($config['from_email'] ?? ''));
+    $fromName = trim((string)($config['from_name'] ?? 'CUA Bookings'));
+    $replyTo = trim((string)($config['reply_to'] ?? ''));
+    $toEmail = trim((string)($message['to_email'] ?? ''));
+    $toName = trim((string)($message['to_name'] ?? ''));
+
+    if ($apiKey === '') {
+        throw new RuntimeException('Brevo API key is not configured.');
+    }
+    if (!booking_mail_is_valid_email($fromEmail)) {
+        throw new RuntimeException('Brevo sender address is not configured.');
+    }
+
+    $payload = [
+        'sender' => booking_mail_api_address_object($fromEmail, $fromName),
+        'to' => [booking_mail_api_address_object($toEmail, $toName)],
+        'subject' => (string)($message['subject'] ?? 'CUA Booking Details'),
+        'htmlContent' => booking_mail_api_html_body($message),
+        'textContent' => (string)($message['text'] ?? ''),
+    ];
+
+    if (booking_mail_is_valid_email($replyTo)) {
+        $payload['replyTo'] = booking_mail_api_address_object($replyTo);
+    }
+
+    $response = booking_mail_http_post_json($endpoint, ['api-key: ' . $apiKey], $payload, booking_mail_api_timeout($config));
+    if (!in_array((int)$response['status'], [200, 201, 202], true)) {
+        throw new RuntimeException(booking_mail_api_error_message('Brevo', $response));
+    }
+}
+
+function booking_mail_send_resend_api(array $message, array $config): void
+{
+    $apiKey = booking_mail_api_key($config);
+    $endpoint = booking_mail_api_endpoint($config, 'https://api.resend.com/emails');
+    $fromEmail = trim((string)($config['from_email'] ?? ''));
+    $fromName = trim((string)($config['from_name'] ?? 'CUA Bookings'));
+    $replyTo = trim((string)($config['reply_to'] ?? ''));
+    $toEmail = trim((string)($message['to_email'] ?? ''));
+    $toName = trim((string)($message['to_name'] ?? ''));
+
+    if ($apiKey === '') {
+        throw new RuntimeException('Resend API key is not configured.');
+    }
+    if (!booking_mail_is_valid_email($fromEmail)) {
+        throw new RuntimeException('Resend sender address is not configured.');
+    }
+
+    $payload = [
+        'from' => booking_mail_format_address($fromEmail, $fromName),
+        'to' => [booking_mail_format_address($toEmail, $toName)],
+        'subject' => (string)($message['subject'] ?? 'CUA Booking Details'),
+        'html' => booking_mail_api_html_body($message),
+        'text' => (string)($message['text'] ?? ''),
+    ];
+
+    if (booking_mail_is_valid_email($replyTo)) {
+        $payload['reply_to'] = booking_mail_format_address($replyTo);
+    }
+
+    $response = booking_mail_http_post_json(
+        $endpoint,
+        [
+            'Authorization: Bearer ' . $apiKey,
+            'User-Agent: CUA-Bookings/1.0',
+        ],
+        $payload,
+        booking_mail_api_timeout($config)
+    );
+
+    if (!in_array((int)$response['status'], [200, 201, 202], true)) {
+        throw new RuntimeException(booking_mail_api_error_message('Resend', $response));
+    }
+}
+
 function booking_mail_smtp_expect($socket, array $allowedCodes): string
 {
     $response = '';
@@ -347,6 +586,7 @@ function booking_notification_details(PDO $pdo, int $bookingId): array
             b.booking_id,
             b.booking_type,
             b.booking_status,
+            b.group_size,
             b.start_at,
             b.end_at,
             b.topics_notes,
@@ -660,7 +900,8 @@ function booking_notification_build_message(array $details, array $recipient): a
     $recipientName = trim((string)($recipient['name'] ?? ''));
     $greetingName = $recipientName !== '' ? $recipientName : 'recipient';
     $course = trim(format_course_code((string)$booking['course_code']) . ' - ' . (string)$booking['course_name']);
-    $sessionType = count($details['students']) > 1 ? 'Grouped (' . count($details['students']) . ' students)' : 'Single';
+    $groupSize = max((int)($booking['group_size'] ?? 1), count($details['students']));
+    $sessionType = $groupSize > 1 ? 'Grouped (' . $groupSize . ' students)' : 'Single';
     $contactText = booking_notification_contact_text();
     $contactHtml = booking_notification_contact_html();
     $timeLine = $dateTime['end_time'] !== ''

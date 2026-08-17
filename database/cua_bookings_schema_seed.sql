@@ -235,6 +235,7 @@ CREATE TABLE bookings (
   booking_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   booking_type ENUM('scheduled', 'walk_in') NOT NULL DEFAULT 'scheduled',
   booking_status ENUM('scheduled', 'active', 'completed', 'cancelled', 'no_show') NOT NULL DEFAULT 'scheduled',
+  group_size TINYINT UNSIGNED NOT NULL DEFAULT 1,
   mentor_id INT UNSIGNED NOT NULL,
   course_id INT UNSIGNED NOT NULL,
   professor_id INT UNSIGNED NULL,
@@ -373,8 +374,8 @@ SELECT
   l.location_type,
   b.topics_notes,
   u.full_name AS made_by,
-  COUNT(bs.student_id) AS student_count,
-  CASE WHEN COUNT(bs.student_id) > 1 THEN 'Grouped' ELSE 'Single' END AS session_type,
+  GREATEST(b.group_size, COUNT(bs.student_id)) AS student_count,
+  CASE WHEN GREATEST(b.group_size, COUNT(bs.student_id)) > 1 THEN 'Grouped' ELSE 'Single' END AS session_type,
   GROUP_CONCAT(s.student_number ORDER BY bs.student_order SEPARATOR ', ') AS student_numbers,
   GROUP_CONCAT(s.full_name ORDER BY bs.student_order SEPARATOR ', ') AS student_names
 FROM bookings b
@@ -389,6 +390,7 @@ GROUP BY
   b.booking_id,
   b.booking_type,
   b.booking_status,
+  b.group_size,
   b.start_at,
   b.end_at,
   m.mentor_number,

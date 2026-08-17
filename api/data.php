@@ -7,6 +7,7 @@ require_method(['GET']);
 
 $pdo = db();
 require_admin_user();
+ensure_booking_group_size_column($pdo);
 
 function data_param(string $key, string $default = ''): string
 {
@@ -82,6 +83,7 @@ function data_fetch_bookings(PDO $pdo): array
             b.booking_id,
             b.booking_type,
             b.booking_status,
+            b.group_size,
             b.start_at,
             b.end_at,
             b.topics_notes,
@@ -96,7 +98,7 @@ function data_fetch_bookings(PDO $pdo): array
             p.full_name AS professor_name,
             l.location_name,
             u.full_name AS made_by,
-            COUNT(DISTINCT bs.student_id) AS student_count,
+            GREATEST(b.group_size, COUNT(DISTINCT bs.student_id)) AS student_count,
             GROUP_CONCAT(DISTINCT s.student_number ORDER BY bs.student_order SEPARATOR ', ') AS student_numbers,
             GROUP_CONCAT(DISTINCT s.full_name ORDER BY bs.student_order SEPARATOR ', ') AS student_names
         FROM bookings b
@@ -220,6 +222,7 @@ function data_fetch_bookings(PDO $pdo): array
             b.booking_id,
             b.booking_type,
             b.booking_status,
+            b.group_size,
             b.start_at,
             b.end_at,
             b.topics_notes,
