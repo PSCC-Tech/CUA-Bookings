@@ -18,6 +18,20 @@
         window.location.replace(`${LOGIN_PAGE}?${params.toString()}`);
     }
 
+    async function parseJsonResponse(response, endpoint) {
+        const text = await response.text();
+
+        if (!text.trim()) {
+            throw new Error(`${endpoint} returned an empty response with HTTP ${response.status}. Check the live PHP error log for this endpoint.`);
+        }
+
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            throw new Error(`${endpoint} returned invalid JSON with HTTP ${response.status}. Response started with: ${text.slice(0, 120)}`);
+        }
+    }
+
     async function checkSession() {
         try {
             const response = await fetch(STATUS_ENDPOINT, {
@@ -28,7 +42,7 @@
                     "Accept": "application/json"
                 }
             });
-            const payload = await response.json();
+            const payload = await parseJsonResponse(response, STATUS_ENDPOINT);
 
             if (!response.ok || payload.ok === false || !payload.authenticated) {
                 redirectToLogin();

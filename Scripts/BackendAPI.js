@@ -38,10 +38,14 @@ const CUAApi = {
         const text = await response.text();
         let payload;
 
+        if (!text.trim()) {
+            throw new Error(`${endpoint} returned an empty response with HTTP ${response.status}. Check the live PHP error log for this endpoint.`);
+        }
+
         try {
-            payload = text ? JSON.parse(text) : {};
+            payload = JSON.parse(text);
         } catch (error) {
-            throw new Error(`The PHP API did not return JSON. Open the page through http://localhost/CUA-Bookings/ and make sure Apache and MySQL are running.`);
+            throw new Error(`${endpoint} returned invalid JSON with HTTP ${response.status}. Response started with: ${text.slice(0, 120)}`);
         }
 
         if (!response.ok || payload.ok === false) {

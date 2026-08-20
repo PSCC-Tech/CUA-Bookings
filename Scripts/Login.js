@@ -42,6 +42,20 @@
         }
     }
 
+    async function parseJsonResponse(response, endpoint) {
+        const text = await response.text();
+
+        if (!text.trim()) {
+            throw new Error(`${endpoint} returned an empty response with HTTP ${response.status}. Check the live PHP error log for this endpoint.`);
+        }
+
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            throw new Error(`${endpoint} returned invalid JSON with HTTP ${response.status}. Response started with: ${text.slice(0, 120)}`);
+        }
+    }
+
     async function requestAuth(payload, method = "POST") {
         const response = await fetch(AUTH_ENDPOINT, {
             method,
@@ -53,7 +67,7 @@
             },
             body: payload ? JSON.stringify(payload) : undefined
         });
-        const data = await response.json();
+        const data = await parseJsonResponse(response, AUTH_ENDPOINT);
 
         if (!response.ok || data.ok === false) {
             throw new Error(data.error || "Authentication failed.");
