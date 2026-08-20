@@ -36,7 +36,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "3:30 PM",
         "4:00 PM",
         "4:30 PM",
-        "5:00 PM"
+        "5:00 PM",
+        "5:30 PM",
+        "6:00 PM"
     ];
 
     const scheduleEndOptions = [
@@ -59,7 +61,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "3:30 PM",
         "4:00 PM",
         "4:30 PM",
-        "5:00 PM"
+        "5:00 PM",
+        "5:30 PM",
+        "6:00 PM"
     ];
 
     function buildScheduleSelect(className, value, options) {
