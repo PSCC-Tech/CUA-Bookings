@@ -26,7 +26,10 @@
 
             <label>
                 Password
-                <input type="password" name="password" autocomplete="current-password" required>
+                <span class="password-field">
+                    <input id="password" type="password" name="password" autocomplete="current-password" required>
+                    <button type="button" id="toggle-password-visibility" class="password-toggle" aria-label="Show password">Show</button>
+                </span>
             </label>
 
             <button type="submit">Sign in</button>

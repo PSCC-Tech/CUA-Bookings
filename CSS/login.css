@@ -110,6 +110,43 @@ body.login-page::after {
     font: inherit;
 }
 
+.password-field {
+    display: grid;
+    position: relative;
+    margin-top: 6px;
+}
+
+.password-field input {
+    grid-area: 1 / 1;
+    display: block;
+    margin-top: 0;
+    padding-right: 68px;
+}
+
+.password-toggle {
+    grid-area: 1 / 1;
+    justify-self: end;
+    align-self: center;
+    z-index: 1;
+    box-sizing: border-box;
+    height: 100%;
+    margin: 0 !important;
+    min-height: 0;
+    padding: 0 8px !important;
+    border: 0;
+    background: transparent !important;
+    color: var(--inter-green, #007a5e) !important;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid var(--inter-yellow, #fed141);
+    outline-offset: 2px;
+}
+
 .login-form input:focus {
     outline: 3px solid rgba(254, 209, 65, 0.36);
     border-color: var(--inter-green, #007a5e);

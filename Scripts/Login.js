@@ -124,9 +124,23 @@
         });
     }
 
+    function setupPasswordToggle() {
+        const passwordInput = document.getElementById("password");
+        const toggleButton = document.getElementById("toggle-password-visibility");
+
+        if (!passwordInput || !toggleButton) return;
+
+        toggleButton.addEventListener("click", () => {
+            const isPasswordVisible = passwordInput.type === "text";
+            passwordInput.type = isPasswordVisible ? "password" : "text";
+            toggleButton.textContent = isPasswordVisible ? "Show" : "Hide";
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         setupLoginForm();
         showLogoutNotice();
         redirectIfAlreadySignedIn();
+        setupPasswordToggle();
     });
 })();
