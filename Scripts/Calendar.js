@@ -187,7 +187,7 @@ const MentorScheduleStore = (() => {
 
   function getSlotDurationMinutes() {
     const configured = Number(window.CUACalendarSlotDurationMinutes || 60);
-    return Number.isFinite(configured) && configured >= 30 ? configured : 60;
+    return Number.isFinite(configured) && (configured === 30 || configured === 60) ? configured : 60;
   }
 
   function generateSlots(ranges) {
@@ -203,7 +203,7 @@ const MentorScheduleStore = (() => {
           start: formatTime(current),
           end: formatTime(current + duration)
         });
-        current += 30;
+        current += duration;
       }
     });
 

@@ -18,17 +18,6 @@ function openConfirmation(dateStr, timeStr, endTimeStr = "") {
     };
 }
 
-document.getElementById("open-calendar-btn").addEventListener("click", (event) => {
-    if (event.currentTarget.disabled) return;
-
-    document.dispatchEvent(new CustomEvent("cua-calendar-before-open"));
-    document.getElementById("calendar-modal").style.display = "flex";
-});
-
-document.getElementById("close-calendar").addEventListener("click", () => {
-    document.getElementById("calendar-modal").style.display = "none";
-});
-
 function setSelectedDateTime(dateString, timeString, endTimeString = "") {
     const btn = document.getElementById("open-calendar-btn");
     const hidden = document.getElementById("selected-datetime");
@@ -42,8 +31,26 @@ function setSelectedDateTime(dateString, timeString, endTimeString = "") {
         : `${dateString} - ${timeString}`;
     btn.classList.add("has-selection");
 
-    document.getElementById("calendar-modal").style.display = "none";
+    const calendarModal = document.getElementById("calendar-modal");
+    if (calendarModal) calendarModal.style.display = "none";
+    const confirmModal = document.getElementById("confirm-selection");
+    if (confirmModal) confirmModal.classList.add("hidden");
 }
+
+document.addEventListener("click", (event) => {
+    const closeCalendarBtn = event.target.closest("#close-calendar");
+    if (!closeCalendarBtn) return;
+
+    const calendarModal = closeCalendarBtn.closest(".modal");
+    if (calendarModal) {
+        calendarModal.style.display = "none";
+    }
+
+    const confirmModal = document.getElementById("confirm-selection");
+    if (confirmModal) {
+        confirmModal.classList.add("hidden");
+    }
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (window.Autocomplete) {
@@ -52,6 +59,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (window.MentorScheduleStore) {
         await window.MentorScheduleStore.loadFromApi().catch(() => null);
+    }
+
+    const calendarModal = document.getElementById("calendar-modal");
+    const closeCalendarBtn = document.getElementById("close-calendar");
+    const confirmModal = document.getElementById("confirm-selection");
+
+    function hideCalendarModal() {
+        if (calendarModal) {
+            calendarModal.style.display = "none";
+        }
+        if (confirmModal) {
+            confirmModal.classList.add("hidden");
+        }
+    }
+
+    if (closeCalendarBtn && calendarModal) {
+        closeCalendarBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            hideCalendarModal();
+        });
+
+        document.addEventListener("click", (event) => {
+            if (event.target === calendarModal) {
+                hideCalendarModal();
+            }
+        });
     }
 
     // -------------------------
@@ -237,6 +271,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const courseNameInput = document.getElementById("course-name") || document.querySelector('input[placeholder="Course Name"]');
     const dateTimeButton = document.getElementById("open-calendar-btn");
     const selectedDateTimeInput = document.getElementById("selected-datetime");
+    const mentorshipDurationSelect = document.getElementById("mentorship-duration");
     const bookingTypeValue = document.getElementById("booking-type-value");
     const bookingTypeInputs = document.querySelectorAll("input[name='booking-type']");
     const bookingForm = document.querySelector(".form-container form");
@@ -254,6 +289,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     function currentUserName() {
         return window.CUAAuth?.user?.fullName || window.CUAAuth?.user?.full_name || "";
     }
+
+    function getSelectedMentorshipDurationMinutes() {
+        const value = Number(mentorshipDurationSelect?.value || 60);
+        return value === 30 ? 30 : 60;
+    }
+
+    function updateCalendarSlotDuration() {
+        const minutes = getSelectedMentorshipDurationMinutes();
+        window.CUACalendarSlotDurationMinutes = minutes;
+
+        if (window.CUACalendar && typeof window.CUACalendar.refresh === "function") {
+            window.CUACalendar.refresh();
+        }
+    }
+
+    window.CUACalendarSlotDurationMinutes = getSelectedMentorshipDurationMinutes();
+
+    dateTimeButton?.addEventListener("click", (event) => {
+        if (event.currentTarget.disabled) return;
+
+        updateCalendarSlotDuration();
+        document.dispatchEvent(new CustomEvent("cua-calendar-before-open"));
+        document.getElementById("calendar-modal").style.display = "flex";
+    });
+
+    mentorshipDurationSelect?.addEventListener("change", () => {
+        updateCalendarSlotDuration();
+    });
 
     function notifyError(message) {
         window.CUANotify?.error(message) || alert(message);
@@ -571,7 +634,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             topics: topicsInput?.value.trim() || "",
             date: toISODate(dateLabel),
             time: timeLabel,
-            duration_minutes: 60,
+            duration_minutes: getSelectedMentorshipDurationMinutes(),
             session_type: groupSize > 1 ? "group" : "single",
             group_size: groupSize,
             students: collectStudents()

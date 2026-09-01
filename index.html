@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="CSS/base.css?v=20260521-6">
     <link rel="stylesheet" href="CSS/index.css?v=20260527-1">
     <link rel="stylesheet" href="CSS/courses.css?v=20260514-5"> <!-- For filter button -->
-    <link rel="stylesheet" href="CSS/calendar.css?v=20260518-1">
+    <link rel="stylesheet" href="CSS/calendar.css?v=20260901-1">
     <link rel="stylesheet" href="CSS/theme.css?v=20260527-1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -93,6 +93,12 @@
                             Walk-in
                         </label>
                     </div>
+
+                    <label>Mentorship Duration</label>
+                    <select id="mentorship-duration" aria-label="Mentorship duration">
+                        <option value="60">1 hour</option>
+                        <option value="30">30 minutes</option>
+                    </select>
 
                     <label>Date & Time</label>
                     <button type="button" id="open-calendar-btn" class="date-btn" disabled>
@@ -191,7 +197,7 @@
 
     <div id="calendar-modal" class="modal">
         <div class="modal-content">
-            <button type="button" class="close-modal" id="close-calendar" aria-label="Close calendar">&times;</button>
+            <button type="button" class="close-modal" id="close-calendar" aria-label="Close calendar" onclick="document.getElementById('calendar-modal').style.display='none';">&times;</button>
 
             <div class="calendar-modal-header">
                 <div>
@@ -201,75 +207,69 @@
                 <span class="calendar-modal-status">Course availability</span>
             </div>
 
-        <div id="confirm-selection" class="modal hidden">
-            <div class="modal-content small">
-                <div class="confirm-icon"><i class="fas fa-calendar-check"></i></div>
-                <h3>Confirm this time?</h3>
-                <p id="confirm-text"></p>
-                <div class="confirm-actions">
-                    <button id="confirm-yes">Confirm</button>
-                    <button id="confirm-no">Cancel</button>
+            <div id="confirm-selection" class="modal hidden">
+                <div class="modal-content small">
+                    <div class="confirm-icon"><i class="fas fa-calendar-check"></i></div>
+                    <h3>Confirm this time?</h3>
+                    <p id="confirm-text"></p>
+                    <div class="confirm-actions">
+                        <button id="confirm-yes">Confirm</button>
+                        <button id="confirm-no">Cancel</button>
+                    </div>
                 </div>
             </div>
-    </div>
 
+            <div id="calendar-ui-container" class="modal-calendar">
+                <div class="mentor-tabs">
+                    <button class="mentor-tab active" data-mentor="1">Mentor 1</button>
+                    <button class="mentor-tab" data-mentor="2">Mentor 2</button>
+                    <button class="mentor-tab" data-mentor="3">Mentor 3</button>
+                </div>
 
-<div id="calendar-ui-container" class="modal-calendar">
-    <div class="mentor-tabs">
-                <button class="mentor-tab active" data-mentor="1">Mentor 1</button>
-                <button class="mentor-tab" data-mentor="2">Mentor 2</button>
-                <button class="mentor-tab" data-mentor="3">Mentor 3</button>
-            </div>
+                <div class="mentor-layout">
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <div class="nav-buttons">
+                                <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                                <button class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="month-year" id="month-year">September 2025</div>
+                        </div>
 
-            <div class="mentor-layout">
+                        <div class="weekdays">
+                            <div class="weekday">Sun</div>
+                            <div class="weekday">Mon</div>
+                            <div class="weekday">Tue</div>
+                            <div class="weekday">Wed</div>
+                            <div class="weekday">Thu</div>
+                            <div class="weekday">Fri</div>
+                            <div class="weekday">Sat</div>
+                        </div>
 
-            <!-- RIGHT COLUMN: CALENDAR -->
-            <div class="calendar-container">
-                <div class="calendar-header">
-                    <div class="nav-buttons">
-                    <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
-                    <button class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                        <div class="days" id="days"></div>
+
+                        <div class="calendar-footer">
+                            <button class="today-btn" id="today-btn"><i class="fas fa-calendar-day"></i> Today</button>
+                            <div class="event-indicator">
+                                <i class="fas fa-circle" style="color: var(--accent); font-size: 0.6rem;"></i>
+                                <span>Has events</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="month-year" id="month-year">September 2025</div>
-                </div>
 
-                <div class="weekdays">
-                    <div class="weekday">Sun</div>
-                    <div class="weekday">Mon</div>
-                    <div class="weekday">Tue</div>
-                    <div class="weekday">Wed</div>
-                    <div class="weekday">Thu</div>
-                    <div class="weekday">Fri</div>
-                    <div class="weekday">Sat</div>
-                </div>
-
-                <div class="days" id="days"></div>
-
-                <div class="calendar-footer">
-                    <button class="today-btn" id="today-btn"><i class="fas fa-calendar-day"></i> Today</button>
-                    <div class="event-indicator">
-                    <i class="fas fa-circle" style="color: var(--accent); font-size: 0.6rem;"></i>
-                    <span>Has events</span>
-                    </div>
-                </div>
-                </div>
-
-                <!-- Event Panel -->
-                <div class="event-panel" id="event-panel">
-                    <div class="event-header">
-                        <div class="event-date" id="event-date">Select a date</div>
-                        <i class="fas fa-calendar-alt event-icon"></i>
-                    </div>
-                    <div class="event-list" id="event-list">
-                        <div class="no-events">Select a date with events to view them here</div>
+                    <div class="event-panel" id="event-panel">
+                        <div class="event-header">
+                            <div class="event-date" id="event-date">Select a date</div>
+                            <i class="fas fa-calendar-alt event-icon"></i>
+                        </div>
+                        <div class="event-list" id="event-list">
+                            <div class="no-events">Select a date with events to view them here</div>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
-
-</div>
 
 <script src="Scripts/BackendAPI.js?v=20260820-1"></script>
 <script src="Scripts/Auth.js?v=20260820-1"></script>
@@ -278,9 +278,9 @@
 <script src="Scripts/RoleUI.js?v=20260527-2"></script>
 <script src="Scripts/Logout.js?v=20260518-1"></script>
 <script src="Scripts/Footer.js?v=20260521-6"></script>
-<script src="Scripts/Calendar.js?v=20260528-4"></script>
+<script src="Scripts/Calendar.js?v=20260901-1"></script>
 <script src="Scripts/Autocomplete.js?v=20260521-1"></script>
-<script src="Scripts/IndexUI.js?v=20260528-4"></script>
+<script src="Scripts/IndexUI.js?v=20260901-1"></script>
 
 </body>
 </html>
