@@ -38,7 +38,7 @@ function fetch_bookings(PDO $pdo): array
         JOIN locations l ON l.location_id = b.location_id
         JOIN users u ON u.user_id = b.made_by_user_id
         WHERE b.booking_status = 'active'
-           OR (b.booking_status = 'scheduled' AND b.start_at >= NOW())
+           OR (b.booking_status = 'scheduled' AND b.start_at >= CURDATE())
         ORDER BY b.start_at, b.booking_id
     ");
 

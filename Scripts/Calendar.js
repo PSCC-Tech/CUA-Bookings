@@ -706,7 +706,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        window.openConfirmation(dateLabel, slot.start, slot.end);
+        window.openConfirmation(dateLabel, slot.start, slot.end, state.activeMentor);
       });
     }
 

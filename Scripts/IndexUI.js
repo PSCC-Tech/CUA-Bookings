@@ -1,14 +1,60 @@
 // Confirmation Script
-function openConfirmation(dateStr, timeStr, endTimeStr = "") {
+function normalizeBookingMentorKey(value) {
+    return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function selectBookingMentorFromCalendar(mentor) {
+    const mentorSelect = document.getElementById("mentor-select");
+    if (!mentorSelect || !mentor) return true;
+
+    const keys = [
+        mentor.name,
+        mentor.mentor_number,
+        mentor.id,
+        mentor.mentorId
+    ]
+        .map(normalizeBookingMentorKey)
+        .filter(Boolean);
+
+    if (!keys.length) return true;
+
+    const option = [...mentorSelect.options].find(item =>
+        keys.includes(normalizeBookingMentorKey(item.value)) ||
+        keys.includes(normalizeBookingMentorKey(item.textContent)) ||
+        keys.includes(normalizeBookingMentorKey(item.dataset.mentorNumber))
+    );
+
+    if (!option || !option.value) {
+        return false;
+    }
+
+    mentorSelect.value = option.value;
+    return true;
+}
+
+function notifyCalendarMentorError() {
+    const message = "Could not match this calendar mentor to the booking form. Please select the mentor manually.";
+    window.CUANotify?.error(message) || alert(message);
+}
+
+function openConfirmation(dateStr, timeStr, endTimeStr = "", mentor = null) {
     const confirmModal = document.getElementById("confirm-selection");
     const confirmText = document.getElementById("confirm-text");
+    const mentorName = mentor?.name || "";
 
-    confirmText.textContent = endTimeStr
+    confirmText.textContent = mentorName
+        ? `Confirm booking with ${mentorName} on ${dateStr} from ${timeStr} to ${endTimeStr}?`
+        : endTimeStr
         ? `Confirm booking on ${dateStr} from ${timeStr} to ${endTimeStr}?`
         : `Confirm booking on ${dateStr} at ${timeStr}?`;
     confirmModal.classList.remove("hidden");
 
     document.getElementById("confirm-yes").onclick = () => {
+        if (!selectBookingMentorFromCalendar(mentor)) {
+            notifyCalendarMentorError();
+            return;
+        }
+
         setSelectedDateTime(dateStr, timeStr, endTimeStr);
         confirmModal.classList.add("hidden");
     };
@@ -409,6 +455,99 @@ document.addEventListener("DOMContentLoaded", async () => {
         dateTimeButton.disabled = false;
         dateTimeButton.textContent = "Choose Date & Time";
     }
+
+    function normalizeMentorKey(value) {
+        return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function getActiveCalendarMentor() {
+        return window.CUACalendar && typeof window.CUACalendar.getActiveMentor === "function"
+            ? window.CUACalendar.getActiveMentor()
+            : null;
+    }
+
+    function getActiveMentorTabName() {
+        const activeTab = document.querySelector(".mentor-tabs .mentor-tab.active");
+        return activeTab?.dataset.mentorName || activeTab?.textContent || "";
+    }
+
+    function findMentorOption(mentor) {
+        if (!mentorSelect) return null;
+
+        const keys = [
+            mentor?.name,
+            mentor?.mentor_number,
+            mentor?.id,
+            mentor?.mentorId,
+            getActiveCalendarMentor()?.name,
+            getActiveCalendarMentor()?.mentor_number,
+            getActiveCalendarMentor()?.id,
+            getActiveMentorTabName()
+        ]
+            .map(normalizeMentorKey)
+            .filter(Boolean);
+
+        if (!keys.length) return null;
+
+        return [...mentorSelect.options].find(option =>
+            keys.includes(normalizeMentorKey(option.value)) ||
+            keys.includes(normalizeMentorKey(option.textContent)) ||
+            keys.includes(normalizeMentorKey(option.dataset.mentorNumber))
+        ) || null;
+    }
+
+    function selectMentorFromCalendar(mentor) {
+        const option = findMentorOption(mentor || getActiveCalendarMentor());
+        if (!option || !option.value) {
+            return false;
+        }
+
+        mentorSelect.value = option.value;
+
+        if (selectedCourse && window.CUACalendar) {
+            window.CUACalendar.setCourse(selectedCourse.id, option.value, true);
+            window.CUACalendar.setMentor(option.value);
+        }
+
+        return true;
+    }
+
+    window.CUAHandleCalendarSlot = ({ dateLabel, slot, mentor } = {}) => {
+        const startTime = slot?.start || "";
+        const endTime = slot?.end || "";
+        const selectedCalendarMentor = mentor || getActiveCalendarMentor();
+        const mentorName = selectedCalendarMentor?.name || getActiveMentorTabName();
+        const confirmText = document.getElementById("confirm-text");
+        const confirmYes = document.getElementById("confirm-yes");
+        const confirmNo = document.getElementById("confirm-no");
+
+        if (!dateLabel || !startTime) return;
+
+        function confirmSelection() {
+            if (!selectMentorFromCalendar(selectedCalendarMentor)) {
+                notifyError("Could not match this calendar mentor to the booking form. Please select the mentor manually.");
+                return;
+            }
+
+            setSelectedDateTime(dateLabel, startTime, endTime);
+            confirmModal?.classList.add("hidden");
+        }
+
+        if (!confirmModal || !confirmText || !confirmYes || !confirmNo) {
+            confirmSelection();
+            return;
+        }
+
+        confirmText.textContent = mentorName
+            ? `Confirm booking with ${mentorName} on ${dateLabel} from ${startTime} to ${endTime}?`
+            : `Confirm booking on ${dateLabel} from ${startTime} to ${endTime}?`;
+        confirmModal.classList.remove("hidden");
+
+        confirmYes.onclick = confirmSelection;
+        confirmNo.onclick = () => {
+            confirmModal.classList.add("hidden");
+        };
+    };
 
     function syncCalendarCourse(onlySelectedMentor = false) {
         if (!window.CUACalendar || !selectedCourse) return;
